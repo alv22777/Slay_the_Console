@@ -5,6 +5,8 @@
 #include <algorithm>
 //returns the deque containing the cards in the pile.
 std::deque<Card>& Pile::getCards(){return cards;}
+//Returns a card in the pile in the given position.
+Card& Pile::getCard(int position){return cards[position];}
 
 //PILE MANIPULATION METHODS//
 
@@ -36,7 +38,7 @@ void Pile::movePileTo(Pile& p){
 //It also removes the drawn Cards from the origin pile.
 void Pile::drawFrom(Pile& p, int amount){
     for(int i=0;i<amount;i++){
-        if(p.cards.empty()){std::cerr<<"This pile is empty! No cards left to draw...\n";}
+        if(p.cards.empty()){std::cerr<<"This pile is empty! No cards left to draw...\n";break;}
         else{addCardToPile(p.cards.front()); p.remove(0);}
     } 
 }

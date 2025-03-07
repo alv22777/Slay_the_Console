@@ -36,14 +36,14 @@ class Character{
 	int getMaxEnergy();
 	int getBlock();
 	int getEnergy();
-	Pile getDeck();
-	Pile getCombatDeck();
-	Pile getHand();
-	Pile getDraw();
-	Pile getDiscard();
-	Pile getExhaust();
-	Card getPlayed();
-
+	Pile& getDeck();
+	Pile& getCombatDeck();
+	Pile& getHand();
+	Pile& getDraw();
+	Pile& getDiscard();
+	Pile& getExhaust();
+	Card& getPlayed();
+	Card& getCardFromHand(int position);
 	int getDeckSize();
 	int getHandSize();
 	int getDrawSize();
@@ -53,7 +53,9 @@ class Character{
 	void setMaxHP(int m);
 	void setBlock(int b);
 	void setHP(int hp);
-	void setPlayed(Card p);
+	void setMaxEnergy(int mE);
+	void setEnergy(int e);
+	void setPlayed(Card c);
 
 	//Changes maxHP by an amount Delta (integer). To decrease MaxHP, Delta<0. Gives terminal feedback on the change.
 	void changeMaxHP(int Delta);
@@ -66,7 +68,6 @@ class Character{
 	//Changes energy by an amount Delta(integer).
 	void changeEnergy(int Delta);
 	
-
 	void StartCombat(std::mt19937 seed);
 	
 	//adds Card c to player master deck.

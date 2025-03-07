@@ -13,13 +13,15 @@ int Character::getHP(){return HP;}
 int Character::getMaxEnergy(){return max_energy;}
 int Character::getBlock(){return block;}
 int Character::getEnergy(){return energy;}
-Pile Character::getDeck(){return deck;}
-Pile Character::getCombatDeck(){return combat_deck;}	
-Pile Character::getHand(){return hand;}
-Pile Character::getDraw() {return draw;}
-Pile Character::getDiscard(){return discard;}
-Pile Character::getExhaust(){return exhaust;}
-Card Character::getPlayed(){return played;}
+Pile& Character::getDeck(){return deck;}
+Pile& Character::getCombatDeck(){return combat_deck;}	
+Pile& Character::getHand(){return hand;}
+Pile& Character::getDraw() {return draw;}
+Pile& Character::getDiscard(){return discard;}
+Pile& Character::getExhaust(){return exhaust;}
+Card& Character::getPlayed(){return played;}
+
+Card& Character::getCardFromHand(int position){return hand.getCard(position);}
 
 int Character::getDeckSize() {return deck.getCards().size();}
 int Character::getHandSize() {return hand.getCards().size();}
@@ -30,7 +32,9 @@ void Character::setName(string n){name = n;}
 void Character::setMaxHP(int m){max_HP = m;}
 void Character::setBlock(int b){block = b;}
 void Character::setHP(int hp){HP = hp;}
-void Character::setPlayed(Card p){played = p;}
+void Character::setMaxEnergy(int mE){max_energy = mE;}
+void Character::setEnergy(int e){energy=e;}
+void Character::setPlayed(Card c){played = c;}
 
 //Changes maxHP by an amount Delta (integer). To decrease MaxHP, Delta<0. Gives terminal feedback on the change.
 void Character::changeMaxHP(int Delta){
@@ -61,11 +65,11 @@ void Character::changeEnergy(int Delta){
 
 
 void Character::StartCombat(std::mt19937 seed){
-    cout<<"Creating combat deck...\n"; combat_deck.addPileToSelf(deck); Sleep(1500);
-    cout<<"Combat deck: "; combat_deck.displayPile(); Sleep(1500);
-    cout<<"Shuffling Combat deck...\n";	combat_deck.shufflePile(seed); combat_deck.displayPile();Sleep(1500);
+    cout<<"Creating combat deck...\n"; combat_deck.addPileToSelf(deck);
+    cout<<"Shuffling Combat deck...\n";	combat_deck.shufflePile(seed);
     cout<<"Creating Draw Pile...\n";
-    combat_deck.movePileTo(draw); draw.displayPile(); Sleep(1500);
+    combat_deck.movePileTo(draw); draw.displayPile(); system("pause");
+
     hand.drawFrom(draw,5);
 }
 

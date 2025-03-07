@@ -10,6 +10,8 @@ class Pile{
     public:
     	//returns the deque containing the cards in the pile.
 	std::deque <Card>& getCards();
+
+	Card& getCard(int position);
 	//PILE MANIPULATION METHODS//
 
 	//Use this to add a card to the pile

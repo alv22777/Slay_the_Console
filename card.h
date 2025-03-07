@@ -9,11 +9,11 @@ class Card{
 	std::string name; //The card's name.
 	std::string type; //ATK, SKL, POW, CUR, STS
 	int energy_cost; //if energy_cost = -1, card is unplayable
-	std::string rarity;
+	int rarity; //How rare the card is 
 	std::string card_text;
     
 public:
-    Card(int c, std::string n, std::string t, int cost, std::string r, std::string text);
+    Card(int c, std::string n, std::string t, int cost, int r, std::string text);
     void display();    
     int getEnergyCost();
     std::string getName();
