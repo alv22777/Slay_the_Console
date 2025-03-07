@@ -1,4 +1,6 @@
 #include "card.h"
+#include "pile.h"
+#include "character.h"
 #include <deque>
 #include <algorithm>
 #include <random>
@@ -31,194 +33,7 @@ const int STARTING_BLOCK = 0;
 	EXH: Exhaust. When this card is played, remove it from your deck until end of combat. 
 */
 
-std::mt19937 g(std::time(nullptr));// Better random number generator
-
-class Pile{
-	deque <Card> cards;
-
-	public:
-	//returns the deque containing the cards in the pile.
-	deque<Card>& getCards(){return cards;}
-
-	//PILE MANIPULATION METHODS//
-
-	//Use this to add a card to the pile
-	void addCardToPile(Card& card){cards.push_back(card);}
-	//Use this to remove given position from this pile of cards.
-	void remove(int position){cards.erase(cards.begin()+position);}
-	
-	//Use this to randomize the order of the cards in the deck.
-	void shuffle(){
-		std::shuffle(cards.begin(),cards.end(),g);
-		cout<<"Successfully shuffled "<<getCards().size()<<" cards.\n";
-	}
-	
-	//Add all the elements from pile p into self. Generally, it should be used in tandem with deletePile(). 
-	void addPileToSelf(Pile &p){
-		for(Card card: p.getCards()){addCardToPile(card);}
-	}
-	//Remove all elements from the pile of cards
-	void deletePile(){cards.erase(cards.begin(),cards.end());}
-
-	//Move all the elements from this pile to a target pile p, then delete this pile. 
-	void movePileTo(Pile& p){
-		p.addPileToSelf(*this);
-		deletePile();
-	}
-
-	//This function allows to draw a certain amount of cards (amount) from another pile (&p) into self.
-	//It also removes the drawn Cards from the origin pile.
-	void drawFrom(Pile& p, int amount){
-		for(int i=0;i<amount;i++){
-			if(p.cards.empty()){std::cerr<<"This pile is empty! No cards left to draw...\n";}
-			else{addCardToPile(p.cards.front()); p.remove(0);}
-		} 
-	}
-	//This function displays the pile of cards as a simple list.
-	void displayPile(){
-		if (cards.empty()){cout<<"This pile is empty! Nothing to show!\n"; return;}
-		int j=0;
-		for (Card i: cards){cout<<j++<<". "; i.Card::display();}
-	}
-};
-
-class Character{
-	string name; //Your character's name.
-	int max_HP; //Maximun number of Hit Points. Persistent through floors.
-	int HP; //Current Hitpoints. Persistent through floors.
-	int max_energy; //You get this amount of energy each turn. Persistent.
-	int energy; //Current energy. Combat only.
-	int block; //Current amount of BLK. Combat only.
-	Pile deck; //Your current deck of cards.
-	Pile combat_deck;
-	// int Stance; //WAT, PSM (Prismatic): Current Stance. 0: Neutral NTL, 1: Calm CLM, 2: Wrath WRT, 3: Divinity DIV. Combat only.
-	// int orbSlots; //How many orb slots you currently have. Defect starts with 3. On any other character, you start with 1 if you are Prismatic. Combat only.
-	// deque <int> orbs; //Your channeled orbs. Combat only.
-	// bool prismatic;
-	Pile hand; //Your current hand
-	Pile draw; //You draw cards from this pile
-	Pile discard; //You discard cards in here from card effects and at the end of your turn.
-	Pile exhaust; //Cards that have exhausted this combat.
-
-	Card played;
-	public:
-	Character(string N, int MHP, int HP, int ME, int E, int B, Pile D, Card p)
-		:name(N), max_HP(MHP), HP(HP), max_energy(ME), energy(E), block(B), deck(D), played(p){}
-
-	string getName() {return name;}
-	int getMaxHP() {return max_HP;}
-	int getHP(){return HP;}
-	int getMaxEnergy(){return max_energy;}
-	int getBlock(){return block;}
-	int getEnergy(){return energy;}
-	Pile getDeck(){return deck;}
-	Pile getCombatDeck(){return combat_deck;}	
-	Pile getHand(){return hand;}
-	Pile getDraw() {return draw;}
-	Pile getDiscard(){return discard;}
-	Pile getExhaust(){return exhaust;}
-	Card getPlayed(){return played;}
-
-	int getDeckSize() {return deck.getCards().size();}
-	int getHandSize() {return hand.getCards().size();}
-	int getDrawSize() {return draw.getCards().size();}
-	int getDiscardSize() {return discard.getCards().size();}
-	int getExhaustSize() {return exhaust.getCards().size();}
-	void setName(string n){name = n;}
-	void setMaxHP(int m){max_HP = m;}
-	void setBlock(int b){block = b;}
-	void setHP(int hp){HP = hp;}
-	void setPlayed(Card p){played = p;}
-
-	//Changes maxHP by an amount Delta (integer). To decrease MaxHP, Delta<0. Gives terminal feedback on the change.
-	void changeMaxHP(int Delta){
-		max_HP += Delta;
-		if(HP>max_HP){HP=max_HP;}
-		cout<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" Max HP!\n";
-		
-	}
-	void changeMaxEnergy(int Delta){
-		max_energy += Delta;
-		cout<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" Max HP!\n";
-	}
-	//Changes Block by an amount Delta(integer).
-	void changeBlock(int Delta){
-		block += Delta;
-		cout<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" Block!\n";
-	}
-	//Changes HP by an amount Delta(integer).
-	void changeHP(int Delta){
-		HP += Delta;
-		cout<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" HP!\n";		
-	}
-	//Changes energy by an amount Delta(integer).
-	void changeEnergy(int Delta){
-		energy += Delta;
-		cout<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" Energy!\n";
-	}
-	
-
-	void StartCombat(){
-		cout<<"Creating combat deck...\n"; combat_deck.addPileToSelf(deck); Sleep(1500);
-		cout<<"Combat deck: "; combat_deck.displayPile(); Sleep(1500);
-		cout<<"Shuffling Combat deck...\n";	combat_deck.shuffle(); combat_deck.displayPile();Sleep(1500);
-		cout<<"Creating Draw Pile...\n";
-		combat_deck.movePileTo(draw); draw.displayPile(); Sleep(1500);
-		hand.drawFrom(draw,5);
-	}
-	
-	//adds Card c to player master deck.
-	void addToDeck(Card c){deck.addCardToPile(c);}
-	//Add Card c to player's draw pile
-	void addToDraw(Card c){draw.addCardToPile(c);}
-	//Add Card c to Player's hand.
-	void addToHand(Card c){hand.addCardToPile(c);}
-	//Add Card c to Player's discard pile.
-	void addToDiscard(Card c){discard.addCardToPile(c);}
-	//Add Card c to Player's exhaust pile.
-	void addToExhaust(Card c){exhaust.addCardToPile(c);}
-
-	//Removes a card with passed position from the player's deck.
-	void removeFromDeck(int position){deck.remove(position);}
-	//Removes a card with passed position from the player's draw pile.
-	void removeFromDraw(int position){draw.remove(position);}
-	//Removes a card with passed position from the player's discard pile.
-	void removeFromHand(int position){hand.remove(position);}
-	//Removes a card with passed position from the player's discard pile.
-	void removeFromDiscard(int position){discard.remove(position);}
-	//Removes a card with passed position from the player's Exhaust pile.
-	void removeFromExhaust(int position){exhaust.remove(position);}
-	
-	//Delete Player's Deck.
-	void deleteDeck(){deck.deletePile();}
-	//Delete Player's Draw pile.
-	void deleteDraw(){draw.deletePile();}
-	//Delete Player's Hand.
-	void deleteHand(){hand.deletePile();}
-	//Delete Player's Discard Pile.
-	void deleteDiscard(){discard.deletePile();}
-	//Delete Player's Exhaust pile.
-	void deleteExhaust(){deck.deletePile();}
-
-
-	void displayStatus(){
-		//STATUS BAR
-		cout<<name<<'\n';
-		cout<<"HP : "<<HP<<"/"<<max_HP<<'\n';
-		cout<<"Energy : "<<energy<<"/"<<max_energy<<'\n';	
-	}
-	void playCardFromHand(int pos){
-		Card played = getHand().getCards()[pos];
-		cout<<"Playing: "<<played.getName()<<"...";
-		changeEnergy(-played.getEnergyCost());
-
-		//EFFECT foo();
-
-		cout<<"YOU JUST PLAYED "<<played.getName()<<"!"<<'\n';
-		addToDiscard(played);
-		removeFromHand(pos);
-	}
-};
+std::mt19937 seed(std::time(nullptr));// Better random number generator
 
 
 ////////////////////THE IRONCLAD//////////////////
@@ -227,6 +42,7 @@ class Character{
 Card ICL_Strike = {0, "Strike", "ATK", 1, "Starter","ENY: 6 DMG"};
 Card ICL_Defend = {0, "Defend", "SKL", 1, "Starter", "YOU: 5 BLK"};
 Card ICL_Bash = {0, "Bash", "ATK", 2,  "Starter", "ENY: 8 DMG, 2 VUL"};
+
 Card blank_card = {0,"None","None",0,"None","None"};
 Pile ICL_STARTER_DECK;
 Pile empty_deck;
@@ -258,8 +74,6 @@ int main(){
 	 
 
 	
-
-	cout<<"YOUR SEED IS:"<<g;
 	int choice = 0;
 	while(choice>4||choice<1){cout<<"Please select your character: \n1. The Ironclad\n2. The Silent\n3. The Defect\n4. The Watcher\n"; cin>>choice;}
 	
@@ -275,7 +89,7 @@ int main(){
 	
 	cout<<"COMBAT SIMULATION"<<'\n';
 	
-	player.StartCombat();
+	player.StartCombat(seed);
 
 
 	while(1){
