@@ -1,9 +1,10 @@
-#include <iostream>
+#include "card.h"
 #include <deque>
 #include <algorithm>
 #include <random>
 #include <ctime>
 #include <windows.h>
+
 using std::string; using std::cout; using std::deque; using std::cin; using std::random_shuffle;	
 
 
@@ -29,27 +30,8 @@ const int STARTING_BLOCK = 0;
 	CUR: Curse. Has negative effects. Obtained through events and certain relics.
 	EXH: Exhaust. When this card is played, remove it from your deck until end of combat. 
 */
-std::mt19937 rng;
 
-class Card{
-	int character; //0: ICL, 1: SLT, 2: DEF, 3: WAT, 4: CLS
-	string name; //The card's name.
-	string type; //ATK, SKL, POW, CUR, STS
-	int energy_cost; //if energy_cost = -1, card is unplayable
-	string rarity;
-	string card_text;
-	public:
-	//Creates a Card and initializes it's values with the given arguments.
-	Card(int c, string n, string t, int cost, string r, string text)//Character, name, type, energy cost, rarity, card text
-		:character(c), name(n), type(t), energy_cost(cost), rarity(r), card_text(text){}
-
-	//Display this card on the terminal.	
-	void display(){cout<<name<<"("<<energy_cost<<" NRG, "<<type<<"):"<<card_text<<'\n';}
-	int getEnergyCost(){return energy_cost;}
-	string getName(){return name;}
-
-	
-};
+std::mt19937 g(std::time(nullptr));// Better random number generator
 
 class Pile{
 	deque <Card> cards;
@@ -67,7 +49,7 @@ class Pile{
 	
 	//Use this to randomize the order of the cards in the deck.
 	void shuffle(){
-		std::shuffle(cards.begin(),cards.end(),rng);
+		std::shuffle(cards.begin(),cards.end(),g);
 		cout<<"Successfully shuffled "<<getCards().size()<<" cards.\n";
 	}
 	
@@ -78,9 +60,9 @@ class Pile{
 	//Remove all elements from the pile of cards
 	void deletePile(){cards.erase(cards.begin(),cards.end());}
 
-	//Move all the elements from this pile to a target pile P, then delete this pile. 
+	//Move all the elements from this pile to a target pile p, then delete this pile. 
 	void movePileTo(Pile& p){
-		addPileToSelf(p);
+		p.addPileToSelf(*this);
 		deletePile();
 	}
 
@@ -96,7 +78,7 @@ class Pile{
 	void displayPile(){
 		if (cards.empty()){cout<<"This pile is empty! Nothing to show!\n"; return;}
 		int j=0;
-		for (Card i: cards){cout<<j++<<". "; i.display();}
+		for (Card i: cards){cout<<j++<<". "; i.Card::display();}
 	}
 };
 
@@ -147,10 +129,13 @@ class Character{
 	void setBlock(int b){block = b;}
 	void setHP(int hp){HP = hp;}
 	void setPlayed(Card p){played = p;}
+
 	//Changes maxHP by an amount Delta (integer). To decrease MaxHP, Delta<0. Gives terminal feedback on the change.
 	void changeMaxHP(int Delta){
 		max_HP += Delta;
+		if(HP>max_HP){HP=max_HP;}
 		cout<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" Max HP!\n";
+		
 	}
 	void changeMaxEnergy(int Delta){
 		max_energy += Delta;
@@ -174,12 +159,11 @@ class Character{
 	
 
 	void StartCombat(){
-		cout<<"Creating combat deck...\n"; combat_deck.addPileToSelf(deck);
-		cout<<"Combat deck: "; combat_deck.displayPile();
-		cout<<"Shuffling Combat deck";	combat_deck.shuffle(); combat_deck.displayPile();
+		cout<<"Creating combat deck...\n"; combat_deck.addPileToSelf(deck); Sleep(1500);
+		cout<<"Combat deck: "; combat_deck.displayPile(); Sleep(1500);
+		cout<<"Shuffling Combat deck...\n";	combat_deck.shuffle(); combat_deck.displayPile();Sleep(1500);
 		cout<<"Creating Draw Pile...\n";
-		draw.addPileToSelf(combat_deck);
-		draw.displayPile();
+		combat_deck.movePileTo(draw); draw.displayPile(); Sleep(1500);
 		hand.drawFrom(draw,5);
 	}
 	
@@ -271,8 +255,11 @@ int main(){
 	
 	// set seed
 	//std::mt19937 g(12314);
-	std::mt19937 g(time(nullptr)); //RNG
+	 
 
+	
+
+	cout<<"YOUR SEED IS:"<<g;
 	int choice = 0;
 	while(choice>4||choice<1){cout<<"Please select your character: \n1. The Ironclad\n2. The Silent\n3. The Defect\n4. The Watcher\n"; cin>>choice;}
 	
@@ -294,11 +281,12 @@ int main(){
 	while(1){
 
 		if(change==1){
-			//system("cls");
+			system("cls");
 		}
 
 			change=0;			
 			player.displayStatus();
+			cout<<"Hand:\n";
 			player.getHand().displayPile();
 			//STATUS BAR
 
