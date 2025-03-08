@@ -3,10 +3,11 @@
 #include "card.h"
 #include <random>
 #include <algorithm>
-//returns the deque containing the cards in the pile.
-std::deque<Card>& Pile::getCards(){return cards;}
+
 //Returns a card in the pile in the given position.
 Card& Pile::getCard(int position){return cards[position];}
+
+size_t  Pile::getSize()const {return cards.size();}
 
 //PILE MANIPULATION METHODS//
 
@@ -18,12 +19,12 @@ void Pile::remove(int position){cards.erase(cards.begin()+position);}
 //Use this to randomize the order of the cards in the deck.
 void Pile::shufflePile(std::mt19937 seed){
     std::shuffle(cards.begin(),cards.end(),seed);
-   std::cout<<"Successfully shuffled "<<getCards().size()<<" cards.\n";
+   std::cout<<"Successfully shuffled "<<getSize()<<" cards.\n";
 }
 
 //Add all the elements from pile p into self. Generally, it should be used in tandem with deletePile(). 
 void Pile::addPileToSelf(Pile &p){
-    for(Card card: p.getCards()){addCardToPile(card);}
+    for(size_t i=0;i<p.getSize();i++){addCardToPile(p.getCard(i));}
 }
 //Remove all elements from the pile of cards
 void Pile::deletePile(){cards.erase(cards.begin(),cards.end());}

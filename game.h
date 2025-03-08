@@ -2,8 +2,6 @@
 #define GAME_H
 #include<random>
 #include<algorithm>
-#include "card.h"
-#include "pile.h"
 #include "character.h"
 
 class Game{
@@ -15,7 +13,7 @@ class Game{
 	void displayGameState(Character &p);
     
 	//Get the player's choice from a pile p.
-	int getPlayerChoice(Pile& p);
+	int getPlayerChoice();
 
 	void setupPlayer(int choice);
 	void start();

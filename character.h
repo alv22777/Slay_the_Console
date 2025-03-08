@@ -36,19 +36,20 @@ class Character{
 	int getMaxEnergy();
 	int getBlock();
 	int getEnergy();
-	Pile& getDeck();
-	Pile& getCombatDeck();
-	Pile& getHand();
-	Pile& getDraw();
-	Pile& getDiscard();
-	Pile& getExhaust();
-	Card& getPlayed();
+	Card& getCardFromDeck(int position);
+	Card& getCardFromCombatDeck(int position);
 	Card& getCardFromHand(int position);
+	Card& getCardFromDraw(int position);
+	Card& getCardFromDiscard(int position);
+	Card& getCardFromExhaust(int position);
+
+	Card& getPlayed();
 	int getDeckSize();
 	int getHandSize();
 	int getDrawSize();
 	int getDiscardSize();
 	int getExhaustSize();
+	
 	void setName(std::string n);
 	void setMaxHP(int m);
 	void setBlock(int b);
@@ -103,6 +104,12 @@ class Character{
 	//Delete Player's Exhaust pile.
 	void deleteExhaust();
 
+	void displayDeck();
+	void displayCombatDeck();
+	void displayDraw();
+	void displayHand();
+	void displayDiscard();
+	void displayExhaust();
 
 	void displayStatus();
 	void playCardFromHand(int pos);

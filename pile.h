@@ -8,9 +8,8 @@ class Pile{
     std::deque <Card> cards;
 
     public:
-    	//returns the deque containing the cards in the pile.
-	std::deque <Card>& getCards();
 
+	size_t getSize() const; 
 	Card& getCard(int position);
 	//PILE MANIPULATION METHODS//
 

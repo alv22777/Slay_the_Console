@@ -13,21 +13,21 @@ int Character::getHP(){return HP;}
 int Character::getMaxEnergy(){return max_energy;}
 int Character::getBlock(){return block;}
 int Character::getEnergy(){return energy;}
-Pile& Character::getDeck(){return deck;}
-Pile& Character::getCombatDeck(){return combat_deck;}	
-Pile& Character::getHand(){return hand;}
-Pile& Character::getDraw() {return draw;}
-Pile& Character::getDiscard(){return discard;}
-Pile& Character::getExhaust(){return exhaust;}
+
+Card& Character::getCardFromDeck(int position){return deck.getCard(position);}
+Card& Character::getCardFromCombatDeck(int position){return combat_deck.getCard(position);}	
+Card& Character::getCardFromHand(int position){return hand.getCard(position);}
+Card& Character::getCardFromDraw(int position) {return draw.getCard(position);}
+Card& Character::getCardFromDiscard(int position){return discard.getCard(position);}
+Card& Character::getCardFromExhaust(int position){return exhaust.getCard(position);}
 Card& Character::getPlayed(){return played;}
 
-Card& Character::getCardFromHand(int position){return hand.getCard(position);}
+int Character::getDeckSize() {return deck.getSize();}
+int Character::getHandSize() {return hand.getSize();}
+int Character::getDrawSize() {return draw.getSize();}
+int Character::getDiscardSize() {return discard.getSize();}
+int Character::getExhaustSize() {return exhaust.getSize();}
 
-int Character::getDeckSize() {return deck.getCards().size();}
-int Character::getHandSize() {return hand.getCards().size();}
-int Character::getDrawSize() {return draw.getCards().size();}
-int Character::getDiscardSize() {return discard.getCards().size();}
-int Character::getExhaustSize() {return exhaust.getCards().size();}
 void Character::setName(string n){name = n;}
 void Character::setMaxHP(int m){max_HP = m;}
 void Character::setBlock(int b){block = b;}
@@ -84,6 +84,7 @@ void Character::addToDiscard(Card c){discard.addCardToPile(c);}
 //Add Card c to Player's exhaust pile.
 void Character::addToExhaust(Card c){exhaust.addCardToPile(c);}
 
+
 //Removes a card with passed position from the player's deck.
 void Character::removeFromDeck(int position){deck.remove(position);}
 //Removes a card with passed position from the player's draw pile.
@@ -106,16 +107,22 @@ void Character::deleteDiscard(){discard.deletePile();}
 //Delete Player's Exhaust pile.
 void Character::deleteExhaust(){deck.deletePile();}
 
+void Character::displayDeck(){deck.displayPile();}
+void Character::displayCombatDeck(){combat_deck.displayPile();}
+void Character::displayDraw(){draw.displayPile();}
+void Character::displayHand(){hand.displayPile();}
+void Character::displayDiscard(){discard.displayPile();}
+void Character::displayExhaust(){exhaust.displayPile();}
 
 void Character::displayStatus(){
     //STATUS BAR
     cout<<name<<'\n';
-    cout<<"HP : "<<HP<<"/"<<max_HP<<'\n';
+    cout<<"HP: "<<HP<<"/"<<max_HP<<'\n';
     cout<<"Energy : "<<energy<<"/"<<max_energy<<'\n';	
 }
 
 void Character::playCardFromHand(int pos){
-    Card played = getHand().getCards()[pos];
+    Card played = getCardFromHand(pos);
     cout<<"Playing: "<<played.getName()<<"...";
     changeEnergy(-played.getEnergyCost());
 

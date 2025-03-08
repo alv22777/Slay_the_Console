@@ -11,7 +11,7 @@
 		p.displayStatus();
 	}
 	//Get the player's choice from a pile p.
-	int Game::getPlayerChoice(Pile& p){
+	int Game::getPlayerChoice(){
 		int choice;
 		while(1){
 			std::cout<<"Card to play?\n";
@@ -21,7 +21,7 @@
 			else if (choice>player.getHandSize()-1||choice<0){std::cout<<"choice not in valid range\n";continue;}
 			else{
 				player.setPlayed(player.getCardFromHand(choice));
-				if(player.getPlayed().getEnergyCost()>player.getEnergy()){
+				if(player.getCardFromHand(choice).getEnergyCost()>player.getEnergy()){
 					std::cout<< "You don't have enough energy to play " << player.getCardFromHand(choice).getName()<<"!\n";
 				}
 				else{
@@ -34,10 +34,18 @@
 	void Game::setupPlayer(int choice){
 		switch(choice){
 		case 1:
-            player.setName("The Ironclad"); player.setMaxHP(ICL_STARTING_MAX_HP); player.setHP(ICL_STARTING_MAX_HP); player.setMaxEnergy(STARTING_ENERGY); player.setEnergy(STARTING_ENERGY);player.getDeck().addPileToSelf(ICL_STARTER_DECK); player.setPlayed(blank_card);
+            player.setName("The Ironclad"); 
+			player.setMaxHP(ICL_STARTING_MAX_HP); player.setHP(ICL_STARTING_MAX_HP); 
+			player.setMaxEnergy(STARTING_ENERGY); player.setEnergy(STARTING_ENERGY);
+			for(int i=0;i<ICL_STARTER_DECK.getSize();i++){player.addToDeck(ICL_STARTER_DECK.getCard(i));}
+			player.setPlayed(blank_card);
             break;
 		case 2:
-            player.setName("The Silent"); player.setMaxHP(SLT_STARTING_MAX_HP); player.setHP(SLT_STARTING_MAX_HP); player.setMaxEnergy(STARTING_ENERGY); player.setEnergy(STARTING_ENERGY); player.getDeck().addPileToSelf(SLT_STARTER_DECK); player.setPlayed(blank_card);
+			player.setName("The Silent"); 
+			player.setMaxHP(SLT_STARTING_MAX_HP); player.setHP(SLT_STARTING_MAX_HP); 
+			player.setMaxEnergy(STARTING_ENERGY); player.setEnergy(STARTING_ENERGY);
+			for(int i=0;i<SLT_STARTER_DECK.getSize();i++){player.addToDeck(SLT_STARTER_DECK.getCard(i));}
+			player.setPlayed(blank_card);
 			break;
 		}
 
@@ -49,9 +57,9 @@
 
 		while(1){	
 			displayGameState(player);
-			player.getHand().displayPile();
+			player.displayHand();
 
-			choice = getPlayerChoice(player.getHand());
+			choice = getPlayerChoice();
 
 			player.playCardFromHand(choice);
 			Sleep(1000);

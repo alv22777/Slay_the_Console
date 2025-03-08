@@ -1,14 +1,6 @@
-#include "card.h"
-#include "pile.h"
-#include "character.h"
 #include "game.h"
-#include <deque>
-#include <algorithm>
-#include <random>
-#include <ctime>
-#include <windows.h>
 #include "constants.h"
-
+#include <ctime>
 
 /*
 	Glossary:
