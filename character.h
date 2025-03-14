@@ -7,6 +7,13 @@
 #include <random>
 #include <ctime>
 #include <windows.h>
+
+//The player can have 6 Piles, 
+enum class PileType{deck, combat_deck, hand, draw, discard, exhaust};
+enum class PlayerAttribute{HP, max_HP, energy, max_energy, block};
+
+//This is a Slay The Spire Character, it has several core attributes like HP, energy and block.
+//It also has several Piles, which track the player's deck out of combat an during combat.
 class Character{
 	std::string name; //Your character's name.
 	int max_HP; //Maximun number of Hit Points. Persistent through floors.
@@ -15,11 +22,8 @@ class Character{
 	int energy; //Current energy. Combat only.
 	int block; //Current amount of BLK. Combat only.
 	Pile deck; //Your current deck of cards.
-	Pile combat_deck;
-	// int Stance; //WAT, PSM (Prismatic): Current Stance. 0: Neutral NTL, 1: Calm CLM, 2: Wrath WRT, 3: Divinity DIV. Combat only.
-	// int orbSlots; //How many orb slots you currently have. Defect starts with 3. On any other character, you start with 1 if you are Prismatic. Combat only.
-	// deque <int> orbs; //Your channeled orbs. Combat only.
-	// bool prismatic;
+	Pile combat_deck; //Deck used for combat.
+
 	Pile hand; //Your current hand
 	Pile draw; //You draw cards from this pile
 	Pile discard; //You discard cards in here from card effects and at the end of your turn.
@@ -31,88 +35,43 @@ class Character{
 	Character(std::string N, int MHP, int HP, int ME, int E, int B, Pile D, Card p);
 
 	std::string getName();
-	int getMaxHP();
-	int getHP();
-	int getMaxEnergy();
-	int getBlock();
-	int getEnergy();
-	Card& getCardFromDeck(int position);
-	Card& getCardFromCombatDeck(int position);
-	Card& getCardFromHand(int position);
-	Card& getCardFromDraw(int position);
-	Card& getCardFromDiscard(int position);
-	Card& getCardFromExhaust(int position);
+	int getAttribute(PlayerAttribute att);
 
+	Card& getCardFromPile(PileType type, int position);
 	Card& getPlayed();
-	int getDeckSize();
-	int getHandSize();
-	int getDrawSize();
-	int getDiscardSize();
-	int getExhaustSize();
 	
-	void setName(std::string n);
-	void setMaxHP(int m);
-	void setBlock(int b);
-	void setHP(int hp);
-	void setMaxEnergy(int mE);
-	void setEnergy(int e);
-	void setPlayed(Card c);
+	int getPlayerPileSize(PileType type);
+		
+	void setName(const std::string& n);
+	void setAttribute(PlayerAttribute att, int value);
+	void setPlayed(Card& c);
 
-	//Changes maxHP by an amount Delta (integer). To decrease MaxHP, Delta<0. Gives terminal feedback on the change.
-	void changeMaxHP(int Delta);
-    ////Changes max_energy by an amount Delta (integer).
-	void changeMaxEnergy(int Delta);
-	//Changes Block by an amount Delta(integer).
-	void changeBlock(int Delta);
-	//Changes HP by an amount Delta(integer).
-	void changeHP(int Delta);
-	//Changes energy by an amount Delta(integer).
-	void changeEnergy(int Delta);
+	void changeAttribute(PlayerAttribute att, int Delta);
+    
+	void StartCombat(std::mt19937& seed);
+
+	//Add Card c to player Pile type (deck, hand, discard...). 
+	void addToPlayerPile(PileType type, Card& c);
 	
-	void StartCombat(std::mt19937 seed);
-	
-	//adds Card c to player master deck.
-	void addToDeck(Card c);
-	//Add Card c to player's draw pile
-	void addToDraw(Card c);
-	//Add Card c to Player's hand.
-	void addToHand(Card c);
-	//Add Card c to Player's discard pile.
-	void addToDiscard(Card c);
-	//Add Card c to Player's exhaust pile.
-	void addToExhaust(Card c);
+	//Removes Card with position pos from the player's Pile type (deck, hand, discard...).
+	void removeFromPlayerPile(PileType type, int pos);
 
-	//Removes a card with passed position from the player's deck.
-	void removeFromDeck(int position);
-	//Removes a card with passed position from the player's draw pile.
-	void removeFromDraw(int position);
-	//Removes a card with passed position from the player's discard pile.
-	void removeFromHand(int position);
-	//Removes a card with passed position from the player's discard pile.
-	void removeFromDiscard(int position);
-	//Removes a card with passed position from the player's Exhaust pile.
-	void removeFromExhaust(int position);
-	
-	//Delete Player's Deck.
-	void deleteDeck();
-	//Delete Player's Draw pile.
-	void deleteDraw();
-	//Delete Player's Hand.
-	void deleteHand();
-	//Delete Player's Discard Pile.
-	void deleteDiscard();
-	//Delete Player's Exhaust pile.
-	void deleteExhaust();
+	//Delete player's pile type(deck, hand, discard...).
+	void deletePlayerPile(PileType type);
 
-	void displayDeck();
-	void displayCombatDeck();
-	void displayDraw();
-	void displayHand();
-	void displayDiscard();
-	void displayExhaust();
+	//Display player Pile type (deck, hand, discard...).
+	void displayPlayerPile(PileType type);
 
+	//Display a simple status bar for the current state of the player.
 	void displayStatus();
-	void playCardFromHand(int pos);
-};
 
+	//Play card from chosen position in player's hand.
+	void playCardFromHand(int pos);
+
+	void setupPlayer(int choice);
+};
+// int Stance; //WAT, PSM (Prismatic): Current Stance. 0: Neutral NTL, 1: Calm CLM, 2: Wrath WRT, 3: Divinity DIV. Combat only.
+// int orbSlots; //How many orb slots you currently have. Defect starts with 3. On any other character, you start with 1 if you are Prismatic. Combat only.
+// deque <int> orbs; //Your channeled orbs. Combat only.
+// bool prismatic;
 #endif

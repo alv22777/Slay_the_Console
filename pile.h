@@ -19,7 +19,7 @@ class Pile{
 	void remove(int position);
 	
 	//Use this to randomize the order of the cards in the deck.
-	void shufflePile(std::mt19937 seed);
+	void shufflePile(std::mt19937& seed);
 	
 	//Add all the elements from pile p into self. Generally, it should be used in tandem with deletePile(). 
 	void addPileToSelf(Pile &p);

@@ -5,7 +5,12 @@
 #include <algorithm>
 
 //Returns a card in the pile in the given position.
-Card& Pile::getCard(int position){return cards[position];}
+Card& Pile::getCard(int position){
+    if(position<0||position>=getSize()){
+        throw std::out_of_range("Pile::getCard() - Index out of range.");
+    }
+    return cards[position];
+}
 
 size_t  Pile::getSize()const {return cards.size();}
 
@@ -16,16 +21,17 @@ void Pile::addCardToPile(Card& card){cards.push_back(card);}
 //Use this to remove given position from this pile of cards.
 void Pile::remove(int position){cards.erase(cards.begin()+position);}
 
-//Use this to randomize the order of the cards in the deck.
-void Pile::shufflePile(std::mt19937 seed){
+//Use this to randomize the order of the cards in the pile.
+void Pile::shufflePile(std::mt19937& seed){
     std::shuffle(cards.begin(),cards.end(),seed);
    std::cout<<"Successfully shuffled "<<getSize()<<" cards.\n";
 }
 
 //Add all the elements from pile p into self. Generally, it should be used in tandem with deletePile(). 
 void Pile::addPileToSelf(Pile &p){
-    for(size_t i=0;i<p.getSize();i++){addCardToPile(p.getCard(i));}
+    cards.insert(cards.end(), p.cards.begin(),p.cards.end());
 }
+
 //Remove all elements from the pile of cards
 void Pile::deletePile(){cards.erase(cards.begin(),cards.end());}
 
@@ -47,5 +53,5 @@ void Pile::drawFrom(Pile& p, int amount){
 void Pile::displayPile(){
     if (cards.empty()){std::cout<<"This pile is empty! Nothing to show!\n"; return;}
     int j=0;
-    for (Card i: cards){std::cout<<j++<<". "; i.Card::display();}
+    for (Card i: cards){std::cout<<j++<<". "; i.display();}
 }
