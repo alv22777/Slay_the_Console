@@ -147,16 +147,24 @@ void Character::displayStatus(){
 }
 
 void Character::playCardFromHand(int pos){
+    
     Card played = getCardFromPile(PileType::hand,pos);
-    cout<<"Playing: "<<played.getName()<<"...";
-    changeAttribute(PlayerAttribute::energy,-played.getEnergyCost());
+    int currentEnergy = getAttribute(PlayerAttribute::energy);
+    
+    if(currentEnergy >= played.getEnergyCost()){
+        
+        changeAttribute(PlayerAttribute::energy,-played.getEnergyCost());
+        
+        cout<<"Playing: "<<played.getName()<<"...";;
 
-    //EFFECT foo();
+        addToPlayerPile(PileType::discard, played);
+        removeFromPlayerPile(PileType::hand, pos);
 
-    cout<<"YOU JUST PLAYED "<<played.getName()<<"!"<<'\n';
-    addToPlayerPile(PileType::discard, played);
-    removeFromPlayerPile(PileType::hand, pos);
+    }
+    else{cout<<"Not enough energy!\n";}
+
 }
+    
 
 void Character::setupPlayer(int choice){
     switch(choice){
