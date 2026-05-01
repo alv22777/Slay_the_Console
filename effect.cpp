@@ -10,8 +10,11 @@ void Effect::apply(Character& target){
         case EffectType::damage:
 
             if(magnitude>target.getAttribute(PlayerAttribute::block)){
-                target.setAttribute(PlayerAttribute::block,0); 
-                target.changeAttribute(PlayerAttribute::HP,-magnitude+target.getAttribute(PlayerAttribute::block));  
+
+                 //If the damage exceeds the target's block, reduce HP by the excess damage and set block to 0.
+                target.changeAttribute(PlayerAttribute::HP,-magnitude+target.getAttribute(PlayerAttribute::block)); 
+                target.setAttribute(PlayerAttribute::block,0);
+                
                 break;}
 
             else{target.changeAttribute(PlayerAttribute::block,-magnitude);break;}

@@ -140,6 +140,19 @@ void Character::displayPlayerPile(PileType type){
     }
 }
 
+void Character::drawCards(int amount, std::mt19937& seed){
+
+    hand.drawFrom(draw, amount);
+    if(hand.getSize()<amount){ //If we couldn't draw the full amount of cards, try shuffling discard into draw and drawing the rest.
+        cout<<"Shuffling discard into draw pile...\n";
+        discard.movePileTo(draw); draw.shufflePile(seed);
+        hand.drawFrom(draw, amount-hand.getSize());
+    }
+}
+void Character::discardHand(){
+    hand.movePileTo(discard);
+}
+
 void Character::displayStatus(){
     //STATUS BAR
     cout<<name<<'\n';
@@ -158,12 +171,19 @@ void Character::playCardFromHand(int pos){
         changeAttribute(PlayerAttribute::energy,-played.getEnergyCost());
         
         cout<<"Playing: "<<played.getName()<<"...";;
-        addToPlayerPile(PileType::discard, played);
+        //Remove card from hand and apply its effects. While the card is resolving, it is neither on the discard, exhaust nor draw pile, so it can't be affected by effects that target those piles. After resolution, the card is moved to the discard pile.        
         removeFromPlayerPile(PileType::hand, pos);
+
+        //Look for the vector of effects in the card and apply them one by one. Allows for multiple effects to be applied in the order they are listed on the card.
         played.applyEffects(*this);
 
+        //Card is discarded.
+        addToPlayerPile(PileType::discard, played);
+        
+        
+
     }
-    else{cout<<"Not enough energy!\n";}
+    else{cout<<"Not enough energy!\n";} //Player can't play the card if they don't have enough energy to pay for it.
 
 }
     

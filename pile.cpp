@@ -47,6 +47,7 @@ void Pile::drawFrom(Pile& p, int amount){
     for(int i=0;i<amount;i++){
         if(p.cards.empty()){std::cerr<<"This pile is empty! No cards left to draw...\n";break;}
         else{addCardToPile(p.cards.front()); p.remove(0);}
+        
     } 
 }
 //This function displays the pile of cards as a simple list.

@@ -13,7 +13,7 @@ class Game{
 	void displayGameState();
     
 	//Get the player's choice from a pile p.
-	int getPlayerChoice();
+	int getCardChoice();
 
 
 	void start();

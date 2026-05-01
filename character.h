@@ -64,6 +64,11 @@ class Character{
 
 	//Display player Pile type (deck, hand, discard...).
 	void displayPlayerPile(PileType type);
+	
+	//Draw x cards from player's draw pile into hand. If draw is empty, shuffle discard into draw and continue drawing. If both draw and discard are empty, stop drawing.
+	void drawCards(int amount, std::mt19937& seed);
+	//Discard the player's hand at the end of the turn.
+	void discardHand();
 
 	//Display a simple status bar for the current state of the player.
 	void displayStatus();
