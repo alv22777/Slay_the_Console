@@ -1,7 +1,11 @@
-#ifndef CARD
-#define CARD
+#ifndef CARD_H
+#define CARD_H
 
 #include<iostream>
+#include "effect.h"
+#include<vector>
+
+
 
 //This class defines a Card object. It is the unit that forms decks in this game.
 //It's what Piles (another class) are composed of. 
@@ -12,12 +16,14 @@ class Card{
 	int energy_cost; //if energy_cost = -1, card is unplayable
 	std::string rarity; //How rare the card is 
 	std::string card_text;
-    
+    std::vector<Effect> effects; //The effects this card applies when played.   
 public:
-    Card(int c, std::string n, std::string t, int cost, std::string r, std::string text);
+    Card(int c, std::string n, std::string t, int cost, std::string r, std::string text, std::vector<Effect> e);
     void display();    
     int getEnergyCost();
     std::string getName();
+    void applyEffects(Character& target);
+
 };
 
 #endif

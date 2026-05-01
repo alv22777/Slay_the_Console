@@ -1,8 +1,6 @@
-#include<iostream>
-#include "pile.h"
-#include "constants.h"
 #include "character.h"
-#include<windows.h>
+#include "constants.h"
+
 using std::string; using std::cout;
 
 Character::Character(string N, int MHP, int HP, int ME, int E, int B, Pile D, Card p)
@@ -16,6 +14,7 @@ int Character::getAttribute(PlayerAttribute att){
         case PlayerAttribute::energy: return energy;
         case PlayerAttribute::max_energy: return max_energy;
         case PlayerAttribute::block: return block;
+        default : return 0;
     }
 }
 
@@ -26,7 +25,8 @@ Card& Character::getCardFromPile(PileType type, int position){
         case PileType::hand: return hand.getCard(position);
         case PileType::draw: return draw.getCard(position);
         case PileType::discard: return discard.getCard(position);
-        case PileType::exhaust: return exhaust.getCard(position);            
+        case PileType::exhaust: return exhaust.getCard(position);
+        default : return blank_card;            
     }
 }
 Card& Character::getPlayed(){return played;}
@@ -39,6 +39,7 @@ int Character::getPlayerPileSize(PileType type){
         case PileType::draw: return draw.getSize();
         case PileType::discard: return discard.getSize();
         case PileType::exhaust: return exhaust.getSize();
+        default : return 0;
     }
 }
 
@@ -46,11 +47,11 @@ int Character::getPlayerPileSize(PileType type){
 void Character::setName(const string& n){name = n;}
 void Character::setAttribute(PlayerAttribute att, int value){
     switch(att){
-        case PlayerAttribute::HP: HP = value; break;
-        case PlayerAttribute::max_HP: max_HP = value; break;
-        case PlayerAttribute::energy: energy = value; break;
-        case PlayerAttribute::max_energy: max_energy = value; break;
-        case PlayerAttribute::block: block = value; break;
+        case PlayerAttribute::HP: HP = value; cout<<"HP set to "<<value<<".\n"; break;
+        case PlayerAttribute::max_HP: max_HP = value; cout<<"Max HP set to "<<value<<".\n"; break;
+        case PlayerAttribute::energy: energy = value; cout<<"Energy set to "<<value<<".\n"; break;
+        case PlayerAttribute::max_energy: max_energy = value; cout<<"Max Energy set to "<<value<<".\n"; break;
+        case PlayerAttribute::block: block = value; cout<<"Block set to "<<value<<".\n"; break;
     }
 }
 void Character::setPlayed(Card& c){played = c;}
@@ -144,21 +145,22 @@ void Character::displayStatus(){
     cout<<name<<'\n';
     cout<<"HP: "<<HP<<"/"<<max_HP<<'\n';
     cout<<"Energy : "<<energy<<"/"<<max_energy<<'\n';	
+    cout<<"Block: "<<block<<'\n';
 }
 
 void Character::playCardFromHand(int pos){
     
     Card played = getCardFromPile(PileType::hand,pos);
     int currentEnergy = getAttribute(PlayerAttribute::energy);
-    
+
     if(currentEnergy >= played.getEnergyCost()){
         
         changeAttribute(PlayerAttribute::energy,-played.getEnergyCost());
         
         cout<<"Playing: "<<played.getName()<<"...";;
-
         addToPlayerPile(PileType::discard, played);
         removeFromPlayerPile(PileType::hand, pos);
+        played.applyEffects(*this);
 
     }
     else{cout<<"Not enough energy!\n";}

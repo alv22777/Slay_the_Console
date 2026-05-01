@@ -1,6 +1,7 @@
 #include "constants.h"
 #include "card.h"
 #include "pile.h"
+#include "effect.h"
 
 const int ICL_STARTING_MAX_HP = 80;
 const int SLT_STARTING_MAX_HP = 70;
@@ -13,19 +14,19 @@ const int MAX_BLOCK = 999;
 ////////////////////THE IRONCLAD//////////////////
 
 ////////////////////STARTER DECK//////////////////
-Card ICL_Strike = {0, "Strike", "ATK", 1, "Starter","ENY: 6 DMG"};
-Card ICL_Defend = {0, "Defend", "SKL", 1, "Starter", "YOU: 5 BLK"};
-Card ICL_Bash = {0, "Bash", "ATK", 2,  "Starter", "ENY: 8 DMG, 2 VUL"};
+Card ICL_Strike = {0, "Strike", "ATK", 1, "Starter","ENY: 6 DMG", {Effect(EffectType::damage, 6)}};
+Card ICL_Defend = {0, "Defend", "SKL", 1, "Starter", "YOU: 5 BLK", {Effect(EffectType::block, 5)}};
+Card ICL_Bash = {0, "Bash", "ATK", 2,  "Starter", "ENY: 8 DMG, 2 VUL", {Effect(EffectType::damage, 8)}};
 
-Card blank_card = {0,"None","None",0,"None","None"};
+Card blank_card = {0,"None","None",0,"None","None",{}};
 
 
 Pile empty_deck;
 
-Card SLT_Strike = {1, "Strike", "ATK", 1, "Starter","ENY: 6 DMG"};
-Card SLT_Defend = {1, "Defend", "SKL", 1, "Starter","YOU: 5 BLK"};
-Card SLT_Neutralize = {1, "Neutralize", "ATK", 0, "Starter","ENY: 3 DMG, 2 WKN"};
-Card SLT_Survivor = {1, "Survivor", "SKL", 1, "Starter","DISCARD: FROM HAND, YOU: 8 BLK"};
+Card SLT_Strike = {1, "Strike", "ATK", 1, "Starter","ENY: 6 DMG", {}};
+Card SLT_Defend = {1, "Defend", "SKL", 1, "Starter","YOU: 5 BLK", {}};
+Card SLT_Neutralize = {1, "Neutralize", "ATK", 0, "Starter","ENY: 3 DMG, 2 WKN", {}};
+Card SLT_Survivor = {1, "Survivor", "SKL", 1, "Starter","DISCARD: FROM HAND, YOU: 8 BLK", {}};
 
 
 Pile ICL_STARTER_DECK = createIroncladStarterDeck();

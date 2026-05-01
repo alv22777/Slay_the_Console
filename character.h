@@ -1,6 +1,6 @@
-#ifndef CHARACTER
-#define CHARACTER
-#include "card.h"
+#ifndef CHARACTER_H
+#define CHARACTER_H
+
 #include "pile.h"
 #include <deque>
 #include <algorithm>
@@ -11,6 +11,9 @@
 //The player can have 6 Piles, 
 enum class PileType{deck, combat_deck, hand, draw, discard, exhaust};
 enum class PlayerAttribute{HP, max_HP, energy, max_energy, block};
+class Pile; //Forward declaration to avoid circular dependency with `pile.h`
+class card; //Forward declaration to avoid circular dependency with `card.h`
+
 
 //This is a Slay The Spire Character, it has several core attributes like HP, energy and block.
 //It also has several Piles, which track the player's deck out of combat an during combat.
@@ -26,7 +29,7 @@ class Character{
 
 	Pile hand; //Your current hand
 	Pile draw; //You draw cards from this pile
-	Pile discard; //You discard cards in here from card effects and at the end of your turn.
+	Pile discard; //You discard cards into here from card effects and at the end of your turn.
 	Pile exhaust; //Cards that have exhausted this combat.
 
 	Card played;

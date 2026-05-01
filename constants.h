@@ -1,7 +1,10 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
-#include "card.h"
-#include "pile.h"
+
+class Card;
+class Pile;
+
+
 /*
 	Glossary:
 	ICL: The Ironclad
