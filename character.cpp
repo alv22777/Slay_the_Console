@@ -89,10 +89,11 @@ void Character::changeAttribute(PlayerAttribute att, int Delta){
 void Character::StartCombat(std::mt19937& seed){
     cout<<"Creating combat deck...\n"; combat_deck.addPileToSelf(deck);
     cout<<"Shuffling Combat deck...\n";	combat_deck.shufflePile(seed);
-    cout<<"Creating Draw Pile...\n";
-    combat_deck.movePileTo(draw); draw.displayPile();
+    cout<<"Creating Draw Pile...\n"; combat_deck.movePileTo(draw);
     
-    hand.drawFrom(draw,5);
+
+    
+    drawCards(5,seed);
     Sleep(1000);
 }
 
@@ -130,13 +131,47 @@ void Character::deletePlayerPile(PileType type){
 }
 
 void Character::displayPlayerPile(PileType type){
+    //Switched responsibility from Game to Character.
     switch(type){
-        case PileType::deck: deck.displayPile(); break;
-        case PileType::combat_deck: combat_deck.displayPile(); break;
-        case PileType::hand: hand.displayPile(); break;
-        case PileType::draw: draw.displayPile(); break;
-        case PileType::discard: discard.displayPile(); break;
-        case PileType::exhaust: exhaust.displayPile(); break;
+        case PileType::deck: 
+            std::cout<<"Deck:\n";
+			deck.displayPile();
+			std::cout<<"Press any key to return...\n";
+			system("pause>nul");
+            break;
+
+        case PileType::combat_deck: 
+            std::cout<<"Combat Deck:\n";
+			combat_deck.displayPile();
+			std::cout<<"Press any key to return...\n";
+			system("pause>nul");
+            break;
+
+        case PileType::hand: //Hand is combat only. Hand should be visible by default, so no need to wait for return key.
+            std::cout<<"Hand:\n";
+			hand.displayPile(); 
+            break;
+
+        case PileType::draw: 
+            std::cout<<"Draw:\n";
+			draw.displayPile();
+			std::cout<<"Press any key to return...\n";
+			system("pause>nul");
+            break;
+        
+        case PileType::discard: 
+            std::cout<<"Discard:\n";
+			discard.displayPile();
+			std::cout<<"Press any key to return...\n";
+			system("pause>nul");
+            break;
+
+        case PileType::exhaust: 
+            std::cout<<"Exhaust:\n";
+			exhaust.displayPile();
+			std::cout<<"Press any key to return...\n";
+			system("pause>nul");
+            break;
     }
 }
 
