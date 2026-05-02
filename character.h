@@ -82,4 +82,8 @@ class Character{
 // int orbSlots; //How many orb slots you currently have. Defect starts with 3. On any other character, you start with 1 if you are Prismatic. Combat only.
 // deque <int> orbs; //Your channeled orbs. Combat only.
 // bool prismatic;
+// int potionSlots; //How many potion slots you currently have. You start with 3. Persistent through floors.
+// deque <Potion> potions; //Your current potions. Persistent through floors, but you can only use them in combat.
+//^^^^ Future Potion class will be very simple, since effects that can be applied by potions will be limited to the same effects that can be applied by cards. 
+
 #endif

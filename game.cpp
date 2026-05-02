@@ -61,6 +61,25 @@
 		else{std::cout<<"Thanks for playing!\n";
 		}
 	}
+	
+	void Game::endTurn(){
+		player.discardHand();
+		std::cout<<"Turn ended. Hand discarded.\n";
+		Sleep(1000);
+		std::cout<<"Enemy turn...\n";
+		Sleep(1000);
+		std::cout<<"Start of turn...\n";
+		Sleep(1000);
+	}
+
+	void Game::startTurn(std::mt19937& seed){
+		std::cout<<"Start of turn...\n";
+		Sleep(1000);
+		player.setAttribute(PlayerAttribute::energy, player.getAttribute(PlayerAttribute::max_energy));
+		player.setAttribute(PlayerAttribute::block, 0);
+		player.drawCards(5,seed);
+	}
+
 
 	void Game::fight(int& floor){
 		//This method will handle the combat loop, including player and enemy turns (Future implementation will include enemy actions as well, for now it is just a placeholder),
@@ -70,10 +89,10 @@
 		
 		int turn = 1;
 
-		while(player.getAttribute(PlayerAttribute::HP)>0){	
-					
+		while(player.getAttribute(PlayerAttribute::HP)>0){		
 			while(choice != 'E'){//while player hasn't chosen to end turn, keep asking for input and responding to it.
 				
+
 				displayGameState(floor, turn);
 				
 				player.displayPlayerPile(PileType::hand);
@@ -92,15 +111,10 @@
 					else{std::cout<<"You don't have at least this many cards in hand! Try again.\n";}
 					Sleep(1000); continue;
 				}
-				
-
-
+			
 				//Player wishes to do other actions, such as viewing the draw or discard pile, or ending the turn.
 				switch(choice){
-					//Wonder how to refactor this to be more elegant. Pile class could have improved display methods.
-
-					case 'A': //Display draw pile
-						/*
+					/*
 						Which cards are on the draw pile should not be hidden information, since that can be 
 						deduced from cards in other piles (Discard, hand, exhaust). However, ther order of those
 						cards should be. Therefore, when the player chooses to view the draw pile, they can see the 
@@ -108,35 +122,20 @@
 						Card ID is fine for now, but would not support modding or make changing the card pool harder.
 						Will look into it in the future, for now, just display the cards in the order they are in the pile.
 						*/
-						player.displayPlayerPile(PileType::draw);
-						continue;
-					case 'K': //Display combat deck. This information is public, since the player can see which cards are in the combat deck by looking at the other piles.
-						player.displayPlayerPile(PileType::deck); //Display master deck.
-						continue;
 
-					case 'D': //Display discard pile. This information is public.
-						player.displayPlayerPile(PileType::discard);
-						continue;
-
-					case 'X': //Display exhaust pile. This information is public.
-						player.displayPlayerPile(PileType::exhaust);
-						continue;
+					//Allow the player to view cards in the draw, discard and exhaust piles, as well as the deck.
+					case 'A': player.displayPlayerPile(PileType::draw); continue;
+					case 'K': player.displayPlayerPile(PileType::deck); continue;
+					case 'D': player.displayPlayerPile(PileType::discard); continue;
+					case 'X': player.displayPlayerPile(PileType::exhaust); continue;
 
 					case 'E': //End turn
-						player.discardHand();
-						std::cout<<"Turn ended. Hand discarded.\n";
-						Sleep(1000);
-						std::cout<<"Enemy turn...\n";
-						Sleep(1000);
-						std::cout<<"Start of turn...\n";
-						Sleep(1000);
-
-						player.setAttribute(PlayerAttribute::energy, player.getAttribute(PlayerAttribute::max_energy));
-						player.setAttribute(PlayerAttribute::block, 0);
-						player.drawCards(5,seed);
-						
+						// maybe ending turn should be its own method.
+						endTurn();	
 						choice = ' '; //Reset choice so that the next turn can start.
 						turn++;
+						Sleep(1000);
+						startTurn(seed);
 						continue;
 						
 					default:
@@ -145,10 +144,6 @@
 						continue;
 						
 				}
-
-
-				Sleep(1000);
-				continue;
 			}
 
 	}

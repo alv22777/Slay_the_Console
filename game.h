@@ -19,5 +19,7 @@ class Game{
 	void run();
 	void gameOver();
 	void fight(int& floor);
+	void startTurn(std::mt19937& seed);
+	void endTurn();
 };
 #endif
