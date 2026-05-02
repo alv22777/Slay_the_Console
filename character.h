@@ -51,7 +51,7 @@ class Character{
 
 	void changeAttribute(PlayerAttribute att, int Delta);
     
-	void StartCombat(std::mt19937& seed);
+	void StartCombat(Game& game);
 
 	//Add Card c to player Pile type (deck, hand, discard...). 
 	void addToPlayerPile(PileType type, Card& c);
@@ -66,7 +66,7 @@ class Character{
 	void displayPlayerPile(PileType type);
 	
 	//Draw x cards from player's draw pile into hand. If draw is empty, shuffle discard into draw and continue drawing. If both draw and discard are empty, stop drawing.
-	void drawCards(int amount, std::mt19937& seed);
+	void drawCards(int amount, Game& game);
 	//Discard the player's hand at the end of the turn.
 	void discardHand();
 
@@ -74,7 +74,7 @@ class Character{
 	void displayStatus();
 
 	//Play card from chosen position in player's hand.
-	void playCardFromHand(int pos);
+	void playCardFromHand(int pos, Game& game, Character& target);
 
 	void setupPlayer(int choice);
 };

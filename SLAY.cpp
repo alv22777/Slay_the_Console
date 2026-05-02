@@ -7,7 +7,11 @@ std::mt19937 seed(std::time(nullptr));// Better random number generator
 int main() {
 
 		Character player("NOPLAYER", 0, 0, 0, 0, 0, empty_deck, blank_card);
-        Game run(player,seed);
+		RNG rng(seed);
+
+		
+		Game run(player, rng);
+
 
 		int choice = 0;
 		while (choice < 1 || choice > 4) {

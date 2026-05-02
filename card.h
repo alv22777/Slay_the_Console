@@ -4,7 +4,7 @@
 #include<iostream>
 #include "effect.h"
 #include<vector>
-
+#include<random>
 
 
 //This class defines a Card object. It is the unit that forms decks in this game.
@@ -22,7 +22,8 @@ public:
     void display();    
     int getEnergyCost();
     std::string getName();
-    void applyEffects(Character& target);
+    
+    void applyEffects(Character& target, Character& source, Game& game);
 
 };
 

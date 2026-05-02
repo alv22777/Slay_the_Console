@@ -1,5 +1,7 @@
 #include "character.h"
 #include "constants.h"
+#include "game.h"
+
 
 using std::string; using std::cout;
 
@@ -61,7 +63,7 @@ void Character::changeAttribute(PlayerAttribute att, int Delta){
     switch(att){
         case PlayerAttribute::HP: 
             HP += Delta;
-            cout<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" HP!\n"; break; 
+            cout<<name<<" has "<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" HP!\n"; break; 
             if(HP>max_HP){
                 cout<<"Can't have more HP than max HP!\n";
                 setAttribute(PlayerAttribute::HP,max_HP);
@@ -69,16 +71,16 @@ void Character::changeAttribute(PlayerAttribute att, int Delta){
             break;
         case PlayerAttribute::max_HP: 
             max_HP += Delta; 
-            cout<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" max HP!\n"; break; 
+            cout<<name<<" has "<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" max HP!\n"; break; 
         case PlayerAttribute::energy:
             energy += Delta; 
-            cout<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" energy!\n"; break;
+            cout<<name<<" has "<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" energy!\n"; break;
         case PlayerAttribute::max_energy: 
             max_energy += Delta; 
-            cout<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" max energy!\n"; break;
+            cout<<name<<" has "<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" max energy!\n"; break;
         case PlayerAttribute::block: 
             block += Delta; 
-            cout<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" block!\n";
+            cout<<name<<" has "<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" block!\n";
             if(block>MAX_BLOCK){
                 cout<<"Reached maximum block!\n";
                 setAttribute(PlayerAttribute::block,MAX_BLOCK);
@@ -86,14 +88,14 @@ void Character::changeAttribute(PlayerAttribute att, int Delta){
             break;
     }
 }
-void Character::StartCombat(std::mt19937& seed){
+void Character::StartCombat(Game& game){
     cout<<"Creating combat deck...\n"; combat_deck.addPileToSelf(deck);
-    cout<<"Shuffling Combat deck...\n";	combat_deck.shufflePile(seed);
+    cout<<"Shuffling Combat deck...\n";	game.rng.shuffle(combat_deck.cards);
     cout<<"Creating Draw Pile...\n"; combat_deck.movePileTo(draw);
     
 
     
-    drawCards(5,seed);
+    drawCards(5,game);
     Sleep(1000);
 }
 
@@ -175,7 +177,7 @@ void Character::displayPlayerPile(PileType type){
     }
 }
 
-void Character::drawCards(int amount, std::mt19937& seed){
+void Character::drawCards(int amount, Game& game){
 
     cout<<"Drawing "<<amount<<" card(s)...\n"; Sleep(1000);
 
@@ -184,8 +186,9 @@ void Character::drawCards(int amount, std::mt19937& seed){
         hand.drawFrom(draw, draw.getSize());
         amount -= draw.getSize(); //Amount of cards left to draw.
         cout<<"Shuffling discard into draw pile...\n"; Sleep(1000);
+
         //Then shuffle the discard pile into the draw pile
-        discard.movePileTo(draw); draw.shufflePile(seed);
+        discard.movePileTo(draw); game.rng.shuffle(draw.cards);
 
         //Now, check if there are enough cards in the draw pile to finish drawing. If not, draw as many as possible, then stop drawing.
         if(draw.getSize()<amount){hand.drawFrom(draw, draw.getSize()); return;} //Draw as many as possible, then stop drawing.
@@ -211,7 +214,7 @@ void Character::displayStatus(){
 
 }
 
-void Character::playCardFromHand(int pos){
+void Character::playCardFromHand(int pos, Game& game, Character& target){
     
     Card played = getCardFromPile(PileType::hand,pos);
     int currentEnergy = getAttribute(PlayerAttribute::energy);
@@ -225,7 +228,7 @@ void Character::playCardFromHand(int pos){
         removeFromPlayerPile(PileType::hand, pos);
 
         //Look for the vector of effects in the card and apply them one by one. Allows for multiple effects to be applied in the order they are listed on the card.
-        played.applyEffects(*this);
+        played.applyEffects(target, *this, game);
 
         //Card is discarded.
         addToPlayerPile(PileType::discard, played);

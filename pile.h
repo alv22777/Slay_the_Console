@@ -5,10 +5,11 @@
 #include<random>
 
 class Pile{
-    std::deque <Card> cards;
+    
 
     public:
-
+	std::deque <Card> cards;
+	
 	size_t getSize() const; 
 	Card& getCard(int position);
 	//PILE MANIPULATION METHODS//
