@@ -142,12 +142,24 @@ void Character::displayPlayerPile(PileType type){
 
 void Character::drawCards(int amount, std::mt19937& seed){
 
-    hand.drawFrom(draw, amount);
-    if(hand.getSize()<amount){ //If we couldn't draw the full amount of cards, try shuffling discard into draw and drawing the rest.
-        cout<<"Shuffling discard into draw pile...\n";
+    cout<<"Drawing "<<amount<<" card(s)...\n"; Sleep(1000);
+
+    if(draw.getSize()<amount){//If there are fewer cards in the draw pile than the amount we want to draw...
+        //Draw the whole draw pile first
+        hand.drawFrom(draw, draw.getSize());
+        amount -= draw.getSize(); //Amount of cards left to draw.
+        cout<<"Shuffling discard into draw pile...\n"; Sleep(1000);
+        //Then shuffle the discard pile into the draw pile
         discard.movePileTo(draw); draw.shufflePile(seed);
-        hand.drawFrom(draw, amount-hand.getSize());
+
+        //Now, check if there are enough cards in the draw pile to finish drawing. If not, draw as many as possible, then stop drawing.
+        if(draw.getSize()<amount){hand.drawFrom(draw, draw.getSize()); return;} //Draw as many as possible, then stop drawing.
+        else{hand.drawFrom(draw, amount); return;} //Draw the rest of the cards needed to reach the full amount.
+
+    }else{ //if there are enough cards in the draw pile to draw the full amount, just draw them.
+        hand.drawFrom(draw, amount);    
     }
+
 }
 void Character::discardHand(){
     hand.movePileTo(discard);
@@ -155,10 +167,13 @@ void Character::discardHand(){
 
 void Character::displayStatus(){
     //STATUS BAR
+    cout<<"-----------------------------\n";
     cout<<name<<'\n';
     cout<<"HP: "<<HP<<"/"<<max_HP<<'\n';
     cout<<"Energy : "<<energy<<"/"<<max_energy<<'\n';	
     cout<<"Block: "<<block<<'\n';
+    cout<<"-----------------------------\n";
+
 }
 
 void Character::playCardFromHand(int pos){

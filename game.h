@@ -10,7 +10,7 @@ class Game{
 	public:
 	Game(Character &p, std::mt19937& s);
 
-	void displayGameState();
+	void displayGameState(int floor, int turn);
     
 	//Get the player's choice from a pile p.
 	int getCardChoice();
