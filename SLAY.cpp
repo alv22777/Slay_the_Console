@@ -15,5 +15,5 @@ int main() {
 			std::cin >> choice;
 		}
 		player.setupPlayer(choice);
-        run.start();
-}
+        run.run(); // This is funny.
+	}

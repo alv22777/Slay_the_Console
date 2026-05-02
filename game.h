@@ -16,6 +16,8 @@ class Game{
 	int getCardChoice();
 
 
-	void start();
+	void run();
+	void gameOver();
+	void fight(int& floor);
 };
 #endif

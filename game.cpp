@@ -33,16 +33,46 @@
 		while(1);
 	}
 
-	void Game::start(){
+	//Start method is getting a little too bloated, should probably split it into smaller methods
+	//Choice handling could potentially be its own method, but it needs to interact with the game loop, so it would require some refactoring to work. For now, will just leave it as is, but will look into refactoring it in the future.
+	
 
-		char choice = ' ';
-		player.StartCombat(seed);
-		int turn = 1;
+
+	//Renamed start to run, since it felt more appropriate and less confusing with the gameOver method.
+	void Game::run(){
+
 		int floor = 1;
 
+		fight(floor); //This will be dependent on the floor type, for now, it's always a fight.
+	
+		//Player has 0 or less HP, they lose, triggering game over sequence.
+		if(player.getAttribute(PlayerAttribute::HP)<=0){gameOver();}
+
+	}
+
+	
+	//The player has lost the game
+	//Things like calculating score and awarding feats will go here in the future.
+	void Game::gameOver(){
+		std::cout<<"You lost! go again?(y/n)\n";
+		char replay;
+		std::cin>>replay;	
+		if(replay=='y'||replay=='Y'){run();}
+		else{std::cout<<"Thanks for playing!\n";
+		}
+	}
+
+	void Game::fight(int& floor){
+		//This method will handle the combat loop, including player and enemy turns (Future implementation will include enemy actions as well, for now it is just a placeholder),
+		// and checking for end of combat conditions. For now, it is all handled in the Game::start() method, but it would be cleaner to separate it into its own method.
+		char choice = ' ';
+		player.StartCombat(seed);
+		
+		int turn = 1;
+
 		while(player.getAttribute(PlayerAttribute::HP)>0){	
-			
-			while(choice != 'E'){
+					
+			while(choice != 'E'){//while player hasn't chosen to end turn, keep asking for input and responding to it.
 				
 				displayGameState(floor, turn);
 				
@@ -67,6 +97,7 @@
 
 				//Player wishes to do other actions, such as viewing the draw or discard pile, or ending the turn.
 				switch(choice){
+					//Wonder how to refactor this to be more elegant. Pile class could have improved display methods.
 
 					case 'A': //Display draw pile
 						/*
@@ -77,25 +108,18 @@
 						Card ID is fine for now, but would not support modding or make changing the card pool harder.
 						Will look into it in the future, for now, just display the cards in the order they are in the pile.
 						*/
-						std::cout<<"Draw Pile:\n";
 						player.displayPlayerPile(PileType::draw);
-						std::cout<<"Press any key to return...\n";
-						system("pause>nul");
+						continue;
+					case 'K': //Display combat deck. This information is public, since the player can see which cards are in the combat deck by looking at the other piles.
+						player.displayPlayerPile(PileType::deck); //Display master deck.
 						continue;
 
-
 					case 'D': //Display discard pile. This information is public.
-						std::cout<<"Discard Pile:\n";
 						player.displayPlayerPile(PileType::discard);
-						std::cout<<"Press any key to return...\n";
-						system("pause>nul");
 						continue;
 
 					case 'X': //Display exhaust pile. This information is public.
-						std::cout<<"Exhaust Pile:\n";
 						player.displayPlayerPile(PileType::exhaust);
-						std::cout<<"Press any key to return...\n";
-						system("pause>nul");
 						continue;
 
 					case 'E': //End turn
@@ -125,19 +149,7 @@
 
 				Sleep(1000);
 				continue;
-			} 
-			
-			
-
-		
-
-		}
-
-		//Player has 0 or less HP, they lose. Offer to replay or quit.
-		std::cout<<"You lost! go again?(y/n)\n";
-		char replay;
-		std::cin>>replay;	
-		if(replay=='y'||replay=='Y'){start();}
-		else{std::cout<<"Thanks for playing!\n";}
+			}
 
 	}
+}
