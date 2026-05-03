@@ -2,16 +2,19 @@
 #include "constants.h"
 #include <ctime>
 
-std::mt19937 seed(std::time(nullptr));// Better random number generator
 
 int main() {
 
-		Character player("NOPLAYER", 0, 0, 0, 0, 0, empty_deck, blank_card);
-		RNG rng(seed);
+		uint32_t seed = std::time(nullptr);
 
+		std::deque<Character> players;
+		std::deque<Character> enemies;
 		
-		Game run(player, rng);
+		Character player("NOPLAYER", 0, 0, 0, 0, 0, empty_deck, blank_card);
+			
 
+
+		RNG rng(seed);
 
 		int choice = 0;
 		while (choice < 1 || choice > 4) {
@@ -19,5 +22,13 @@ int main() {
 			std::cin >> choice;
 		}
 		player.setupPlayer(choice);
+		players.emplace_back(player);
+	
+
+		Game run(players, enemies, seed);
+
+
+		
         run.run(); // This is funny.
+		
 	}

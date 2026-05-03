@@ -1,6 +1,6 @@
 #include "rng.h"
 
-RNG::RNG(std::mt19937& s): seed(s){}
+RNG::RNG(uint32_t s): seed(s){}
 
 //Returns a random integer between min and max, inclusive. Very useful for things like random enemy targets.
 int RNG::nextInt(int min, int max){
@@ -16,6 +16,3 @@ float RNG::nextFloat(float min, float max){
 bool RNG::chance(float probability){
     return nextFloat(0.0f, 1.0f) < probability;
 }
-
-
-//Shuffles a deque (any type) using the rng's seed. Useful for things like randomizing card rewards, relic pools, next events, etc.

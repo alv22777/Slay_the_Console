@@ -14,19 +14,19 @@ const int MAX_BLOCK = 999;
 ////////////////////THE IRONCLAD//////////////////
 
 ////////////////////STARTER DECK//////////////////
-Card ICL_Strike = {0, "Strike", "ATK", 1, "Starter","ENY: 6 DMG", {Effect(EffectType::damage, 6)}};
-Card ICL_Defend = {0, "Defend", "SKL", 1, "Starter", "YOU: 5 BLK", {Effect(EffectType::block, 5)}};
-Card ICL_Bash = {0, "Bash", "ATK", 2,  "Starter", "ENY: 8 DMG, 2 VUL", {Effect(EffectType::damage, 8)}};
+Card ICL_Strike = {0, "Strike", "ATK", 1, "Starter","ENY: 6 DMG", {Effect(EffectType::damage, 6)}, targetType::enemy};
+Card ICL_Defend = {0, "Defend", "SKL", 1, "Starter", "YOU: 5 BLK", {Effect(EffectType::block, 5)}, targetType::ally};
+Card ICL_Bash = {0, "Bash", "ATK", 2,  "Starter", "ENY: 8 DMG, 2 VUL", {Effect(EffectType::damage, 8)}, targetType::enemy};
 
-Card blank_card = {0,"None","None",0,"None","None",{}};
+Card blank_card = {0,"None","None",0,"None","None",{}, targetType::none};
 
 
 Pile empty_deck;
 
-Card SLT_Strike = {1, "Strike", "ATK", 1, "Starter","ENY: 6 DMG", {}};
-Card SLT_Defend = {1, "Defend", "SKL", 1, "Starter","YOU: 5 BLK", {}};
-Card SLT_Neutralize = {1, "Neutralize", "ATK", 0, "Starter","ENY: 3 DMG, 2 WKN", {}};
-Card SLT_Survivor = {1, "Survivor", "SKL", 1, "Starter","DISCARD: FROM HAND, YOU: 8 BLK", {}};
+Card SLT_Strike = {1, "Strike", "ATK", 1, "Starter","ENY: 6 DMG", {Effect(EffectType::damage, 6)}, targetType::enemy};
+Card SLT_Defend = {1, "Defend", "SKL", 1, "Starter","YOU: 5 BLK", {Effect(EffectType::block, 5)}, targetType::ally};
+Card SLT_Neutralize = {1, "Neutralize", "ATK", 0, "Starter","ENY: 3 DMG, 2 WKN", {Effect(EffectType::damage, 3)}, targetType::enemy};
+Card SLT_Survivor = {1, "Survivor", "SKL", 1, "Starter","DISCARD: FROM HAND, YOU: 8 BLK", {Effect(EffectType::block, 8)}, targetType::ally};
 
 
 Pile ICL_STARTER_DECK = createIroncladStarterDeck();

@@ -9,7 +9,7 @@ class RNG{
     std::mt19937 seed;
 
     public:
-    RNG(std::mt19937& s);
+    RNG(uint32_t s);
 
     //Returns a random integer between min and max, inclusive. Very useful for things like random enemy targets.
     int nextInt(int min, int max);

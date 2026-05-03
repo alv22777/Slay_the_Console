@@ -5,10 +5,14 @@
 #include "effect.h"
 #include<vector>
 #include<random>
-
-
+#include<deque>
 //This class defines a Card object. It is the unit that forms decks in this game.
 //It's what Piles (another class) are composed of. 
+
+
+//Certain cards can only have certain targets. which are the following:
+enum class targetType{ally, enemy, all_enemies, random_enemy, none};
+
 class Card{
     int character; //0: ICL, 1: SLT, 2: DEF, 3: WAT, 4: CLS
 	std::string name; //The card's name.
@@ -17,14 +21,18 @@ class Card{
 	std::string rarity; //How rare the card is 
 	std::string card_text;
     std::vector<Effect> effects; //The effects this card applies when played.   
+    targetType target; //The type of target this card can be played on (self, enemy, all_enemies, random_enemy).
 public:
-    Card(int c, std::string n, std::string t, int cost, std::string r, std::string text, std::vector<Effect> e);
+    Card(int c, std::string n, std::string t, int cost, std::string r, std::string text, std::vector<Effect> e, targetType tar);
     void display();    
     int getEnergyCost();
+    targetType getTargetType();
     std::string getName();
     
-    void applyEffects(Character& target, Character& source, Game& game);
+    void applyEffects(std::deque<Character*>& target, Character& source, Game& game);
+
 
 };
+
 
 #endif

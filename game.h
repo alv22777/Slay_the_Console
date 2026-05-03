@@ -6,21 +6,22 @@
 #include "rng.h"
 
 class Game{
-	Character& player;
-
+	std::deque<Character>& player;
+	std::deque<Character>& enemies;
 
 	public:
 	RNG rng;
-	Game(Character &p, RNG& r);
+	Game(std::deque<Character> &p, std::deque<Character>&e, uint32_t s);
 	
 	void displayGameState(int floor, int turn);
-    
-	//Get the player's choice from a pile p.
-	int getCardChoice();
-
+	
+    std::deque<Character>& getEnemies();
+	std::deque<Character>& getPlayers();
 
 	void run();
 	void gameOver();
+	std::deque<Character*> selectTargets(targetType target);
+
 	void fight(int& floor);
 	void startTurn();
 	void endTurn();

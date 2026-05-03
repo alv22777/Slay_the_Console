@@ -214,26 +214,36 @@ void Character::displayStatus(){
 
 }
 
-void Character::playCardFromHand(int pos, Game& game, Character& target){
+void Character::playCardFromHand(int pos, Game& game){
     
     Card played = getCardFromPile(PileType::hand,pos);
     int currentEnergy = getAttribute(PlayerAttribute::energy);
 
     if(currentEnergy >= played.getEnergyCost()){
         
-        changeAttribute(PlayerAttribute::energy,-played.getEnergyCost());
+        
         
         cout<<"Playing: "<<played.getName()<<"...";;
         //Remove card from hand and apply its effects. While the card is resolving, it is neither on the discard, exhaust nor draw pile, so it can't be affected by effects that target those piles. After resolution, the card is moved to the discard pile.        
         removeFromPlayerPile(PileType::hand, pos);
-
-        //Look for the vector of effects in the card and apply them one by one. Allows for multiple effects to be applied in the order they are listed on the card.
-        played.applyEffects(target, *this, game);
-
-        //Card is discarded.
-        addToPlayerPile(PileType::discard, played);
         
+        std::deque<Character*> targets = game.selectTargets(played.getTargetType());
         
+
+        //If a valid target was selected
+        if(!targets.empty()){
+
+            //Pay the energy cost of the card.
+            changeAttribute(PlayerAttribute::energy,-played.getEnergyCost());
+            //Apply the cards effects.
+            played.applyEffects(targets, *this, game);
+             //Card is discarded.
+            addToPlayerPile(PileType::discard, played);
+        }
+        else{
+            std::cout<<"Invalid target, card not played!\n";
+            addToPlayerPile(PileType::hand, played);
+        }
 
     }
     else{cout<<"Not enough energy!\n";} //Player can't play the card if they don't have enough energy to pay for it.
@@ -260,3 +270,4 @@ void Character::setupPlayer(int choice){
     }
 
 }
+
