@@ -9,11 +9,11 @@ class Game; //Forward declaration to avoid circular dependency with `game.h`
 
 
 //Creates a Card and initializes it's values with the given arguments.
-Card::Card(int c, std::string n, std::string t, int cost, std::string r, std::string text, std::vector<Effect> e, targetType tar)//Character, name, type, energy cost, rarity, card text
+Card::Card(int c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<Effect> e, targetType tar)//Character, name, type, energy cost, rarity, card text
     :character(c), name(n), type(t), energy_cost(cost), rarity(r), card_text(text), effects(e), target(tar){}   
     
-//Display this card on the terminal.	
-void Card::display(){std::cout<<name<<"("<<energy_cost<<" NRG, "<<type<<"):"<<card_text<<'\n';}
+//Display this card
+void Card::display(){std::cout<<name<<"("<<energy_cost<<" NRG, "<<getCardType()<<"):"<<card_text<<'\n';}
 
 int Card::getEnergyCost(){return energy_cost;}
 
@@ -21,7 +21,27 @@ std::string Card::getName(){return name;}
 
 targetType Card::getTargetType(){return target;}
 
-
+std::string Card::getCardType(){
+    switch(type){
+        case CardType::attack: return "Attack";
+        case CardType::skill: return "Skill";
+        case CardType::power: return "Power";
+        case CardType::status: return "Status";
+        case CardType::curse: return "Curse";
+        default: return "none";
+    }
+}
+std::string Card::getCardRarity(){
+        switch(rarity){
+        case CardRarity::starter: return "Starter";
+        case CardRarity::common: return "Common";
+        case CardRarity::uncommon: return "Uncommon";
+        case CardRarity::rare: return "Rare";
+        case CardRarity::status: return "Status";
+        case CardRarity::curse: return "Curse";
+        default: return "none";
+    }
+}
 void Card::applyEffects(std::deque<Character*>& targets, Character& source, Game& game){
     for(Effect e : effects){
         for(int i = 0; i<targets.size();i++){

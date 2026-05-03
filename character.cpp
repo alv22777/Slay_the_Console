@@ -183,8 +183,8 @@ void Character::drawCards(int amount, Game& game){
 
     if(draw.getSize()<amount){//If there are fewer cards in the draw pile than the amount we want to draw...
         //Draw the whole draw pile first
-        hand.drawFrom(draw, draw.getSize());
         amount -= draw.getSize(); //Amount of cards left to draw.
+        hand.drawFrom(draw, draw.getSize());
         cout<<"Shuffling discard into draw pile...\n"; Sleep(1000);
 
         //Then shuffle the discard pile into the draw pile

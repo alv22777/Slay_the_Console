@@ -41,6 +41,7 @@ extern Card blank_card;
 extern Card ICL_Strike;
 extern Card ICL_Defend;
 extern Card ICL_Bash;
+extern Card ICL_Sword_boomerang;
 
 extern Card SLT_Strike;
 extern Card SLT_Defend;
