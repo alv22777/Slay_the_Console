@@ -41,37 +41,24 @@ std::string Card::getCardRarity(){
     }
 }
 void Card::applyEffects(Character& source, Game& game){
-    
-    bool isFirstEffect = true;
 
-    for(Effect e : effects){
-        //Select card's targets
-        
-        std::deque <Character*> targets = game.selectTargets(this->getTargetType());
-        //If a valid target was selected
-        if(!targets.empty()){
-            //Pay the energy cost of the card.
-            if(isFirstEffect){source.changeAttribute(PlayerAttribute::energy,-source.getPlayed().getEnergyCost());}
+    targetType target_type = source.getPlayed().getTargetType(); bool targetDied = false;
+    std::deque <Character*> targets = game.selectTargets(this->getTargetType());    
 
-            for(int i = 0; i<targets.size();i++){
+    if(!targets.empty()){ //If valid target
+        source.changeAttribute(PlayerAttribute::energy,-source.getPlayed().getEnergyCost()); //Pay energy cost.
+        for(Effect e: effects){
+            for(size_t i=0;i<targets.size();i++){e.apply(targets[i],source,game);} //Apply to all targets.
+            targetDied=game.removeDeadCharacters(); //Remove any target that died
 
-                //IF the card deals damage to a random enemy, we redefine the targets.
-                if(source.getPlayed().getTargetType() == targetType::random_enemy){targets = game.selectTargets(this->getTargetType());}
-                
-                //apply corresponding effect in effect vector.
-                e.apply(targets[i], source, game);
-            }
-            //After all effects have been applied, this card is added to the player's discard pile.
-            source.addToPlayerPile(PileType::discard, source.getPlayed());
+            //IF card has a single target that died, then stop.
+            if(targetDied && (target_type==targetType::enemy || target_type==targetType::ally)){break;}
+            // IF this card targets a random enemy or all enemies, valid target list may have changed, so select targets again.            
+            if(target_type==targetType::random_enemy||target_type==targetType::all_enemies){targets = game.selectTargets(target_type);}
+            if(targets.empty()){break;} //all valid targets died   
         }
-        else{ //Then an invalid target was selected, so we don't deduct energy or apply effects.
-            std::cout<<"Invalid target, card not played!\n";
-            source.addToPlayerPile(PileType::hand, source.getPlayed());
-        }
-
-        isFirstEffect = false;
-        game.removeDeadCharacters();
-       
+        source.addToPlayerPile(PileType::discard,source.getPlayed()); //Go into discard
     }
+    else{std::cout<<"Not a valid target!\n"; source.addToPlayerPile(PileType::hand, source.getPlayed());}//No effects resolved, go into hand.
 }
 

@@ -237,9 +237,9 @@ void Character::playCardFromHand(int pos, Game& game){
         removeFromPlayerPile(PileType::hand, pos);
         
         played.applyEffects(*this,game);
- 
-
         
+        
+
     }
     else{cout<<"Not enough energy!\n";} //Player can't play the card if they don't have enough energy to pay for it.
 

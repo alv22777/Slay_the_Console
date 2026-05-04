@@ -20,6 +20,7 @@ Card ICL_Strike = {0, "Strike", CardType::attack, 1, CardRarity::starter,"Deal 6
 Card ICL_Defend = {0, "Defend", CardType::skill, 1, CardRarity::starter, "Gain 5 block", {Effect(EffectType::block, 5)}, targetType::ally};
 Card ICL_Bash = {0, "Bash", CardType::attack, 2,  CardRarity::starter, "Deal 8 damage. Apply 2 vulnerable", {Effect(EffectType::damage, 8)}, targetType::enemy};
 Card ICL_Sword_boomerang = {0,"Sword Boomerang",CardType::attack, 1, CardRarity::common, "Deal 3 damage to a random enemy 3 times.",{Effect(EffectType::damage, 3),Effect(EffectType::damage, 3),Effect(EffectType::damage, 3)}, targetType::random_enemy};
+Card ICL_Twin_Strike = {0,"Twin Strike", CardType::attack,1,CardRarity::common,"Deal 7 damage 2 times.",{Effect(EffectType::damage, 7),Effect(EffectType::damage, 7)},targetType::enemy};
 Card blank_card = {0,"None",CardType::status,0,CardRarity::status,"None",{}, targetType::none};
 
 
@@ -37,10 +38,11 @@ Pile SLT_STARTER_DECK = createSilentStarterDeck();
 ////////////////////CARD REWARDS//////////////////
 Pile createIroncladStarterDeck(){
     Pile deck;
-    for(int i =0; i<5;i++){deck.addCardToPile(ICL_Strike);}
-    for(int i =0; i<4;i++){deck.addCardToPile(ICL_Defend);}
+    for(int i =0; i<1;i++){deck.addCardToPile(ICL_Strike);}
+    //for(int i =0; i<1;i++){deck.addCardToPile(ICL_Defend);}
     deck.addCardToPile(ICL_Sword_boomerang);
     deck.addCardToPile(ICL_Bash);
+    deck.addCardToPile(ICL_Twin_Strike);
     return deck;
 }
 Pile createSilentStarterDeck(){

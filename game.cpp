@@ -80,6 +80,7 @@ std::deque<Character*> Game::selectTargets(targetType target){
 			
 		case targetType::ally:
 			if(player.size()==1){targets.push_back(&player[0]);}
+			else if (player.size()==0){std::cout<<"No allies to target!\n"; targets.clear(); break;}
 			else{
 				std::cout<<"Choose an ally:\n";
 				for(size_t i = 0; i<player.size();i++){std::cout<<i<<". "<<player[i].getName()<<'\n';}
@@ -96,6 +97,7 @@ std::deque<Character*> Game::selectTargets(targetType target){
 		case targetType::enemy:
 
 			if(enemies.size()==1){targets.push_back(&enemies[0]);}
+			else if (enemies.size()==0){std::cout<<"No enemies to target!\n"; targets.clear(); break;}
 			else{
 				for(size_t i = 0; i<enemies.size();i++){std::cout<<i<<". "<<enemies[i].getName()<<'\n';}
 				std::cin>>choice;
@@ -108,18 +110,21 @@ std::deque<Character*> Game::selectTargets(targetType target){
 			
 			
 		break;
-		case targetType::all_enemies:	for(Character &e :enemies){targets.push_back(&e);} break;
+		case targetType::all_enemies:	
+			if(!enemies.empty()){for(Character &e :enemies){targets.push_back(&e);} }
+			else{std::cout<<"No enemies to target!\n"; targets.clear();}
+			break;
 
 		case targetType::random_enemy:
 			
 			if(!enemies.empty()){
 				targets.push_back(&enemies[rng.nextInt(0,enemies.size()-1)]);
 			}
-			else{std::cout<<"No enemies to target!\n";}
+			else{std::cout<<"No enemies to target!\n"; targets.clear();}
             
 		break;
         
-		default: std::cout<<"Invalid target type!\n"; break;
+		default: std::cout<<"Invalid target type!\n";  targets.clear(); break;
 
 	}
     return targets;
@@ -134,25 +139,27 @@ void Game::endOfCombat(){
 }
 
 
-//This method checks the list of characters in play. If any are daead, they are removed.
-void Game::removeDeadCharacters(){
+//This method checks the list of characters in play. If any are dead, they are removed.
+bool Game::removeDeadCharacters(){
+	bool death = false;
 	enemies.erase(
 		std::remove_if(enemies.begin(),enemies.end(),
-			[](Character& e){
-				if(!e.isAlive()){ std::cout<<e.getName()<<" has died!\n"; Sleep(1000); return true;}
+			[&](Character& e){
+				if(!e.isAlive()){ std::cout<<e.getName()<<" has died!\n"; Sleep(1000); death = true; return true;}
 				else{return false;}
 			}
 		),enemies.end());
 	
 	player.erase(
 		std::remove_if(player.begin(),player.end(),
-			[](Character& p){
-				if(!p.isAlive()){ std::cout<<p.getName()<<" has died!\n"; Sleep(1000); return true;}
+			[&](Character& p){
+				if(!p.isAlive()){ std::cout<<p.getName()<<" has died!\n"; Sleep(1000); death = true; return true;}
 				else{return false;}
 				
 			}
 		),player.end());
 	
+	return death;
 }
 
 //This method will handle the combat loop, including player and enemy turns (Future implementation will include enemy actions as well, for now it is just a placeholder),
