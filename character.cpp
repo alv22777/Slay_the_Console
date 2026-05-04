@@ -88,13 +88,20 @@ void Character::changeAttribute(PlayerAttribute att, int Delta){
             break;
     }
 }
-void Character::StartCombat(Game& game){
-    cout<<"Creating combat deck...\n"; combat_deck.addPileToSelf(deck);
-    cout<<"Shuffling Combat deck...\n";	game.rng.shuffle(combat_deck.cards);
-    cout<<"Creating Draw Pile...\n"; combat_deck.movePileTo(draw);
-    
 
+//This method allows a Character to initiate combat.
+void Character::StartCombat(Game& game){
+
+    cout<<this->name<<" is initiating combat!\n";
+    combat_deck.addPileToSelf(deck); //Create the combat deck (copy of master deck)
+    game.rng.shuffle(combat_deck.cards); //Shuffle the deck
+    combat_deck.movePileTo(draw); //Make the combat deck the new draw pile.
     
+    //Reset energy and block.
+    setAttribute(PlayerAttribute::energy, this->max_energy);
+    setAttribute(PlayerAttribute::block,0);
+    
+    //Draw 5
     drawCards(5,game);
     Sleep(1000);
 }
@@ -271,3 +278,13 @@ void Character::setupPlayer(int choice){
 
 }
 
+bool Character::isAlive(){return (HP>0);}
+
+void Character::endCombat(){
+    combat_deck.deletePile();
+    draw.deletePile();
+    discard.deletePile();
+    exhaust.deletePile();
+    hand.deletePile();
+
+}

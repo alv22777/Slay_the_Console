@@ -21,9 +21,11 @@ class Game{
 	void run();
 	void gameOver();
 	std::deque<Character*> selectTargets(targetType target);
-
+	void removeDeadCharacters();
 	void fight(int& floor);
 	void startTurn();
 	void endTurn();
+	bool isCombatOver();
+	void endOfCombat();
 };
 #endif

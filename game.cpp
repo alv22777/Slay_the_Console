@@ -26,10 +26,13 @@ void Game::displayGameState(int floor, int turn){
 
 void Game::run(){
 	int floor = 1;
-	fight(floor); //This will be dependent on the floor type, for now, it's always a fight.	
-	//Player has 0 or less HP, they lose, triggering game over sequence.
+
+	while(player[0].isAlive()){
+		fight(floor); //This will be dependent on the floor type, for now, it's always a fight.	
+		floor++;
+	}
 	
-	if(player[0].getAttribute(PlayerAttribute::HP)<=0){gameOver();}
+	gameOver();
 
 }
 
@@ -47,6 +50,7 @@ void Game::gameOver(){
 }
 
 void Game::endTurn(){
+	removeDeadCharacters();
 	player[0].discardHand();
 	std::cout<<"Turn ended. Hand discarded.\n";
 	Sleep(1000);
@@ -56,6 +60,7 @@ void Game::endTurn(){
 }
 
 void Game::startTurn(){
+	removeDeadCharacters();
 	std::cout<<"Start of turn...\n";
 	Sleep(1000);
 	player[0].setAttribute(PlayerAttribute::energy, player[0].getAttribute(PlayerAttribute::max_energy));
@@ -63,12 +68,16 @@ void Game::startTurn(){
 	player[0].drawCards(5,*this);
 }
 
+//method to check whether combat has ended. Return true if ALL enemies are dead, or the player is dead.
+bool Game::isCombatOver(){return enemies.empty()|| !player[0].isAlive();}
+
 std::deque<Character*> Game::selectTargets(targetType target){
 
 	int choice = 0;
     std::deque<Character*> targets;
 
 	switch(target){
+			
 		case targetType::ally:
 			std::cout<<"This card can target allies!\n";
 			std::cout<<"Choose an ally:\n";
@@ -119,6 +128,35 @@ std::deque<Character*> Game::selectTargets(targetType target){
 
 }
 
+void Game::endOfCombat(){
+	std::cout<<"You've won the combat!\n";
+	player[0].endCombat();
+
+	Sleep(1000);
+}
+
+
+//This method checks the list of characters in play. If any are daead, they are removed.
+void Game::removeDeadCharacters(){
+	enemies.erase(
+		std::remove_if(enemies.begin(),enemies.end(),
+			[](Character& e){
+				if(!e.isAlive()){ std::cout<<e.getName()<<" has died!\n"; Sleep(1000); return true;}
+				else{return false;}
+			}
+		),enemies.end());
+	
+	player.erase(
+		std::remove_if(player.begin(),player.end(),
+			[](Character& p){
+				if(!p.isAlive()){ std::cout<<p.getName()<<" has died!\n"; Sleep(1000); return true;}
+				else{return false;}
+				
+			}
+		),player.end());
+	
+}
+
 //This method will handle the combat loop, including player and enemy turns (Future implementation will include enemy actions as well, for now it is just a placeholder),
 // and checking for end of combat conditions. For now, it is all handled in the Game::start() method, but it would be cleaner to separate it into its own method.	
 void Game::fight(int& floor){
@@ -137,56 +175,69 @@ void Game::fight(int& floor){
 	char choice = ' ';
 	int turn = 1;
 	
-	while(player[0].getAttribute(PlayerAttribute::HP)>0){		
-		choice=' ';
-		while(choice != 'E'){//while player hasn't chosen to end turn, keep asking for input and responding to it.
-			
+	//while player hasn't chosen to end turn, or the combat hasn't ended
+	while(!isCombatOver()){
+		choice = ' ';
 
-			displayGameState(floor, turn);
-			
-			player[0].displayPlayerPile(PileType::hand);
-			
-			//Display enemies status, should display intents in the future.
-			for(Character &enemy : enemies){enemy.displayStatus();}
-			
+		while(choice != 'E'){
 
-			std::cout<<"Your choice?\n";				
-			std::cin>>choice;
-			//Check if the input is a number, if not, clear the input and ask again.
-			if(std::cin.fail()){std::cin.clear();std::cin.ignore(10000,'\n'); std::cerr<<"Not a number.\n";continue;}
+			removeDeadCharacters();
 			
-			
-			//Player tries to play a card from hand. 
-			if(48<=choice&&choice<=57){//if input is a number, check if it's a valid card choice. If it is, play the card.
-				choice-=48;//Convert char to int
+			if(!isCombatOver()){ //If combat isn't over, we take user input
+
 				
-				if(choice>=0&&choice<player[0].getPlayerPileSize(PileType::hand)){
 
-					if(std::cin.fail()){std::cin.clear();std::cin.ignore(10000,'\n'); std::cerr<<"Not a number.\n";continue;}
-
-					player[0].playCardFromHand(choice, *this);
+				displayGameState(floor, turn);
 				
+				player[0].displayPlayerPile(PileType::hand);
+				
+				//Display enemies status, should display intents in the future.
+				for(Character &enemy : enemies){enemy.displayStatus();}
+				
+
+				std::cout<<"Your choice?\n";				
+				std::cin>>choice;
+				//Check if the input is a number, if not, clear the input and ask again.
+				if(std::cin.fail()){std::cin.clear();std::cin.ignore(10000,'\n'); std::cerr<<"Not a number.\n";continue;}
+				//Player tries to play a card from hand. 
+				if(48<=choice&&choice<=57){//if input is a number, check if it's a valid card choice. If it is, play the card.
+					choice-=48;//Convert char to int
+					
+					if(choice>=0&&choice<player[0].getPlayerPileSize(PileType::hand)){
+
+						if(std::cin.fail()){std::cin.clear();std::cin.ignore(10000,'\n'); std::cerr<<"Not a number.\n";continue;}
+
+						player[0].playCardFromHand(choice, *this);
+					
+					}
+					else{std::cout<<"You don't have at least this many cards in hand! Try again.\n";}
+					Sleep(1000); continue;
 				}
-				else{std::cout<<"You don't have at least this many cards in hand! Try again.\n";}
-				Sleep(1000); continue;
 			}
+
+			else{choice = 'E';} //Otherwise just end the turn (which will end the combat).
 
 		
 			//Player wishes to do other actions, such as viewing the draw or discard pile, or ending the turn.
 			switch(choice){
 				//Allow the player to view cards in the draw, discard and exhaust piles, as well as the deck.
-				case 'A': player[0].displayPlayerPile(PileType::draw); continue;
-				case 'K': player[0].displayPlayerPile(PileType::deck); continue;
-				case 'D': player[0].displayPlayerPile(PileType::discard); continue;
-				case 'X': player[0].displayPlayerPile(PileType::exhaust); continue;
+				case 'A': player[0].displayPlayerPile(PileType::draw); break;
+				case 'K': player[0].displayPlayerPile(PileType::deck); break;
+				case 'D': player[0].displayPlayerPile(PileType::discard); break;
+				case 'X': player[0].displayPlayerPile(PileType::exhaust); break;
 				case 'E': //End turn
-					endTurn();	
-					choice = ' '; 
-					turn++;
-					Sleep(1000);
 
-					startTurn();
-					continue;
+					//If combat's over, end the combat, otherwise end the turn.
+					if(isCombatOver()){endOfCombat(); break;}
+					else{
+						endTurn(); 
+						turn++;
+						choice = ' '; 
+						Sleep(1000);
+						startTurn(); break;
+					}
+					
+					
 					
 				default:
 					std::cout<<"Not a valid choice. Please try again!\n";
@@ -195,6 +246,7 @@ void Game::fight(int& floor){
 					
 			}
 		}
+		
 
 }
 }

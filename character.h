@@ -77,7 +77,8 @@ class Character{
 	void playCardFromHand(int pos, Game& game);
 
 	void setupPlayer(int choice);
-	
+	bool isAlive();
+	void endCombat();
 };
 // int Stance; //WAT, PSM (Prismatic): Current Stance. 0: Neutral NTL, 1: Calm CLM, 2: Wrath WRT, 3: Divinity DIV. Combat only.
 // int orbSlots; //How many orb slots you currently have. Defect starts with 3. On any other character, you start with 1 if you are Prismatic. Combat only.
