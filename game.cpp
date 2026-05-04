@@ -79,41 +79,39 @@ std::deque<Character*> Game::selectTargets(targetType target){
 	switch(target){
 			
 		case targetType::ally:
-			std::cout<<"This card can target allies!\n";
-			std::cout<<"Choose an ally:\n";
-			for(size_t i = 0; i<player.size();i++){std::cout<<i<<". "<<player[i].getName()<<'\n';}
-			std::cin>>choice;
-			//This should have secure input handling.
-			if(choice>=0 && choice<player.size()){
-				std::cout<<"You targeted "<<player[choice].getName()<<"!\n";
-				targets.push_back(&player[choice]);
-			}else{std::cout<<"Invalid target! Try again.\n"; }
-
-		break;
-		case targetType::enemy:
-
-			std::cout<<"This card can target enemies!\n";
-			for(size_t i = 0; i<enemies.size();i++){std::cout<<i<<". "<<enemies[i].getName()<<'\n';}
-			std::cin>>choice;
-			//This should have secure input handling.
-			if(choice>=0 && choice<enemies.size()){
-				std::cout<<"You targeted "<<enemies[choice].getName()<<"!\n";
-				targets.push_back(&enemies[choice]);
-			}else{std::cout<<"Invalid target! Try again.\n"; }
-			
-		break;
-		case targetType::all_enemies:
-			std::cout<<"This card targets all enemies!\n";	
-		
-			for(Character &e :enemies){
-				targets.push_back(&e);
+			if(player.size()==1){targets.push_back(&player[0]);}
+			else{
+				std::cout<<"Choose an ally:\n";
+				for(size_t i = 0; i<player.size();i++){std::cout<<i<<". "<<player[i].getName()<<'\n';}
+				std::cin>>choice;
+				//This should have secure input handling.
+				if(choice>=0 && choice<player.size()){
+					std::cout<<"You targeted "<<player[choice].getName()<<"!\n";
+					targets.push_back(&player[choice]);
+				}else{std::cout<<"Invalid target! Try again.\n"; }
 			}
 
 
 		break;
+		case targetType::enemy:
+
+			if(enemies.size()==1){targets.push_back(&enemies[0]);}
+			else{
+				for(size_t i = 0; i<enemies.size();i++){std::cout<<i<<". "<<enemies[i].getName()<<'\n';}
+				std::cin>>choice;
+				//This should have secure input handling.
+				if(choice>=0 && choice<enemies.size()){
+					std::cout<<"You targeted "<<enemies[choice].getName()<<"!\n";
+					targets.push_back(&enemies[choice]);
+				}else{std::cout<<"Invalid target! Try again.\n"; }
+			}
+			
+			
+		break;
+		case targetType::all_enemies:	for(Character &e :enemies){targets.push_back(&e);} break;
 
 		case targetType::random_enemy:
-			std::cout<<"This card targets a random enemy!\n";
+			
 			if(!enemies.empty()){
 				targets.push_back(&enemies[rng.nextInt(0,enemies.size()-1)]);
 			}

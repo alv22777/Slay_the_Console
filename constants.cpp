@@ -19,7 +19,7 @@ const int MAX_BLOCK = 999;
 Card ICL_Strike = {0, "Strike", CardType::attack, 1, CardRarity::starter,"Deal 6 damage.", {Effect(EffectType::damage, 6)}, targetType::enemy};
 Card ICL_Defend = {0, "Defend", CardType::skill, 1, CardRarity::starter, "Gain 5 block", {Effect(EffectType::block, 5)}, targetType::ally};
 Card ICL_Bash = {0, "Bash", CardType::attack, 2,  CardRarity::starter, "Deal 8 damage. Apply 2 vulnerable", {Effect(EffectType::damage, 8)}, targetType::enemy};
-Card ICL_Sword_boomerang = {0,"Sword Boomerang",CardType::attack, 1, CardRarity::common, "Deal 10 damage to a random enemy 3 times.",{Effect(EffectType::damage, 10),Effect(EffectType::damage, 10),Effect(EffectType::damage, 10)}, targetType::random_enemy};
+Card ICL_Sword_boomerang = {0,"Sword Boomerang",CardType::attack, 1, CardRarity::common, "Deal 3 damage to a random enemy 3 times.",{Effect(EffectType::damage, 3),Effect(EffectType::damage, 3),Effect(EffectType::damage, 3)}, targetType::random_enemy};
 Card blank_card = {0,"None",CardType::status,0,CardRarity::status,"None",{}, targetType::none};
 
 

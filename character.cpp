@@ -53,7 +53,7 @@ void Character::setAttribute(PlayerAttribute att, int value){
         case PlayerAttribute::max_HP: max_HP = value; cout<<"Max HP set to "<<value<<".\n"; break;
         case PlayerAttribute::energy: energy = value; cout<<"Energy set to "<<value<<".\n"; break;
         case PlayerAttribute::max_energy: max_energy = value; cout<<"Max Energy set to "<<value<<".\n"; break;
-        case PlayerAttribute::block: block = value; cout<<"Block set to "<<value<<".\n"; break;
+        case PlayerAttribute::block: block = value; break;
     }
 }
 void Character::setPlayed(Card& c){played = c;}
@@ -223,35 +223,23 @@ void Character::displayStatus(){
 
 void Character::playCardFromHand(int pos, Game& game){
     
-    Card played = getCardFromPile(PileType::hand,pos);
+    played = getCardFromPile(PileType::hand,pos);
+
     int currentEnergy = getAttribute(PlayerAttribute::energy);
 
     if(currentEnergy >= played.getEnergyCost()){
         
         
         
-        cout<<"Playing: "<<played.getName()<<"...";;
+        cout<<"Playing: "<<played.getName()<<"...\n";;
+
         //Remove card from hand and apply its effects. While the card is resolving, it is neither on the discard, exhaust nor draw pile, so it can't be affected by effects that target those piles. After resolution, the card is moved to the discard pile.        
         removeFromPlayerPile(PileType::hand, pos);
         
-        std::deque<Character*> targets = game.selectTargets(played.getTargetType());
+        played.applyEffects(*this,game);
+ 
+
         
-
-        //If a valid target was selected
-        if(!targets.empty()){
-
-            //Pay the energy cost of the card.
-            changeAttribute(PlayerAttribute::energy,-played.getEnergyCost());
-            //Apply the cards effects.
-            played.applyEffects(targets, *this, game);
-             //Card is discarded.
-            addToPlayerPile(PileType::discard, played);
-        }
-        else{
-            std::cout<<"Invalid target, card not played!\n";
-            addToPlayerPile(PileType::hand, played);
-        }
-
     }
     else{cout<<"Not enough energy!\n";} //Player can't play the card if they don't have enough energy to pay for it.
 

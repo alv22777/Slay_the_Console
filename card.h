@@ -33,7 +33,7 @@ public:
     std::string getCardType();
     std::string getCardRarity();
     
-    void applyEffects(std::deque<Character*>& target, Character& source, Game& game);
+    void applyEffects(Character& source, Game& game);
 
 
 };

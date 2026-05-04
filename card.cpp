@@ -2,10 +2,8 @@
 #include "effect.h"
 #include "character.h"
 #include "rng.h"
-
+#include "game.h"
 #include<iostream>
-
-class Game; //Forward declaration to avoid circular dependency with `game.h`
 
 
 //Creates a Card and initializes it's values with the given arguments.
@@ -42,11 +40,38 @@ std::string Card::getCardRarity(){
         default: return "none";
     }
 }
-void Card::applyEffects(std::deque<Character*>& targets, Character& source, Game& game){
+void Card::applyEffects(Character& source, Game& game){
+    
+    bool isFirstEffect = true;
+
     for(Effect e : effects){
-        for(int i = 0; i<targets.size();i++){
-            e.apply(targets[i], source, game);
+        //Select card's targets
+        
+        std::deque <Character*> targets = game.selectTargets(this->getTargetType());
+        //If a valid target was selected
+        if(!targets.empty()){
+            //Pay the energy cost of the card.
+            if(isFirstEffect){source.changeAttribute(PlayerAttribute::energy,-source.getPlayed().getEnergyCost());}
+
+            for(int i = 0; i<targets.size();i++){
+
+                //IF the card deals damage to a random enemy, we redefine the targets.
+                if(source.getPlayed().getTargetType() == targetType::random_enemy){targets = game.selectTargets(this->getTargetType());}
+                
+                //apply corresponding effect in effect vector.
+                e.apply(targets[i], source, game);
+            }
+            //After all effects have been applied, this card is added to the player's discard pile.
+            source.addToPlayerPile(PileType::discard, source.getPlayed());
         }
+        else{ //Then an invalid target was selected, so we don't deduct energy or apply effects.
+            std::cout<<"Invalid target, card not played!\n";
+            source.addToPlayerPile(PileType::hand, source.getPlayed());
+        }
+
+        isFirstEffect = false;
+        game.removeDeadCharacters();
+       
     }
 }
 

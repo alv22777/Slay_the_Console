@@ -38,5 +38,4 @@ void Effect::apply(Character* target, Character& source, Game& game){
         case EffectType::exhaust: target->addToPlayerPile(PileType::exhaust, target->getCardFromPile(PileType::hand, 0)); break;
         case EffectType::energy: target->changeAttribute(PlayerAttribute::energy, magnitude); break;
     }
-
 }

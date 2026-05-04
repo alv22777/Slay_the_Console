@@ -1,7 +1,7 @@
 #ifndef EFFECT_H
 #define EFFECT_H
 class Character; //Forward declaration to avoid circular dependency with `character.h`
-class Game; //Forward declaration to avoid circular dependency with `game.h`
+class Game;
 
 enum class EffectType{damage, block, draw, discard, exhaust, energy, strength, dexterity};
  class Effect{
