@@ -6,8 +6,8 @@
 
 class RNG{
 
-    std::mt19937 seed;
-
+    std::mt19937 engine;
+    uint32_t seed;
     public:
     RNG(uint32_t s);
 
@@ -21,8 +21,9 @@ class RNG{
     
     //Shuffles a deque (any type) using the rng's seed. Useful for things like randomizing card rewards, relic pools, next events, etc.
     template <typename T>
-    void shuffle(std::deque<T>& vec){std::shuffle(vec.begin(), vec.end(), seed);}  
-     
+    void shuffle(std::deque<T>& vec){std::shuffle(vec.begin(), vec.end(), engine);}  
+    
+    uint32_t getSeed();
 };
 
 #endif

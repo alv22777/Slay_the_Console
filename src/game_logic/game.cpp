@@ -12,7 +12,7 @@ void Game::displayGameState(int floor, int turn){
 	system("cls"); // Clear screen
 
 	std::cout<<"========================================\n";
-	std::cout<<"FLOOR "<<floor<<" - TURN "<<turn<<"\n\n";
+	std::cout<<"FLOOR "<<floor<<" - TURN "<<turn<<"  seed: "<<rng.getSeed()<<"\n\n";
 
 	//Show game and player status.
 	for(Player& p: player){p.displayStatus();}
