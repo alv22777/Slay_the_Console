@@ -1,26 +1,35 @@
-#include "game.h"
-#include "constants.h"
+#include "game_logic/game.h"
+#include "game_logic/rng.h"
+#include "character/enemy.h"
+#include "character/player.h"
+#include "data/constants.h"
+#include "ui/colors.h"
 #include <ctime>
-
+#include <iostream>
+#include <stdint.h>
 
 int main() {
 
 		uint32_t seed = std::time(nullptr);
 
-		std::deque<Character> players;
-		std::deque<Character> enemies;
-		
-		Character player("NOPLAYER", 0, 0, 0, 0, 0, empty_deck, blank_card);
-			
-
-
 		RNG rng(seed);
-
+		std::deque<Player> players;
+		std::deque<Enemy> enemies;
+		
+		
+		
+		
 		int choice = 0;
+		
 		while (choice < 1 || choice > 4) {
-			std::cout << "Please select your character: \n1. The Ironclad\n2. The Silent\n3. The Defect\n4. The Watcher\n";
+			std::cout << "Please select your character:\n";
+			std::cout<<color(Color::red, "1. The Ironclad\n")<<color(Color::green, "2. The Silent\n")<<
+			color(Color::blue, "2. The Defect\n")<<color(Color::purple, "4. The Watcher\n");
 			std::cin >> choice;
 		}
+		
+		Player player("NOPLAYER", 0,0);
+
 		player.setupPlayer(choice);
 		players.emplace_back(player);
 	

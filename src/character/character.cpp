@@ -1,11 +1,12 @@
-#include "character.h"
-#include "constants.h"
-#include "game.h"
-
+#include "character/character.h"
+#include "data/constants.h"
+#include "game_logic/game.h"
+#include <iostream>
 Character::Character(std::string N, int MHP)
     :name(N), max_HP(MHP), HP(MHP),block(0){}
 
 std::string Character::getName() {return name;}
+
 
 int Character::getAttribute(Attribute a){
     switch(a){
@@ -15,6 +16,7 @@ int Character::getAttribute(Attribute a){
         default: return 0;
     }
 }
+
 
 void Character::setName(std::string n){name = n;}
 
@@ -52,4 +54,5 @@ void Character::changeAttribute(Attribute a, int Delta){
 }
 
 bool Character::isAlive(){return (HP>0);}
+
 

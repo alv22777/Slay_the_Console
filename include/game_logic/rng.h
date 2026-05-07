@@ -11,11 +11,11 @@ class RNG{
     public:
     RNG(uint32_t s);
 
-    //Returns a random integer between min and max, inclusive. Very useful for things like random enemy targets.
+    //Returns a random integer between min and max, inclusive.
     int nextInt(int min, int max);
-    //Returns a random float between min and max. Useful for things like random chances and percentages.
+    //Returns a random float between min and max.
     float nextFloat(float min, float max);
-    //Chance function, mostly for convenience. 
+    
     bool chance(float probability);
 
     

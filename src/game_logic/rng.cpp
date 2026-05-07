@@ -1,4 +1,4 @@
-#include "rng.h"
+#include "game_logic/rng.h"
 
 RNG::RNG(uint32_t s): seed(s){}
 

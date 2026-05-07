@@ -1,9 +1,11 @@
-#include "card.h"
-#include "effect.h"
-#include "character.h"
-#include "rng.h"
-#include "game.h"
+#include "card/card.h"
+#include "game_logic/game.h"
+#include "character/player.h"
+#include "game_logic/effect.h"
+
 #include<iostream>
+#include<vector>
+
 
 
 //Creates a Card and initializes it's values with the given arguments.
@@ -11,7 +13,15 @@ Card::Card(int c, std::string n, CardType t, int cost, CardRarity r, std::string
     :character(c), name(n), type(t), energy_cost(cost), rarity(r), card_text(text), effects(e), target(tar){}   
     
 //Display this card
-void Card::display(){std::cout<<name<<"("<<energy_cost<<" NRG, "<<getCardType()<<"):"<<card_text<<'\n';}
+void Card::display(){
+    std::string cost;
+    switch(energy_cost){
+        case -2: cost = "X"; break;
+        case -1: cost = "-"; break;
+        default: cost = std::to_string(energy_cost);
+    }
+    std::cout<<"("<<cost<<") "<<name<<": "<<card_text<<"\n";
+}
 
 int Card::getEnergyCost(){return energy_cost;}
 
@@ -31,23 +41,24 @@ std::string Card::getCardType(){
 }
 std::string Card::getCardRarity(){
         switch(rarity){
-        case CardRarity::starter: return "Starter";
-        case CardRarity::common: return "Common";
-        case CardRarity::uncommon: return "Uncommon";
-        case CardRarity::rare: return "Rare";
-        case CardRarity::status: return "Status";
-        case CardRarity::curse: return "Curse";
-        default: return "none";
+        case CardRarity::starter: return "Starter"; break;
+        case CardRarity::common: return "Common"; break;
+        case CardRarity::uncommon: return "Uncommon"; break;
+        case CardRarity::rare: return "Rare"; break;
+        case CardRarity::status: return "Status"; break;
+        case CardRarity::curse: return "Curse"; break;
+        default: return "none"; break;
     }
 }
-void Card::applyEffects(Character& source, Game& game){
+void Card::applyEffects(Player& source, Game& game){
 
     targetType target_type = source.getPlayed().getTargetType(); bool targetDied = false;
     std::deque <Character*> targets = game.selectTargets(this->getTargetType());    
 
     if(!targets.empty()){ //If valid target
-        source.changeAttribute(PlayerAttribute::energy,-source.getPlayed().getEnergyCost()); //Pay energy cost.
+        source.changeAttribute(Attribute::energy,-source.getPlayed().getEnergyCost()); //Pay energy cost.
         for(Effect e: effects){
+
             for(size_t i=0;i<targets.size();i++){e.apply(targets[i],source,game);} //Apply to all targets.
             targetDied=game.removeDeadCharacters(); //Remove any target that died
 

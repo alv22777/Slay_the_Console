@@ -1,8 +1,8 @@
 #ifndef PILE_H
 #define PILE_H
-#include "card.h"
-#include <deque>
-#include<random>
+
+class Card;
+#include<deque>
 
 class Pile{
     
@@ -19,8 +19,7 @@ class Pile{
 	//Use this to remove given position from this pile of cards.
 	void remove(int position);
 	
-	//Use this to randomize the order of the cards in the deck.
-	void shufflePile(std::mt19937& seed);
+
 	
 	//Add all the elements from pile p into self. Generally, it should be used in tandem with deletePile(). 
 	void addPileToSelf(Pile &p);

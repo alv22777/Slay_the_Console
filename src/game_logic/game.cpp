@@ -1,26 +1,32 @@
-#include"character.h"
-#include"game.h"
+#include"game_logic/game.h"
+#include"game_logic/rng.h"
+#include"character/player.h"
+#include"character/enemy.h"
+#include"data/constants.h"
+#include"card/card.h"
 #include <iostream>
-#include "constants.h"
-#include "rng.h"
-
-Game::Game(std::deque<Character> &p, std::deque<Character>&e, uint32_t s)
-	:player(p), enemies(e), rng(s){}
+#include <windows.h>
+Game::Game(std::deque<Player> &p, std::deque<Enemy>&e, uint32_t s):player(p), enemies(e), rng(s){}
 
 void Game::displayGameState(int floor, int turn){
 	system("cls"); // Clear screen
-	
+
+	std::cout<<"========================================\n";
+	std::cout<<"FLOOR "<<floor<<" - TURN "<<turn<<"\n\n";
+
 	//Show game and player status.
-	for(Character& p: player){
-		std::cout<<"Floor "<<floor<<" - Turn "<<turn<<"\n";
-		p.displayStatus();
-		std::cout<<"Draw     (A): "<<p.getPlayerPileSize(PileType::draw)<<" Card(s)\n";
-		std::cout<<"Discard  (D): "<<p.getPlayerPileSize(PileType::discard)<<" Card(s)\n";
-		std::cout<<"Exhaust  (X): "<<p.getPlayerPileSize(PileType::exhaust)<<" Card(s)\n";	
-	}
-	
-	std::cout<<"End Turn (E)\n";
-	
+	for(Player& p: player){p.displayStatus();}
+	std::cout<<"\nEnemies:\n";
+	for(size_t i = 0; i<enemies.size();i++){std::cout<<i<<") "; enemies[i].displayStatus();}
+	std::cout<<"\n----------------------------------------\n";
+
+	player[0].displayPlayerPile(PileType::hand);	
+	std::cout<<"Draw [A]: "<<player[0].getPlayerPileSize(PileType::draw);
+	std::cout<<" Discard [D]: "<<player[0].getPlayerPileSize(PileType::discard);
+	std::cout<<" Exhaust [X]: "<<player[0].getPlayerPileSize(PileType::exhaust);
+	std::cout<<" End Turn [E]\n";
+	std::cout<<"========================================\n";
+	std::cout<<"Choice > ";
 }
 
 
@@ -31,7 +37,7 @@ void Game::run(){
 		fight(floor); //This will be dependent on the floor type, for now, it's always a fight.	
 		floor++;
 	}
-	
+
 	gameOver();
 
 }
@@ -50,6 +56,7 @@ void Game::gameOver(){
 }
 
 void Game::endTurn(){
+	//endOfTurnEffects();
 	removeDeadCharacters();
 	player[0].discardHand();
 	std::cout<<"Turn ended. Hand discarded.\n";
@@ -60,11 +67,12 @@ void Game::endTurn(){
 }
 
 void Game::startTurn(){
+	//startOfTurnEffects();
 	removeDeadCharacters();
 	std::cout<<"Start of turn...\n";
 	Sleep(1000);
-	player[0].setAttribute(PlayerAttribute::energy, player[0].getAttribute(PlayerAttribute::max_energy));
-	player[0].setAttribute(PlayerAttribute::block, 0);
+	player[0].setAttribute(Attribute::energy, player[0].getAttribute(Attribute::max_energy));
+	player[0].setAttribute(Attribute::block, 0);
 	player[0].drawCards(5,*this);
 }
 
@@ -85,11 +93,14 @@ std::deque<Character*> Game::selectTargets(targetType target){
 				std::cout<<"Choose an ally:\n";
 				for(size_t i = 0; i<player.size();i++){std::cout<<i<<". "<<player[i].getName()<<'\n';}
 				std::cin>>choice;
-				//This should have secure input handling.
-				if(choice>=0 && choice<player.size()){
-					std::cout<<"You targeted "<<player[choice].getName()<<"!\n";
-					targets.push_back(&player[choice]);
-				}else{std::cout<<"Invalid target! Try again.\n"; }
+				if(std::cin.fail()){std::cin.clear(); std::cin.ignore(1000,'\n'); std::cerr<<"Not a number. ";}
+				else{
+					if(choice>=0 && choice<player.size()){ 
+						std::cout<<"You targeted "<<player[choice].getName()<<"!\n";
+						targets.push_back(&player[choice]);
+					}else{std::cout<<" Invalid target!\n"; }
+				}
+				
 			}
 
 
@@ -101,14 +112,14 @@ std::deque<Character*> Game::selectTargets(targetType target){
 			else{
 				for(size_t i = 0; i<enemies.size();i++){std::cout<<i<<". "<<enemies[i].getName()<<'\n';}
 				std::cin>>choice;
-				//This should have secure input handling.
-				if(choice>=0 && choice<enemies.size()){
-					std::cout<<"You targeted "<<enemies[choice].getName()<<"!\n";
-					targets.push_back(&enemies[choice]);
-				}else{std::cout<<"Invalid target! Try again.\n"; }
+				if(std::cin.fail()){std::cin.clear(); std::cin.ignore(1000,'\n'); std::cerr<<"Not a number. ";}
+				else{
+					if(choice>=0 && choice<enemies.size()){
+						std::cout<<"You targeted "<<enemies[choice].getName()<<"!\n";
+						targets.push_back(&enemies[choice]);
+					}else{std::cout<<" Invalid target!\n"; }
+				}
 			}
-			
-			
 		break;
 		case targetType::all_enemies:	
 			if(!enemies.empty()){for(Character &e :enemies){targets.push_back(&e);} }
@@ -116,16 +127,11 @@ std::deque<Character*> Game::selectTargets(targetType target){
 			break;
 
 		case targetType::random_enemy:
-			
-			if(!enemies.empty()){
-				targets.push_back(&enemies[rng.nextInt(0,enemies.size()-1)]);
-			}
+			if(!enemies.empty()){targets.push_back(&enemies[rng.nextInt(0,enemies.size()-1)]);}
 			else{std::cout<<"No enemies to target!\n"; targets.clear();}
-            
 		break;
-        
-		default: std::cout<<"Invalid target type!\n";  targets.clear(); break;
 
+		default: std::cout<<"Invalid target type!\n";  targets.clear(); break;
 	}
     return targets;
 
@@ -134,7 +140,6 @@ std::deque<Character*> Game::selectTargets(targetType target){
 void Game::endOfCombat(){
 	std::cout<<"You've won the combat!\n";
 	player[0].endCombat();
-
 	Sleep(1000);
 }
 
@@ -163,7 +168,6 @@ bool Game::removeDeadCharacters(){
 }
 
 //This method will handle the combat loop, including player and enemy turns (Future implementation will include enemy actions as well, for now it is just a placeholder),
-// and checking for end of combat conditions. For now, it is all handled in the Game::start() method, but it would be cleaner to separate it into its own method.	
 void Game::fight(int& floor){
 	
 	
@@ -171,10 +175,11 @@ void Game::fight(int& floor){
 
 	
 	//Placeholder enemy, will be replaced with actual enemies in the future.
-	Character LouseA  = Character("Louse A",10,10,0,0,0,empty_deck,blank_card);
-	Character LouseB  = Character("Louse B",10,10,0,0,0,empty_deck,blank_card);
+	Enemy LouseA("Louse A",10);
+	Enemy LouseB("Louse B",10);
+	Enemy Cultist("Cultist",30);
 
-	this->enemies.clear(); enemies.push_back(LouseA); enemies.push_back(LouseB);
+	this->enemies.clear(); enemies.push_back(LouseA); enemies.push_back(LouseB); enemies.push_back(Cultist);
 	
 
 	char choice = ' ';
@@ -186,40 +191,31 @@ void Game::fight(int& floor){
 
 		while(choice != 'E'){
 
-			removeDeadCharacters();
+			removeDeadCharacters(); //This might not be necessary in the future.
 			
 			if(!isCombatOver()){ //If combat isn't over, we take user input
 
-				
 
 				displayGameState(floor, turn);
 				
-				player[0].displayPlayerPile(PileType::hand);
-				
-				//Display enemies status, should display intents in the future.
-				for(Character &enemy : enemies){enemy.displayStatus();}
 				
 
-				std::cout<<"Your choice?\n";				
+								
 				std::cin>>choice;
 				//Check if the input is a number, if not, clear the input and ask again.
 				if(std::cin.fail()){std::cin.clear();std::cin.ignore(10000,'\n'); std::cerr<<"Not a number.\n";continue;}
+
 				//Player tries to play a card from hand. 
-				if(48<=choice&&choice<=57){//if input is a number, check if it's a valid card choice. If it is, play the card.
+				if('0'<=choice&&choice<='9'){//if input is a number, check if it's a valid card choice. If it is, play the card.
 					choice-=48;//Convert char to int
 					
-					if(choice>=0&&choice<player[0].getPlayerPileSize(PileType::hand)){
-
-						if(std::cin.fail()){std::cin.clear();std::cin.ignore(10000,'\n'); std::cerr<<"Not a number.\n";continue;}
-
-						player[0].playCardFromHand(choice, *this);
-					
+					if(choice<player[0].getPlayerPileSize(PileType::hand)){
+						player[0].playCardFromHand(choice, *this);					
 					}
 					else{std::cout<<"You don't have at least this many cards in hand! Try again.\n";}
 					Sleep(1000); continue;
 				}
 			}
-
 			else{choice = 'E';} //Otherwise just end the turn (which will end the combat).
 
 		
@@ -236,13 +232,11 @@ void Game::fight(int& floor){
 					if(isCombatOver()){endOfCombat(); break;}
 					else{
 						endTurn(); 
-						turn++;
-						choice = ' '; 
+						turn++; choice = ' '; 
 						Sleep(1000);
+						//enemyTurn();
 						startTurn(); break;
 					}
-					
-					
 					
 				default:
 					std::cout<<"Not a valid choice. Please try again!\n";
