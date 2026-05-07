@@ -4,6 +4,7 @@
 
 #include<iostream>
 
+enum class Color;
 enum class Attribute{hp, max_hp, block, energy, max_energy};
 
 //This is a Slay The Spire Character, it has several core attributes like HP, energy and block.
@@ -13,9 +14,9 @@ class Character{
 	int max_HP; //Maximun number of Hit Points. Persistent through floors.
 	int HP; //Current Hitpoints. Persistent through floors.
 	int block; //Current amount of BLK. Combat only.
-
+	Color col;
 	public:
-	Character(std::string N, int MHP);
+	Character(std::string N, int MHP, Color c);
 
 	std::string getName();
 	int getAttribute(Attribute a);

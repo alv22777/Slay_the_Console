@@ -3,7 +3,7 @@
 #include"character/character.h"
 #include"card/pile.h"
 #include"card/card.h"
-
+#include"ui/colors.h"
 
 //The player can have 6 Piles, 
 enum class PileType{deck, combat_deck, hand, draw, discard, exhaust};
@@ -22,7 +22,7 @@ class Player: public Character{
 	Card played; //player's last played card.
 
     public:
-    Player(std::string name, int maxHP, int maxEnergy);
+    Player(std::string name, int maxHP, int maxEnergy, Color c);
 
     void StartCombat(Game& game);
     void setAttribute(Attribute a, int magnitude);

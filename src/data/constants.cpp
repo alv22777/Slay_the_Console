@@ -2,7 +2,7 @@
 #include "game_logic/effect.h"
 #include "card/card.h"
 #include "card/pile.h"
-
+#include "ui/colors.h"
 
 const int ICL_STARTING_MAX_HP = 80;
 const int SLT_STARTING_MAX_HP = 70;
@@ -17,28 +17,28 @@ const int MAX_BLOCK = 999;
 
 ////////////////////STARTER DECK//////////////////
 
-Card blank_card = {0,"None",CardType::status,0,CardRarity::status,"None",{}, targetType::none};
+Card blank_card = {Color::colorless,"None",CardType::status,0,CardRarity::status,"None",{}, targetType::none};
 
-Card ICL_Strike = {0, "Strike", CardType::attack, 1, CardRarity::starter,"Deal 6 damage.", {Effect(EffectType::damage, 6)}, targetType::enemy};
-Card ICL_Defend = {0, "Defend", CardType::skill, 1, CardRarity::starter, "Gain 5 block.", {Effect(EffectType::block, 5)}, targetType::ally};
-Card ICL_Bash = {0, "Bash", CardType::attack, 2,  CardRarity::starter, "Deal 8 damage. Apply 2 vulnerable.", {Effect(EffectType::damage, 8)}, targetType::enemy};
+Card ICL_Strike = {Color::red, "Strike", CardType::attack, 1, CardRarity::starter,"Deal 6 damage.", {Effect(EffectType::damage, 6)}, targetType::enemy};
+Card ICL_Defend = {Color::red, "Defend", CardType::skill, 1, CardRarity::starter, "Gain 5 block.", {Effect(EffectType::block, 5)}, targetType::ally};
+Card ICL_Bash = {Color::red, "Bash", CardType::attack, 2,  CardRarity::starter, "Deal 8 damage. Apply 2 vulnerable.", {Effect(EffectType::damage, 8)}, targetType::enemy};
 
-Card SLT_Strike = {1, "Strike", CardType::attack, 1, CardRarity::starter,"Deal 6 damage.", {Effect(EffectType::damage, 6)}, targetType::enemy};
-Card SLT_Defend = {1, "Defend", CardType::skill, 1, CardRarity::starter,"Gain 5 block.", {Effect(EffectType::block, 5)}, targetType::ally};
-Card SLT_Neutralize = {1, "Neutralize", CardType::attack, 0, CardRarity::starter,"Deal 3 damage, apply 1 weak.", {Effect(EffectType::damage, 3)}, targetType::enemy};
-Card SLT_Survivor = {1, "Survivor", CardType::skill, 1, CardRarity::starter,"Discard 1 hand. Gain 8 block.", {Effect(EffectType::block, 8)}, targetType::ally};
+Card SLT_Strike = {Color::green, "Strike", CardType::attack, 1, CardRarity::starter,"Deal 6 damage.", {Effect(EffectType::damage, 6)}, targetType::enemy};
+Card SLT_Defend = {Color::green, "Defend", CardType::skill, 1, CardRarity::starter,"Gain 5 block.", {Effect(EffectType::block, 5)}, targetType::ally};
+Card SLT_Neutralize = {Color::green, "Neutralize", CardType::attack, 0, CardRarity::starter,"Deal 3 damage, apply 1 weak.", {Effect(EffectType::damage, 3)}, targetType::enemy};
+Card SLT_Survivor = {Color::green, "Survivor", CardType::skill, 1, CardRarity::starter,"Discard 1 hand. Gain 8 block.", {Effect(EffectType::block, 8)}, targetType::ally};
 
 
 
 ////////////////////CARD REWARDS//////////////////
-Card ICL_Sword_Boomerang = {0,"Sword Boomerang",CardType::attack, 1, CardRarity::common, "Deal 3 damage to a random enemy 3 times.",{Effect(EffectType::damage, 3),Effect(EffectType::damage, 3),Effect(EffectType::damage, 3)}, targetType::random_enemy};
-Card ICL_Twin_Strike = {0,"Twin Strike", CardType::attack,1,CardRarity::common,"Deal 7 damage 2 times.",{Effect(EffectType::damage, 7),Effect(EffectType::damage, 7)},targetType::enemy};
-Card ICL_Bloodletting={0,"Bloodletting",CardType::skill,0,CardRarity::common,"Lose 3 HP. Gain 2 energy",{Effect(EffectType::hp,-3),Effect(EffectType::energy,2)},targetType::ally};
+Card ICL_Sword_Boomerang = {Color::red,"Sword Boomerang",CardType::attack, 1, CardRarity::common, "Deal 3 damage to a random enemy 3 times.",{Effect(EffectType::damage, 3),Effect(EffectType::damage, 3),Effect(EffectType::damage, 3)}, targetType::random_enemy};
+Card ICL_Twin_Strike = {Color::red,"Twin Strike", CardType::attack,1,CardRarity::common,"Deal 7 damage 2 times.",{Effect(EffectType::damage, 7),Effect(EffectType::damage, 7)},targetType::enemy};
+Card ICL_Bloodletting={Color::red,"Bloodletting",CardType::skill,0,CardRarity::common,"Lose 3 HP. Gain 2 energy",{Effect(EffectType::hp,-3),Effect(EffectType::energy,2)},targetType::ally};
 
 
 
 ////////////////////STARTER DECKS//////////////////
-Pile empty_deck;
+Pile empty_deck = {};
 
 Pile ICL_STARTER_DECK = createIroncladStarterDeck();
 Pile SLT_STARTER_DECK = createSilentStarterDeck();

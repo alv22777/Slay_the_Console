@@ -2,11 +2,12 @@
 #include "data/constants.h"
 #include "game_logic/game.h"
 #include "ui/colors.h"
+#include "ui/formatting.h"
 #include "card/pile.h"
 #include "card/card.h"
 #include <windows.h>
-
-Player::Player(std::string n,int mHP, int e): Character(n,mHP), max_energy(e), energy(e), played(blank_card){}
+#include <iomanip>
+Player::Player(std::string n,int mHP, int e, Color c): Character(n,mHP,c), max_energy(e), energy(e), played(blank_card){}
 
 
 Card& Player::getPlayed(){return played;}
@@ -114,6 +115,7 @@ void Player::setupPlayer(int choice){
         setAttribute(Attribute::max_energy,STARTING_ENERGY); setAttribute(Attribute::energy,STARTING_ENERGY);
         deck.addPileToSelf(ICL_STARTER_DECK);
         setPlayed(blank_card);
+        col = Color::red;
         break;
     case 2:
         setName("The Silent"); 
@@ -121,6 +123,7 @@ void Player::setupPlayer(int choice){
         setAttribute(Attribute::max_energy,STARTING_ENERGY); setAttribute(Attribute::energy,STARTING_ENERGY);
         deck.addPileToSelf(SLT_STARTER_DECK);
         setPlayed(blank_card);
+        col = Color::green;
         break;
     }
 
@@ -214,7 +217,10 @@ void Player::endCombat(){
 
 void Player::displayStatus(){
     //STATUS BAR
-    std::cout<<getName()<<" HP "<<HP<<"/"<<max_HP<<" Energy "<<energy<<"/"<<max_energy<<" Block "<<block<<'\n';
+    std::cout<<color(col, padRight(getName(),15))<<
+    color(Color::hp, " HP "+std::to_string(HP)+'/'+std::to_string(max_HP))<<
+    color(col, " Energy "+std::to_string(energy)+'/'+std::to_string(max_energy))<<
+    color(Color::block, " Block "+std::to_string(block)+'\n');
 }
 
 Card& Player::getCardFromPile(PileType type, int position){

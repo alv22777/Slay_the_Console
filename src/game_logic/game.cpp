@@ -175,11 +175,11 @@ void Game::fight(int& floor){
 
 	
 	//Placeholder enemy, will be replaced with actual enemies in the future.
-	Enemy LouseA("Louse A",10);
-	Enemy LouseB("Louse B",10);
-	Enemy Cultist("Cultist",30);
+	Enemy GreenLouse("Green Louse",10+rng.nextInt(0,3), Color::green);
+	Enemy RedLouse("Red Louse",10+rng.nextInt(0,3), Color::red);
+	Enemy Cultist("Cultist",50+rng.nextInt(-4,2), Color::blue);
 
-	this->enemies.clear(); enemies.push_back(LouseA); enemies.push_back(LouseB); enemies.push_back(Cultist);
+	this->enemies.clear(); enemies.push_back(GreenLouse); enemies.push_back(RedLouse); enemies.push_back(Cultist);
 	
 
 	char choice = ' ';

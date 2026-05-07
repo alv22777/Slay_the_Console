@@ -7,16 +7,18 @@
 #include <ctime>
 #include <iostream>
 #include <stdint.h>
+#include <windows.h>
 
 int main() {
 
+		SetConsoleOutputCP(CP_UTF8); //Allows UTF8 decoding for printing symbols.
 		uint32_t seed = std::time(nullptr);
 
 		RNG rng(seed);
 		std::deque<Player> players;
 		std::deque<Enemy> enemies;
 		
-		
+			
 		
 		
 		int choice = 0;
@@ -28,7 +30,7 @@ int main() {
 			std::cin >> choice;
 		}
 		
-		Player player("NOPLAYER", 0,0);
+		Player player("NOPLAYER", 0,0, Color::colorless);
 
 		player.setupPlayer(choice);
 		players.emplace_back(player);

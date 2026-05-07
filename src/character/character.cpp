@@ -2,8 +2,8 @@
 #include "data/constants.h"
 #include "game_logic/game.h"
 #include <iostream>
-Character::Character(std::string N, int MHP)
-    :name(N), max_HP(MHP), HP(MHP),block(0){}
+Character::Character(std::string N, int MHP, Color c)
+    :name(N), max_HP(MHP), HP(MHP),block(0), col(c){}
 
 std::string Character::getName() {return name;}
 

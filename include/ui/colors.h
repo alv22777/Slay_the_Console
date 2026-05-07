@@ -4,15 +4,15 @@
 #include<iostream>
 
 enum class Color{
-    red = 1, green = 82, blue = 44, purple = 5, 
+    red = 1, green = 82, blue = 44, purple = 5, colorless = 244,
 
-    common = 8, uncommon = 12, rare = 226, curse = 240, status = 8,
+    common = 8, uncommon = 14, rare = 226, curse = 61, status = 8,
 
-    hp = 160, block = 6, 
+    hp = 168, block = 6, 
     poison = 28, vulnerable = 124, weak = 240, 
     strength = 1, dexterity = 82, focus = 44,
 
-    lightning = 226, frost = 14, dark = 13, 
+    lightning = 226, frost = 50, dark = 13, 
 
     wrath = 124, neutral = 244, calm = 123, divinity = 164,
     

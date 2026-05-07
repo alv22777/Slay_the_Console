@@ -2,25 +2,35 @@
 #include "game_logic/game.h"
 #include "character/player.h"
 #include "game_logic/effect.h"
-
+#include "ui/colors.h"
 #include<iostream>
 #include<vector>
 
 
 
 //Creates a Card and initializes it's values with the given arguments.
-Card::Card(int c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<Effect> e, targetType tar)//Character, name, type, energy cost, rarity, card text
+Card::Card(Color c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<Effect> e, targetType tar)//Character, name, type, energy cost, rarity, card text
     :character(c), name(n), type(t), energy_cost(cost), rarity(r), card_text(text), effects(e), target(tar){}   
     
 //Display this card
 void Card::display(){
     std::string cost;
+    std::string card_type;
     switch(energy_cost){
-        case -2: cost = "X"; break;
-        case -1: cost = "-"; break;
-        default: cost = std::to_string(energy_cost);
+        case -2: cost = color(character, "(X)"); break;
+        case -1: cost = color(character, "(-)"); break;
+        default: cost = color(character, "("+std::to_string(energy_cost)+") "); break;
     }
-    std::cout<<"("<<cost<<") "<<name<<": "<<card_text<<"\n";
+
+    switch(type){
+        case CardType::attack: card_type = color(character, u8"▽ "); break;
+        case CardType::skill: card_type = color(character, u8"◻ "); break;
+        case CardType::power: card_type = color(character, u8"⬭ "); break;
+        case CardType::status: card_type = color(Color::status,u8"꩜ "); break;
+        case CardType::curse: card_type = color(Color::curse,u8"☠︎︎ "); break;
+        default: card_type="none"; break; 
+    }
+    std::cout<<cost<<card_type<<color(Color::keyword, name)<<": "<<card_text<<"\n";
 }
 
 int Card::getEnergyCost(){return energy_cost;}
