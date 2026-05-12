@@ -43,3 +43,16 @@ void Pile::displayPile(){
     int j=0;
     for (Card i: cards){std::cout<<"["<<j++<<"] "; i.display();}
 }
+
+void Pile::displayFixed(size_t n){
+    for(size_t i=0; i<n; i++){
+        
+        if(i<cards.size()){
+            std::cout<<"["<<i<<"] ";
+            cards[i].display();
+        }
+
+        std::cout<<'\n';
+
+    }
+}

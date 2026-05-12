@@ -2,17 +2,19 @@
 #define GAME_H
 
 class Player; class Enemy; class Character; enum class TargetType;
+
 #include<deque>
 #include"game_logic/rng.h"
+#include"ui/eventlog.h"
 
 class Game{
 	std::deque<Player>& player;
 	std::deque<Enemy>& enemies;
-
 	public:
 	RNG rng;
+	EventLog event_log;
 
-	Game(std::deque<Player> &p, std::deque<Enemy>&e, uint32_t s);
+	Game(std::deque<Player> &p, std::deque<Enemy>&e, uint32_t s, EventLog log);
 	
 	void displayGameState(int floor, int turn);
 	

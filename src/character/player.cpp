@@ -30,12 +30,8 @@ int Player::getAttribute(Attribute a){
 
 void Player::changeAttribute(Attribute a, int Delta){
     switch(a){
-         case Attribute::energy: 
-            energy += Delta; 
-            std::cout<<name<<" has "<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" energy!\n"; break;
-        case Attribute::max_energy:
-            max_energy += Delta; 
-            std::cout<<name<<" has "<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" max energy!\n"; break;
+        case Attribute::energy: energy += Delta; break;
+        case Attribute::max_energy: max_energy += Delta; break;
         default: Character::changeAttribute(a,Delta); break;
     }
 }
@@ -54,8 +50,9 @@ int Player::getPlayerPileSize(PileType type){
 
 //This method allows a Character to initiate combat.
 void Player::StartCombat(Game& game){
+    
     setPlayed(blank_card);
-    std::cout<<this->getName()<<" is initiating combat!\n";
+    
 
     combat_deck.addPileToSelf(deck); //Create the combat deck (copy of master deck)
     combat_deck.movePileTo(draw); //Make the combat deck the new draw pile.
@@ -67,19 +64,15 @@ void Player::StartCombat(Game& game){
     
     //Draw 5 cards.
     drawCards(5,game);
-    Sleep(1000);
 }
 
 void Player::drawCards(int amount, Game& game){
-
-    std::cout<<"Drawing "<<amount<<" card(s)...\n"; Sleep(1000);
 
     if(draw.getSize()<amount){//Draw pile is smaller than cards left to draw.
         
         amount -= draw.getSize(); 
         hand.drawFrom(draw, draw.getSize());
-        
-        std::cout<<"Shuffling discard into draw pile...\n"; Sleep(1000);        
+            
         discard.movePileTo(draw); game.rng.shuffle(draw.cards);
 
         //Now, check if there are enough cards in the draw pile to finish drawing. If not, draw as many as possible, then stop drawing.
@@ -179,7 +172,7 @@ void Player::displayPlayerPile(PileType type){
 
         case PileType::hand: //Hand is combat only. Hand should be visible by default, so no need to wait for return key.
             std::cout<<"Hand:\n";
-			hand.displayPile(); 
+			hand.displayFixed(10); 
             break;
 
         case PileType::draw: 

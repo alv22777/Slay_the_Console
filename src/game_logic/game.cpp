@@ -4,11 +4,12 @@
 #include"character/player.h"
 #include"character/enemy.h"
 #include"data/constants.h"
+
 #include"card/card.h"
 #include <iostream>
 #include <windows.h>
 
-Game::Game(std::deque<Player> &p, std::deque<Enemy>&e, uint32_t s):player(p), enemies(e), rng(s){}
+Game::Game(std::deque<Player> &p, std::deque<Enemy>&e, uint32_t s, EventLog log):player(p), enemies(e), rng(s), event_log(log){}
 
 void Game::displayGameState(int floor, int turn){
 	system("cls"); // Clear screen
@@ -28,18 +29,20 @@ void Game::displayGameState(int floor, int turn){
 	std::cout<<" Exhaust [X]: "<<player[0].getPlayerPileSize(PileType::exhaust);
 	std::cout<<" End Turn [E]\n";
 	std::cout<<"========================================\n";
+
+	event_log.broadcast();
 	std::cout<<"Choice > ";
 }
 
 
 void Game::run(){
 	int floor = 0;
+	enemies.clear();
 	while(!player.empty()){
 		floor++;
 		fight(floor); //This will be dependent on the floor type, for now, it's always a fight.	
 	}
 	gameOver();
-	
 
 }
 
@@ -110,7 +113,6 @@ std::deque<Character*> Game::selectTargets(TargetType target, Character* source)
 				if(std::cin.fail()){std::cin.clear(); std::cin.ignore(1000,'\n'); std::cerr<<"Not a number. "; }
 				else{
 					if(choice>=0 && choice<player.size()){ 
-						std::cout<<"You targeted "<<player[choice].getName()<<"!\n";
 						targets.push_back(&player[choice]);
 					}else{std::cout<<" Invalid target!\n"; }
 				}
@@ -129,7 +131,6 @@ std::deque<Character*> Game::selectTargets(TargetType target, Character* source)
 				if(std::cin.fail()){std::cin.clear(); std::cin.ignore(1000,'\n'); std::cerr<<"Not a number. ";}
 				else{
 					if(choice>=0 && choice<enemies.size()){
-						std::cout<<"You targeted "<<enemies[choice].getName()<<"!\n";
 						targets.push_back(&enemies[choice]);
 					}else{std::cout<<" Invalid target!\n"; }
 				}
@@ -172,7 +173,6 @@ void Game::enemyActions(){
 	for(Enemy& e: enemies){
 		e.act(*this);
 		if(isCombatOver()){break;}
-		Sleep(250);
 	}
 }
 void Game::enemyPlanning(){
@@ -188,7 +188,7 @@ bool Game::removeDeadCharacters(){
 	enemies.erase(
 		std::remove_if(enemies.begin(),enemies.end(),
 			[&](Character& e){
-				if(!e.isAlive()){ std::cout<<e.getName()<<" has died!\n"; Sleep(1000); death = true; return true;}
+				if(!e.isAlive()){event_log.receive( color(e.getColor(),e.getName())+ " died." ); death = true; return true;}
 				else{return false;}
 			}
 		),enemies.end());
@@ -196,7 +196,7 @@ bool Game::removeDeadCharacters(){
 	player.erase(
 		std::remove_if(player.begin(),player.end(),
 			[&](Character& p){
-				if(!p.isAlive()){ std::cout<<p.getName()<<" has died!\n"; Sleep(1000); death = true; return true;}
+				if(!p.isAlive()){event_log.receive( color(p.getColor(),p.getName())+ " died." ); death = true; return true;}
 				else{return false;}
 				
 			}
@@ -210,7 +210,8 @@ void Game::fight(int& floor){
 	
 
 	for(Player &p: player){p.StartCombat(*this);}
-	
+	event_log.clear();
+
 	
 	//Placeholder enemy, will be replaced with actual enemies in the future.
 	Enemy GreenLouse("Green Louse",10, Color::green, 
@@ -255,8 +256,8 @@ void Game::fight(int& floor){
 					if(choice<player[0].getPlayerPileSize(PileType::hand)){
 						player[0].playCardFromHand(choice, *this);					
 					}
-					else{std::cout<<"You don't have at least this many cards in hand! Try again.\n";}
-					Sleep(1000); continue;
+					else{std::cout<<"You don't have at least this many cards in hand! Try again.\n";Sleep(1000);}
+					continue;
 				}
 			}
 			else{choice = 'E';} //Otherwise just end the turn (which will end the combat).
@@ -280,7 +281,6 @@ void Game::fight(int& floor){
 						endTurn();
 						enemyTurn(); 
 						turn++; choice = ' '; 
-						Sleep(1000);
 						//endOfEnemyTurn();
 						startTurn(); break;
 					}

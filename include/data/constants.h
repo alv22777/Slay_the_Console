@@ -28,6 +28,8 @@ extern const int WAT_STARTING_MAX_HP;
 extern const int STARTING_ENERGY;
 extern const int STARTING_BLOCK;
 extern const int MAX_BLOCK;
+extern const int EVENT_LOG_SIZE;
+
 ////////////////////THE IRONCLAD//////////////////
 extern Pile ICL_STARTER_DECK;
 extern Pile SLT_STARTER_DECK;

@@ -11,6 +11,7 @@ const int WAT_STARTING_MAX_HP = 72;
 const int STARTING_ENERGY = 3;
 const int STARTING_BLOCK = 0;
 const int MAX_BLOCK = 999;
+const int EVENT_LOG_SIZE = 5;
 
 
 ////////////////////THE IRONCLAD//////////////////
@@ -49,6 +50,13 @@ Card ICL_Bloodletting={Color::red,"Bloodletting",CardType::skill,0,CardRarity::c
     Effect(EffectType::energy,2, TargetType::self)
 }, false};
 
+Card CLS_Bite={Color::colorless, "Bite", CardType::attack, 1, CardRarity::common, "Deal 7 damage. Heal 3 HP. ",
+    {
+        Effect(EffectType::damage,7,TargetType::enemy),
+        Effect(EffectType::hp, 3, TargetType::self)
+    }, false
+};
+
 Card STS_Wound={Color::status, "Wound", CardType::status, -1, CardRarity::status, "Unplayable.",{}, false};
 Card CUR_Injury={Color::curse, "Injury", CardType::curse, -1, CardRarity::curse, "Unplayable.",{}, false};
 
@@ -64,9 +72,13 @@ Pile SLT_STARTER_DECK = createSilentStarterDeck();
 
 Pile createIroncladStarterDeck(){
     Pile deck;
-    for(int i =0; i<5;i++){deck.addCardToPile(ICL_Strike);}
-    for(int i =0; i<4;i++){deck.addCardToPile(ICL_Defend);}
+    for(int i =0; i<1;i++){deck.addCardToPile(ICL_Strike);}
+    for(int i =0; i<1;i++){deck.addCardToPile(ICL_Defend);}
+    
     deck.addCardToPile(ICL_Bash);
+    deck.addCardToPile(ICL_Sword_Boomerang);
+    deck.addCardToPile(ICL_Twin_Strike);
+    deck.addCardToPile(CLS_Bite);
 
     return deck;
 }

@@ -2,6 +2,7 @@
 #define EFFECT_H
 
 #include<deque>
+#include<iostream>
 class Game; class Character;
 
 enum class EffectType{damage, block, draw, discard, exhaust, energy, strength, dexterity, hp};
@@ -10,7 +11,7 @@ enum class TargetType{ally, ally_all, enemy, enemy_all, random_enemy, self, none
 
 class Effect{
     EffectType type;
-    TargetType target;
+    TargetType target_type;
     int magnitude;
      
     public:
@@ -19,6 +20,7 @@ class Effect{
     EffectType getType();
     TargetType getTarget();
     int getMagnitude();
+    std::string log(std::deque<Character*> target, Character& source);
 };
 
 #endif

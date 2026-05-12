@@ -36,6 +36,8 @@ class Pile{
 
 	//This function displays the pile of cards as a simple list.
 	void displayPile();
+
+	void displayFixed(size_t n); //Displays a set number of elements from the pile.
 };
 
 #endif

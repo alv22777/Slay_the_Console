@@ -4,6 +4,7 @@
 #include "character/player.h"
 #include "data/constants.h"
 #include "ui/colors.h"
+#include "ui/eventlog.h"
 #include <ctime>
 #include <iostream>
 #include <stdint.h>
@@ -39,7 +40,7 @@ int main() {
 		players.emplace_back(player);
 	
 
-		Game run(players, enemies, seed);
+		Game run(players, enemies, seed, EventLog(5));
 
 
 		

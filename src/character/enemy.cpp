@@ -45,7 +45,10 @@ void Enemy::act(Game& game){
             prev_target = e.getTarget();
     
             // Apply only if valid targets exist
-            if(!targets.empty()){e.apply(targets, *this, game);}
+            if(!targets.empty()){
+                e.apply(targets, *this, game); 
+                game.event_log.receive(e.log(targets,*this));
+            }
     
             // Check whether reused single target died
             if((e.getTarget() == TargetType::ally || e.getTarget() == TargetType::enemy) && !targets[0]->isAlive() ){ originalTargetDied = true; }

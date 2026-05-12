@@ -17,6 +17,7 @@ int Character::getAttribute(Attribute a){
     }
 }
 
+Color Character::getColor(){return col;}
 
 void Character::setName(std::string n){name = n;}
 

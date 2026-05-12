@@ -31,7 +31,6 @@ void Card::display(){
     }
     std::cout<<cost<<card_type<<color(Color::keyword, name)<<": "<<card_text;
     if(exhaust){std::cout<<color(Color::exhaust," Exhaust.");}
-    std::cout<<'\n';
 }
 
 int Card::getEnergyCost(){return energy_cost;}
@@ -87,11 +86,11 @@ void Card::applyEffects(Player& source, Game& game, int pos){
             prev_target = e.getTarget(); 
             e.apply(targets,source,game); //apply effects
 
+            game.event_log.receive(e.log(targets,source));
 
             if((e.getTarget() == TargetType::ally || e.getTarget() == TargetType::enemy) && !targets[0]->isAlive()){originalTargetDied = true;}
 
             game.removeDeadCharacters(); //Do cleanup
-            if(game.isCombatOver()){break;}//If combat is over, then stop applying effects.
         }
         //Post resolution
         if(exhaust){source.addToPlayerPile(PileType::exhaust, source.getPlayed());}

@@ -25,7 +25,7 @@ class Character{
 	void setAttribute(Attribute att, int value);
 	
 	void changeAttribute(Attribute att, int Delta);
-    
+    Color getColor();
 	bool isAlive();	
 	void takeDamage(int magnitude);
 	void gainBlock(int magnitude);
