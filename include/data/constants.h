@@ -49,6 +49,9 @@ extern Card SLT_Defend;
 extern Card SLT_Neutralize;
 extern Card SLT_Survivor;
 
+extern Card STS_Wound;
+extern Card CUR_Injury;
+
 extern Pile empty_deck;
 
 ////////////////////STARTER DECK//////////////////

@@ -9,8 +9,8 @@
 
 
 //Creates a Card and initializes it's values with the given arguments.
-Card::Card(Color c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<Effect> e, targetType tar)//Character, name, type, energy cost, rarity, card text
-    :character(c), name(n), type(t), energy_cost(cost), rarity(r), card_text(text), effects(e), target(tar){}   
+Card::Card(Color c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<Effect> e, bool ex)//Character, name, type, energy cost, rarity, card text
+    :character(c), name(n), type(t), energy_cost(cost), rarity(r), card_text(text), effects(e), exhaust(ex){}   
     
 //Display this card
 void Card::display(){
@@ -21,23 +21,22 @@ void Card::display(){
         case -1: cost = color(character, "(-)"); break;
         default: cost = color(character, "("+std::to_string(energy_cost)+") "); break;
     }
-
     switch(type){
-        case CardType::attack: card_type = color(character, u8"▽ "); break;
-        case CardType::skill: card_type = color(character, u8"◻ "); break;
-        case CardType::power: card_type = color(character, u8"⬭ "); break;
-        case CardType::status: card_type = color(Color::status,u8"꩜ "); break;
-        case CardType::curse: card_type = color(Color::curse,u8"☠︎︎ "); break;
+        case CardType::attack: card_type = color(character, u8" ▲ "); break;
+        case CardType::skill: card_type = color(character, u8" ■ "); break;
+        case CardType::power: card_type = color(character, u8" ● "); break;
+        case CardType::status: card_type = color(Color::status,u8"  ꩜ "); break;
+        case CardType::curse: card_type = color(Color::curse,u8"  ⛦ "); break;
         default: card_type="none"; break; 
     }
-    std::cout<<cost<<card_type<<color(Color::keyword, name)<<": "<<card_text<<"\n";
+    std::cout<<cost<<card_type<<color(Color::keyword, name)<<": "<<card_text;
+    if(exhaust){std::cout<<color(Color::exhaust," Exhaust.");}
+    std::cout<<'\n';
 }
 
 int Card::getEnergyCost(){return energy_cost;}
 
 std::string Card::getName(){return name;}
-
-targetType Card::getTargetType(){return target;}
 
 std::string Card::getCardType(){
     switch(type){
@@ -49,6 +48,7 @@ std::string Card::getCardType(){
         default: return "none";
     }
 }
+
 std::string Card::getCardRarity(){
         switch(rarity){
         case CardRarity::starter: return "Starter"; break;
@@ -60,26 +60,41 @@ std::string Card::getCardRarity(){
         default: return "none"; break;
     }
 }
-void Card::applyEffects(Player& source, Game& game){
 
-    targetType target_type = source.getPlayed().getTargetType(); bool targetDied = false;
-    std::deque <Character*> targets = game.selectTargets(this->getTargetType());    
+void Card::applyEffects(Player& source, Game& game, int pos){
+
+    if(effects.empty()){return;}
+    std::deque<Character*> targets = game.selectTargets(effects[0].getTarget(), &source);
+    TargetType prev_target = effects[0].getTarget();
+
 
     if(!targets.empty()){ //If valid target
+        
+        source.removeFromPlayerPile(PileType::hand, pos); //Card is now "hovering" (not on any player pile).
         source.changeAttribute(Attribute::energy,-source.getPlayed().getEnergyCost()); //Pay energy cost.
-        for(Effect e: effects){
+        bool originalTargetDied = false;
 
-            for(size_t i=0;i<targets.size();i++){e.apply(targets[i],source,game);} //Apply to all targets.
-            targetDied=game.removeDeadCharacters(); //Remove any target that died
+        for(Effect e: effects){         //Iterate through every effect in the card.
+            if( //Retarget if needed
+                prev_target!=e.getTarget() || 
+                e.getTarget() == TargetType::ally_all || 
+                e.getTarget() == TargetType::enemy_all ||
+                e.getTarget() == TargetType::random_enemy
+            )
+            {targets = game.selectTargets(e.getTarget(), &source);}
+            else{if(originalTargetDied){continue;}} //Otherwise, if this effect would hit a single target that has died, don't resolve.
 
-            //IF card has a single target that died, then stop.
-            if(targetDied && (target_type==targetType::enemy || target_type==targetType::ally)){break;}
-            // IF this card targets a random enemy or all enemies, valid target list may have changed, so select targets again.            
-            if(target_type==targetType::random_enemy||target_type==targetType::all_enemies){targets = game.selectTargets(target_type);}
-            if(targets.empty()){break;} //all valid targets died   
+            prev_target = e.getTarget(); 
+            e.apply(targets,source,game); //apply effects
+
+
+            if((e.getTarget() == TargetType::ally || e.getTarget() == TargetType::enemy) && !targets[0]->isAlive()){originalTargetDied = true;}
+
+            game.removeDeadCharacters(); //Do cleanup
+            if(game.isCombatOver()){break;}//If combat is over, then stop applying effects.
         }
-        source.addToPlayerPile(PileType::discard,source.getPlayed()); //Go into discard
+        //Post resolution
+        if(exhaust){source.addToPlayerPile(PileType::exhaust, source.getPlayed());}
+        else{source.addToPlayerPile(PileType::discard, source.getPlayed());}
     }
-    else{std::cout<<"Not a valid target!\n"; source.addToPlayerPile(PileType::hand, source.getPlayed());}//No effects resolved, go into hand.
 }
-

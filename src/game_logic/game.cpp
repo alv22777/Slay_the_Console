@@ -1,11 +1,13 @@
 #include"game_logic/game.h"
 #include"game_logic/rng.h"
+#include"game_logic/effect.h"
 #include"character/player.h"
 #include"character/enemy.h"
 #include"data/constants.h"
 #include"card/card.h"
 #include <iostream>
 #include <windows.h>
+
 Game::Game(std::deque<Player> &p, std::deque<Enemy>&e, uint32_t s):player(p), enemies(e), rng(s){}
 
 void Game::displayGameState(int floor, int turn){
@@ -31,14 +33,13 @@ void Game::displayGameState(int floor, int turn){
 
 
 void Game::run(){
-	int floor = 1;
-
-	while(player[0].isAlive()){
-		fight(floor); //This will be dependent on the floor type, for now, it's always a fight.	
+	int floor = 0;
+	while(!player.empty()){
 		floor++;
+		fight(floor); //This will be dependent on the floor type, for now, it's always a fight.	
 	}
-
 	gameOver();
+	
 
 }
 
@@ -50,7 +51,13 @@ void Game::gameOver(){
 	std::cout<<"You lost! go again?(y/n)\n";
 	char replay;
 	std::cin>>replay;	
-	if(replay=='y'||replay=='Y'){run();}
+	if(replay=='y'||replay=='Y'){
+		
+		Player p (color(Color::red, "The Ironclad"),80,3, Color::red);
+		p.setupPlayer(1);
+		player.push_back(p);
+		run();
+	}
 	else{std::cout<<"Thanks for playing!\n";
 	}
 }
@@ -69,31 +76,38 @@ void Game::endTurn(){
 void Game::startTurn(){
 	//startOfTurnEffects();
 	removeDeadCharacters();
-	std::cout<<"Start of turn...\n";
-	Sleep(1000);
-	player[0].setAttribute(Attribute::energy, player[0].getAttribute(Attribute::max_energy));
-	player[0].setAttribute(Attribute::block, 0);
-	player[0].drawCards(5,*this);
+	for(size_t i = 0; i<player.size();i++){
+		if(player[i].isAlive()){
+			player[i].setAttribute(Attribute::energy, player[i].getAttribute(Attribute::max_energy));
+			player[i].setAttribute(Attribute::block, 0);
+			player[i].drawCards(5,*this);
+		}
+	}
 }
 
 //method to check whether combat has ended. Return true if ALL enemies are dead, or the player is dead.
-bool Game::isCombatOver(){return enemies.empty()|| !player[0].isAlive();}
+bool Game::isCombatOver(){
+	if(enemies.empty()||player.empty()){return true;}
+	return false;
+}
 
-std::deque<Character*> Game::selectTargets(targetType target){
+std::deque<Character*> Game::selectTargets(TargetType target, Character* source){
 
 	int choice = 0;
     std::deque<Character*> targets;
+	targets.clear();//this may be redundant
 
 	switch(target){
 			
-		case targetType::ally:
+		case TargetType::ally:
 			if(player.size()==1){targets.push_back(&player[0]);}
-			else if (player.size()==0){std::cout<<"No allies to target!\n"; targets.clear(); break;}
+			else if (player.size()==0){std::cout<<"No allies to target!\n"; break;}
 			else{
 				std::cout<<"Choose an ally:\n";
 				for(size_t i = 0; i<player.size();i++){std::cout<<i<<". "<<player[i].getName()<<'\n';}
+
 				std::cin>>choice;
-				if(std::cin.fail()){std::cin.clear(); std::cin.ignore(1000,'\n'); std::cerr<<"Not a number. ";}
+				if(std::cin.fail()){std::cin.clear(); std::cin.ignore(1000,'\n'); std::cerr<<"Not a number. "; }
 				else{
 					if(choice>=0 && choice<player.size()){ 
 						std::cout<<"You targeted "<<player[choice].getName()<<"!\n";
@@ -105,7 +119,7 @@ std::deque<Character*> Game::selectTargets(targetType target){
 
 
 		break;
-		case targetType::enemy:
+		case TargetType::enemy:
 
 			if(enemies.size()==1){targets.push_back(&enemies[0]);}
 			else if (enemies.size()==0){std::cout<<"No enemies to target!\n"; targets.clear(); break;}
@@ -121,26 +135,50 @@ std::deque<Character*> Game::selectTargets(targetType target){
 				}
 			}
 		break;
-		case targetType::all_enemies:	
+		case TargetType::enemy_all:	
 			if(!enemies.empty()){for(Character &e :enemies){targets.push_back(&e);} }
-			else{std::cout<<"No enemies to target!\n"; targets.clear();}
+			else{std::cout<<"No enemies to target!\n";}
 			break;
 
-		case targetType::random_enemy:
+		case TargetType::random_enemy:
 			if(!enemies.empty()){targets.push_back(&enemies[rng.nextInt(0,enemies.size()-1)]);}
-			else{std::cout<<"No enemies to target!\n"; targets.clear();}
+			else{std::cout<<"No enemies to target!\n";}
 		break;
 
-		default: std::cout<<"Invalid target type!\n";  targets.clear(); break;
+		case TargetType::self: targets.push_back(source); break;
+
+		default: std::cout<<"Invalid target type!\n"; break;
 	}
     return targets;
 
 }
 
 void Game::endOfCombat(){
+
 	std::cout<<"You've won the combat!\n";
 	player[0].endCombat();
 	Sleep(1000);
+}
+
+
+//Enemy Handling methods
+
+void Game::enemyTurn(){
+	enemyActions();
+	enemyPlanning();
+}
+
+void Game::enemyActions(){
+	for(Enemy& e: enemies){
+		e.act(*this);
+		if(isCombatOver()){break;}
+		Sleep(250);
+	}
+}
+void Game::enemyPlanning(){
+	for(Enemy& e: enemies){
+		e.chooseIntent(*this);
+	}	
 }
 
 
@@ -170,18 +208,26 @@ bool Game::removeDeadCharacters(){
 //This method will handle the combat loop, including player and enemy turns (Future implementation will include enemy actions as well, for now it is just a placeholder),
 void Game::fight(int& floor){
 	
-	
-	player[0].StartCombat(*this);
 
+	for(Player &p: player){p.StartCombat(*this);}
+	
 	
 	//Placeholder enemy, will be replaced with actual enemies in the future.
-	Enemy GreenLouse("Green Louse",10+rng.nextInt(0,3), Color::green);
-	Enemy RedLouse("Red Louse",10+rng.nextInt(0,3), Color::red);
-	Enemy Cultist("Cultist",50+rng.nextInt(-4,2), Color::blue);
+	Enemy GreenLouse("Green Louse",10, Color::green, 
+		{
+			Intent({ Effect(EffectType::damage,3,TargetType::ally), Effect(EffectType::damage,3,TargetType::ally) }), 
+			Intent({ Effect(EffectType::damage,2,TargetType::ally) })
+		}
+	);
 
-	this->enemies.clear(); enemies.push_back(GreenLouse); enemies.push_back(RedLouse); enemies.push_back(Cultist);
+	Enemy RedLouse("Red Louse",10, Color::red,
+		{
+			Intent({ Effect(EffectType::damage, 2, TargetType::ally)})
+		}
+	);
+
+	enemies.push_back(GreenLouse); enemies.push_back(RedLouse);
 	
-
 	char choice = ' ';
 	int turn = 1;
 	
@@ -197,9 +243,6 @@ void Game::fight(int& floor){
 
 
 				displayGameState(floor, turn);
-				
-				
-
 								
 				std::cin>>choice;
 				//Check if the input is a number, if not, clear the input and ask again.
@@ -229,12 +272,16 @@ void Game::fight(int& floor){
 				case 'E': //End turn
 
 					//If combat's over, end the combat, otherwise end the turn.
-					if(isCombatOver()){endOfCombat(); break;}
+					if(isCombatOver()){
+						if(!player.empty()){endOfCombat();}
+						break;
+					}
 					else{
-						endTurn(); 
+						endTurn();
+						enemyTurn(); 
 						turn++; choice = ' '; 
 						Sleep(1000);
-						//enemyTurn();
+						//endOfEnemyTurn();
 						startTurn(); break;
 					}
 					

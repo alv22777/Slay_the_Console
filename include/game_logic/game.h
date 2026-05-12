@@ -1,7 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
-class Player; class Enemy; class Character; enum class targetType;
+class Player; class Enemy; class Character; enum class TargetType;
 #include<deque>
 #include"game_logic/rng.h"
 
@@ -20,12 +20,15 @@ class Game{
 	void gameOver();
 	bool removeDeadCharacters();
 
-	std::deque<Character*> selectTargets(targetType target);
-
+	std::deque<Character*> selectTargets(TargetType target, Character* source);
+	void enemyPlanning();
+	void enemyActions();
 	void fight(int& floor);
 	void startTurn();
 	void endTurn();
 	bool isCombatOver();
+	void enemyTurn();
+	
 
 	void endOfCombat();
 };

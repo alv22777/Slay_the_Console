@@ -56,9 +56,10 @@ int Player::getPlayerPileSize(PileType type){
 void Player::StartCombat(Game& game){
     setPlayed(blank_card);
     std::cout<<this->getName()<<" is initiating combat!\n";
+
     combat_deck.addPileToSelf(deck); //Create the combat deck (copy of master deck)
-    game.rng.shuffle(combat_deck.cards); //Shuffle the deck
     combat_deck.movePileTo(draw); //Make the combat deck the new draw pile.
+    game.rng.shuffle(draw.cards); //Shuffle the draw pile
     
     //Reset energy and block.
     setAttribute(Attribute::energy, this->max_energy);
@@ -96,13 +97,10 @@ void Player::discardHand(){hand.movePileTo(discard);}
 
 
 void Player::playCardFromHand(int pos, Game& game){
-    
-    played = getCardFromPile(PileType::hand,pos);
-
-    if(getAttribute(Attribute::energy) >= played.getEnergyCost()){
-        std::cout<<"Playing: "<<played.getName()<<"...\n";
-        removeFromPlayerPile(PileType::hand, pos); //Card is now "hovering" (not on any player pile).
-        played.applyEffects(*this,game);
+    Card tried = getCardFromPile(PileType::hand,pos);
+    if(getAttribute(Attribute::energy) >= tried.getEnergyCost()){
+        setPlayed(tried);
+        played.applyEffects(*this,game, pos);
     }
     else{std::cout<<"Not enough energy!\n";}
 }
@@ -204,6 +202,7 @@ void Player::displayPlayerPile(PileType type){
 			std::cout<<"Press any key to return...\n";
 			system("pause>nul");
             break;
+        
     }
 }
 

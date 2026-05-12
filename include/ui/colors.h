@@ -8,6 +8,7 @@ enum class Color{
 
     common = 8, uncommon = 14, rare = 226, curse = 61, status = 8,
 
+
     hp = 168, block = 6, 
     poison = 28, vulnerable = 124, weak = 240, 
     strength = 1, dexterity = 82, focus = 44,
@@ -16,7 +17,9 @@ enum class Color{
 
     wrath = 124, neutral = 244, calm = 123, divinity = 164,
     
-    regular = 250, keyword = 231 
+    buff = 123, debuff = 64, attack = 202, unknown = 136,
+
+    regular = 250, keyword = 231 , exhaust = 246,
 
 };
 

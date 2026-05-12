@@ -22,8 +22,8 @@ void Character::setName(std::string n){name = n;}
 
 void Character::setAttribute(Attribute att, int value){
     switch(att){
-        case Attribute::hp: HP = value; std::cout<<"HP set to "<<value<<".\n"; break;
-        case Attribute::max_hp: max_HP = value; std::cout<<"Max HP set to "<<value<<".\n"; break;
+        case Attribute::hp: HP = value; break;
+        case Attribute::max_hp: max_HP = value; break;
         case Attribute::block: block = value; break;
     }
 }
@@ -32,27 +32,45 @@ void Character::setAttribute(Attribute att, int value){
 void Character::changeAttribute(Attribute a, int Delta){
     switch(a){
         case Attribute::hp: 
-            HP += Delta;
-            std::cout<<name<<" has "<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" HP!\n"; break; 
-            if(HP>max_HP){
-                std::cout<<"Can't have more HP than max HP!\n";
-                setAttribute(Attribute::hp,max_HP);
-            }
+            HP += Delta; 
+            if(HP>max_HP){setAttribute(Attribute::hp,max_HP);}
             break;
         case Attribute::max_hp: 
-            max_HP += Delta; 
-            std::cout<<name<<" has "<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" max HP!\n"; break; 
+
+            max_HP += Delta;
+
+            if(Delta>0){HP += Delta;}
+            else{ if(HP>max_HP){setAttribute(Attribute::hp, max_HP);} }
+
+            if(max_HP<1){setAttribute(Attribute::max_hp, 1); setAttribute(Attribute::hp,1);}
+
+        break;
+
         case Attribute::block: 
             block += Delta; 
-            std::cout<<name<<" has "<<((Delta>0)? "Gained ":"Lost ")<<abs(Delta)<<" block!\n";
-            if(block>MAX_BLOCK){
-                std::cout<<"Reached maximum block!\n";
-                setAttribute(Attribute::block,MAX_BLOCK);
-            }
+            if(block>MAX_BLOCK){setAttribute(Attribute::block,MAX_BLOCK);}
             break;
     }
 }
 
 bool Character::isAlive(){return (HP>0);}
 
+void Character::takeDamage(int magnitude){
+    if(magnitude>getAttribute(Attribute::block)){//If the damage > target's block, apply excess damage logic.
+        changeAttribute(Attribute::hp,-magnitude+getAttribute(Attribute::block)); 
+        setAttribute(Attribute::block,0);   
+    }
+    else{changeAttribute(Attribute::block,-magnitude);}
+}
 
+void Character::gainBlock(int magnitude){
+    if(getAttribute(Attribute::block)+magnitude>MAX_BLOCK){
+        setAttribute(Attribute::block,MAX_BLOCK);                
+    }
+    else{changeAttribute(Attribute::block, magnitude);}
+}
+
+void Character::hpChange(int magnitude){
+    HP+=magnitude;
+    if(HP>max_HP){setAttribute(Attribute::hp, max_HP);} //Don't go over max HP!
+}

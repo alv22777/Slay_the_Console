@@ -10,7 +10,7 @@ class Player;
 
 
 //Certain cards can only have certain targets. which are the following:
-enum class targetType{ally, enemy, all_enemies, random_enemy, none};
+
 enum class CardType {attack, skill, power, status, curse};
 enum class CardRarity {starter, common, uncommon, rare, status, curse};
 
@@ -22,16 +22,16 @@ class Card{
 	CardRarity rarity; //How rare the card is 
 	std::string card_text;
     std::vector<Effect> effects; //The effects this card applies when played.   
-    targetType target; //The type of target this card can be played on (self, enemy, all_enemies, random_enemy).
+    bool exhaust;
 public:
-    Card(Color c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<Effect> e, targetType tar);
+    Card(Color c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<Effect> e, bool ex);
     void display();    
     int getEnergyCost();
-    targetType getTargetType();
+    
     std::string getName();
     std::string getCardType();
     std::string getCardRarity();
-    void applyEffects(Player& source, Game& game);
+    void applyEffects(Player& source, Game& game, int pos);
 
 };
 

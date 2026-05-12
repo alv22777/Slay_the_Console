@@ -1,0 +1,42 @@
+IMPLEMENT enemy intents and actions so that enemies have a Turn. In the more general picture, a Slay the spire turn (which is what's displayed to the player) is comprised of:
+
+1) Player Reset: energy = max_energy, block = 0 (or not, depending on the case).*
+2) Player drawing 5 cards.*
+3) Start of turn effects.
+4) Player turn priority. Freedom to perform player actions such as playing cards, using potions or ending the turn.*
+5) End of turn effects, either from relics, buffs, debuffs. Can apply to both enemies and players.
+6) Enemy turn priority. Enemies act from top to bottom, performing each of their intents.
+7) End of enemy turn. Not used for much at the moment. But could allow for debuffs to take effect at the end of enemy turn.
+
+This loops until the fight is over!
+*Already implemented
+
+As of now. A EnemyTurn(); method will be added to Game class. Parameters are not passed because the enemies vector is already contained within Game. 
+
+EnemyTurn(){
+	for every enemy:
+		enemy.act(probably game object as input);
+	endOfEnemyTurn();
+}
+
+Looking into Enemy class:
+
+Enemy::act(){
+
+	Intent actions = this->chooseIntent(); //This method will handle intent choosing (enemy AI, basically).	
+	for( every effect e in actions){
+		e.apply();
+		removeDeadCharacters(); //This does guarantee requiring a game object i guess...
+	}
+	
+}
+
+This should cover enemy action logic. Now, I'm interested in implementing an event broadcaster (for UI purposes). Probably inside Effect::apply, i can include something like
+broadcastEffects(Character& source, Character& target, effectType, magnitude); Which might just add a custom string depicting what happened?
+
+Example: 
+broadcastEffects(The_Ironclad, Green Louse, Damage, 6)
+
+which adds "The Ironclad has dealt 6 damage to Green Louse" to something of an "event log", which is a vector with limited size of (say) 5 strings? so that every time something happens, we add to the event log and then remove the 6th most recent event. I do believe that is a good solution and might help me get rid of many unnecessary Sleep(1000);
+
+ANYWAYS, this is the roadmap for now!

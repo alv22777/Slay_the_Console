@@ -14,22 +14,22 @@ int main() {
 		SetConsoleOutputCP(CP_UTF8); //Allows UTF8 decoding for printing symbols.
 		uint32_t seed;
 
-		std::cout<<"Do you want to choose a custom seed? 0: random seed.\n";std::cin>>seed;
-		if(seed==0){seed = std::time(nullptr);}
-		
+		// std::cout<<"Do you want to choose a custom seed? 0: random seed.\n";std::cin>>seed;
+		// if(seed==0){seed = std::time(nullptr);}
+
+		seed = std::time(nullptr);	
 		RNG rng(seed);
+
 		std::deque<Player> players;
 		std::deque<Enemy> enemies;
 		
 		
 		int choice = 0;
 		
-		
-		
 		while (choice < 1 || choice > 4) {
 			std::cout << "Please select your character:\n";
 			std::cout<<color(Color::red, "1. The Ironclad\n")<<color(Color::green, "2. The Silent\n")<<
-			color(Color::blue, "2. The Defect\n")<<color(Color::purple, "4. The Watcher\n");
+			color(Color::blue, "3. The Defect\n")<<color(Color::purple, "4. The Watcher\n");
 			std::cin >> choice;
 		}
 		
