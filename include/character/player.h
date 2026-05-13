@@ -32,8 +32,8 @@ class Player: public Character{
     int getAttribute(Attribute a);
 
     //Add Card c to player Pile type (deck, hand, discard...). 
-	void addToPlayerPile(PileType type, Card& c);
-	
+    void addToPile(PileType type, Card &c, bool bottom);
+
     int getPlayerPileSize(PileType type);
 	//Removes Card with position pos from the player's Pile type (deck, hand, discard...).
 	void removeFromPlayerPile(PileType type, int pos);
@@ -42,7 +42,7 @@ class Player: public Character{
 	void deletePlayerPile(PileType type);
 
 	//Display player Pile type (deck, hand, discard...).
-	void displayPlayerPile(PileType type);
+	void displayPlayerPile(PileType type, bool fixed, int n);
 	
 	//Draw x cards from player's draw pile into hand. If draw is empty, shuffle discard into draw and continue drawing. If both draw and discard are empty, stop drawing.
 	void drawCards(int amount, Game& game);
@@ -60,10 +60,18 @@ class Player: public Character{
 	void playCardFromHand(int pos, Game& game);
 
 	void setupPlayer(int choice);
-	void endCombat();
+    void endCombat();
     Card& getPlayed();
 
-	~Player() noexcept override = default;
+
+
+    void transferCardsManual(PileType source, PileType target, int amount, bool bottom);
+
+    void transferCardsAuto(PileType source, PileType target, std::deque<int> choices, bool bottom);
+
+    std::deque<int> chooseCards(PileType source, int amount);
+
+    ~Player() noexcept override = default;
 
 };
 

@@ -24,6 +24,8 @@ class RNG{
     void shuffle(std::deque<T>& vec){std::shuffle(vec.begin(), vec.end(), engine);}  
     
     uint32_t getSeed();
+    void setSeed(uint32_t s);
+    
 };
 
 #endif

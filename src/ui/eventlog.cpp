@@ -3,7 +3,9 @@
 EventLog::EventLog(int s): size(s), log({}){}
 
 void EventLog::receive(std::string s){
-    log.push_back(s);
+    if(!s.empty()){log.push_back(s);}
+    else{return;}
+
     if(log.size() > size){prune();}
 }
 void EventLog::prune(){

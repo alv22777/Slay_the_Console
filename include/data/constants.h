@@ -29,8 +29,9 @@ extern const int STARTING_ENERGY;
 extern const int STARTING_BLOCK;
 extern const int MAX_BLOCK;
 extern const int EVENT_LOG_SIZE;
+extern const int MAX_HAND_SIZE;
 
-////////////////////THE IRONCLAD//////////////////
+extern Pile empty_deck;
 extern Pile ICL_STARTER_DECK;
 extern Pile SLT_STARTER_DECK;
 extern Pile DEF_STARTER_DECK;
@@ -43,20 +44,38 @@ extern Card blank_card;
 extern Card ICL_Strike;
 extern Card ICL_Defend;
 extern Card ICL_Bash;
-extern Card ICL_Sword_boomerang;
-extern Card ICL_Bloodletting;
 
 extern Card SLT_Strike;
 extern Card SLT_Defend;
 extern Card SLT_Neutralize;
 extern Card SLT_Survivor;
 
-extern Card STS_Wound;
+extern Card ICL_Sword_boomerang;
+extern Card ICL_Twin_Strike;
+extern Card ICL_Bloodletting;
+extern Card ICL_Headbutt;
+extern Card ICL_True_Grit;
+extern Card ICL_Exhume;
+
+
+extern Card SLT_Prepared;
+extern Card SLT_Acrobatics;
+
+extern Card DEF_Skim;
+extern Card DEF_Hologram;
+
+extern Card CLS_Finesse;
+extern Card CLS_Bite;
+
 extern Card CUR_Injury;
 
-extern Pile empty_deck;
+extern Card STS_Wound;
+
+
+
 
 ////////////////////STARTER DECK//////////////////
+
 Pile createIroncladStarterDeck();
 Pile createSilentStarterDeck();
 #endif

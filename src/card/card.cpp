@@ -29,13 +29,26 @@ void Card::display(){
         case CardType::curse: card_type = color(Color::curse,u8"  ⛦ "); break;
         default: card_type="none"; break; 
     }
-    std::cout<<cost<<card_type<<color(Color::keyword, name)<<": "<<card_text;
+
+    std::cout<<cost<<card_type<<color(rarityColor(rarity), name)<<": "<<card_text;
     if(exhaust){std::cout<<color(Color::exhaust," Exhaust.");}
 }
 
 int Card::getEnergyCost(){return energy_cost;}
 
 std::string Card::getName(){return name;}
+
+Color Card::rarityColor(CardRarity r){
+    switch(r){
+        case CardRarity::common: return Color::common;
+        case CardRarity::uncommon: return Color::uncommon;
+        case CardRarity::rare: return Color::rare;
+        case CardRarity::status: return Color::status;
+        case CardRarity::starter: return Color::common;
+        case CardRarity::curse: return Color::curse;
+        default: return Color::common;
+    }
+}
 
 std::string Card::getCardType(){
     switch(type){
@@ -93,7 +106,7 @@ void Card::applyEffects(Player& source, Game& game, int pos){
             game.removeDeadCharacters(); //Do cleanup
         }
         //Post resolution
-        if(exhaust){source.addToPlayerPile(PileType::exhaust, source.getPlayed());}
-        else{source.addToPlayerPile(PileType::discard, source.getPlayed());}
+        if(exhaust){source.addToPile(PileType::exhaust, source.getPlayed(), false);}
+        else{source.addToPile(PileType::discard, source.getPlayed(), false);}
     }
 }

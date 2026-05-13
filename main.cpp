@@ -35,12 +35,12 @@ int main() {
 		}
 		
 		Player player("NOPLAYER", 0,0, Color::colorless);
-
 		player.setupPlayer(choice);
-		players.emplace_back(player);
+		
+		players.push_back(player);
 	
 
-		Game run(players, enemies, seed, EventLog(5));
+		Game run(players, enemies, seed, EventLog(EVENT_LOG_SIZE));
 
 
 		

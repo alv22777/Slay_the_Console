@@ -4,7 +4,7 @@ RNG::RNG(uint32_t s): engine(s), seed(s){}
 
 //Returns a random integer between min and max, inclusive. Very useful for things like random enemy targets.
 int RNG::nextInt(int min, int max){
-    std::uniform_int_distribution<int> dist(min, max);
+    std::uniform_int_distribution<uint32_t> dist(min, max);
     return dist(engine);
 }
 //Returns a random float between min and max. Useful for things like random chances and percentages.
@@ -18,3 +18,8 @@ bool RNG::chance(float probability){
 }
 
 uint32_t RNG::getSeed(){return seed;}
+
+void RNG::setSeed(uint32_t s){
+    seed = s;
+    engine = std::mt19937(s);
+}

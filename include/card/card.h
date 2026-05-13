@@ -29,6 +29,7 @@ public:
     int getEnergyCost();
     
     std::string getName();
+    Color rarityColor(CardRarity r);
     std::string getCardType();
     std::string getCardRarity();
     void applyEffects(Player& source, Game& game, int pos);

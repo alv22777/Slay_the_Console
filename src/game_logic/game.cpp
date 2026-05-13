@@ -4,10 +4,11 @@
 #include"character/player.h"
 #include"character/enemy.h"
 #include"data/constants.h"
-
 #include"card/card.h"
+#include"ui/input.h"
 #include <iostream>
-#include <windows.h>
+#include "stdint.h"
+
 
 Game::Game(std::deque<Player> &p, std::deque<Enemy>&e, uint32_t s, EventLog log):player(p), enemies(e), rng(s), event_log(log){}
 
@@ -15,15 +16,15 @@ void Game::displayGameState(int floor, int turn){
 	system("cls"); // Clear screen
 
 	std::cout<<"========================================\n";
-	std::cout<<"FLOOR "<<floor<<" - TURN "<<turn<<"  seed: "<<rng.getSeed()<<"\n\n";
+	std::cout<<"FLOOR "<<floor<<" - TURN "<<turn<<"  seed: "<<rng.getSeed()<<"\n";
 
 	//Show game and player status.
 	for(Player& p: player){p.displayStatus();}
-	std::cout<<"\nEnemies:\n";
+	std::cout<<"Enemies:\n";
 	for(size_t i = 0; i<enemies.size();i++){std::cout<<i<<") "; enemies[i].displayStatus();}
-	std::cout<<"\n----------------------------------------\n";
+	std::cout<<"----------------------------------------\n";
 
-	player[0].displayPlayerPile(PileType::hand);	
+	player[0].displayPlayerPile(PileType::hand, true, 10);	
 	std::cout<<"Draw [A]: "<<player[0].getPlayerPileSize(PileType::draw);
 	std::cout<<" Discard [D]: "<<player[0].getPlayerPileSize(PileType::discard);
 	std::cout<<" Exhaust [X]: "<<player[0].getPlayerPileSize(PileType::exhaust);
@@ -38,6 +39,7 @@ void Game::displayGameState(int floor, int turn){
 void Game::run(){
 	int floor = 0;
 	enemies.clear();
+
 	while(!player.empty()){
 		floor++;
 		fight(floor); //This will be dependent on the floor type, for now, it's always a fight.	
@@ -57,6 +59,8 @@ void Game::gameOver(){
 	if(replay=='y'||replay=='Y'){
 		
 		Player p (color(Color::red, "The Ironclad"),80,3, Color::red);
+		rng.setSeed(rng.nextInt(0,UINT32_MAX));
+
 		p.setupPlayer(1);
 		player.push_back(p);
 		run();
@@ -67,18 +71,19 @@ void Game::gameOver(){
 
 void Game::endTurn(){
 	//endOfTurnEffects();
-	removeDeadCharacters();
+	
 	player[0].discardHand();
-	std::cout<<"Turn ended. Hand discarded.\n";
-	Sleep(1000);
-	std::cout<<"Enemy turn...\n";
-	Sleep(1000);
+	event_log.receive("---------- End of turn ----------");
+	//endofTurnEffects() or sm
+
 
 }
 
 void Game::startTurn(){
+	
+	event_log.receive("---------- Start of turn ----------");
 	//startOfTurnEffects();
-	removeDeadCharacters();
+
 	for(size_t i = 0; i<player.size();i++){
 		if(player[i].isAlive()){
 			player[i].setAttribute(Attribute::energy, player[i].getAttribute(Attribute::max_energy));
@@ -156,15 +161,16 @@ std::deque<Character*> Game::selectTargets(TargetType target, Character* source)
 
 void Game::endOfCombat(){
 
-	std::cout<<"You've won the combat!\n";
+	event_log.receive("---------- End of combat ----------");
 	player[0].endCombat();
-	Sleep(1000);
+
 }
 
 
 //Enemy Handling methods
 
 void Game::enemyTurn(){
+	event_log.receive("---------- Enemy turn ----------");
 	enemyActions();
 	enemyPlanning();
 }
@@ -205,14 +211,14 @@ bool Game::removeDeadCharacters(){
 	return death;
 }
 
-//This method will handle the combat loop, including player and enemy turns (Future implementation will include enemy actions as well, for now it is just a placeholder),
+//This method will handle the combat loop, including player and enemy turns.
 void Game::fight(int& floor){
 	
 
 	for(Player &p: player){p.StartCombat(*this);}
-	event_log.clear();
-
+	event_log.receive("---------- Start of combat ---------");
 	
+
 	//Placeholder enemy, will be replaced with actual enemies in the future.
 	Enemy GreenLouse("Green Louse",10, Color::green, 
 		{
@@ -245,9 +251,7 @@ void Game::fight(int& floor){
 
 				displayGameState(floor, turn);
 								
-				std::cin>>choice;
-				//Check if the input is a number, if not, clear the input and ask again.
-				if(std::cin.fail()){std::cin.clear();std::cin.ignore(10000,'\n'); std::cerr<<"Not a number.\n";continue;}
+				choice = inputChar();
 
 				//Player tries to play a card from hand. 
 				if('0'<=choice&&choice<='9'){//if input is a number, check if it's a valid card choice. If it is, play the card.
@@ -256,7 +260,7 @@ void Game::fight(int& floor){
 					if(choice<player[0].getPlayerPileSize(PileType::hand)){
 						player[0].playCardFromHand(choice, *this);					
 					}
-					else{std::cout<<"You don't have at least this many cards in hand! Try again.\n";Sleep(1000);}
+					else{std::cout<<"You don't have at least this many cards in hand! Try again.\n";}
 					continue;
 				}
 			}
@@ -266,11 +270,28 @@ void Game::fight(int& floor){
 			//Player wishes to do other actions, such as viewing the draw or discard pile, or ending the turn.
 			switch(choice){
 				//Allow the player to view cards in the draw, discard and exhaust piles, as well as the deck.
-				case 'A': player[0].displayPlayerPile(PileType::draw); break;
-				case 'K': player[0].displayPlayerPile(PileType::deck); break;
-				case 'D': player[0].displayPlayerPile(PileType::discard); break;
-				case 'X': player[0].displayPlayerPile(PileType::exhaust); break;
-				case 'E': //End turn
+				case 'a': 
+					player[0].displayPlayerPile(PileType::draw, false, 0);
+					std::cout<<"Press any key to return...\n";
+					system("pause>nul"); 
+				break;
+
+				case 'k': 
+					player[0].displayPlayerPile(PileType::deck, false, 0);
+					std::cout<<"Press any key to return...\n";
+					system("pause>nul"); 
+				break;
+				case 'd': 
+					player[0].displayPlayerPile(PileType::discard, false, 0);
+					std::cout<<"Press any key to return...\n";
+					system("pause>nul"); 
+				break;
+				case 'x': 
+					player[0].displayPlayerPile(PileType::exhaust, false, 0);
+					std::cout<<"Press any key to return...\n";
+					system("pause>nul"); 
+				break;
+				case 'e': //End turn 
 
 					//If combat's over, end the combat, otherwise end the turn.
 					if(isCombatOver()){
@@ -287,7 +308,6 @@ void Game::fight(int& floor){
 					
 				default:
 					std::cout<<"Not a valid choice. Please try again!\n";
-					Sleep(1000);
 					continue;
 					
 			}

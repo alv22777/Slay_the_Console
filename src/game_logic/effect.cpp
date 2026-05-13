@@ -20,19 +20,25 @@ void Effect::apply(std::deque<Character*> target, Character& source, Game& game)
         enemy = dynamic_cast<Enemy*>(c);
         
         switch(type){
+            //General behavior
             case EffectType::damage: {c->takeDamage(magnitude); break;}
-            case EffectType::block:  {c->gainBlock(magnitude);  break;}    
-            case EffectType::draw:{ if(player){player->drawCards(magnitude,game);} break; }
-            case EffectType::discard:{ std::cout<<"DISCARDING!!!\n"; break; }
-            case EffectType::energy: {c->changeAttribute(Attribute::energy,magnitude); break;}
             case EffectType::hp: {c->changeAttribute(Attribute::hp,magnitude); break;}
-            default: {std::cout<<"No effect!\n"; break;}
-        }
-        
+            case EffectType::block:  {c->gainBlock(magnitude);  break;}    
+            //Player specific behavior
+            case EffectType::draw:{ if(player){player->drawCards(magnitude,game);} break; }
 
-        
+            case     EffectType::discard:{if(player){player->transferCardsManual(PileType::hand,   PileType::discard, magnitude, false);} break;}
+            case     EffectType::exhaust:{if(player){player->transferCardsManual(PileType::hand,   PileType::exhaust, magnitude, false);} break;}
+            case      EffectType::exhume:{if(player){player->transferCardsManual(PileType::exhaust,PileType::hand,    magnitude, true);} break;}
+            case    EffectType::hologram:{if(player){player->transferCardsManual(PileType::discard,PileType::hand,    magnitude, true);} break;}
+            case        EffectType::seek:{if(player){player->transferCardsManual(PileType::draw,   PileType::hand,    magnitude, true);} break;}
+            case    EffectType::headbutt:{if(player){player->transferCardsManual(PileType::discard,PileType::draw,    magnitude, false);} break;}
+            case EffectType::forethought:{if(player){player->transferCardsManual(PileType::hand,   PileType::draw,    magnitude, true );} break;}
+
+            case EffectType::energy: {if(player){player->changeAttribute(Attribute::energy,magnitude);} break;}
+            default: {std::cout<<"No implementation yet!\n"; break;}
+        }
     }
-    
 }
 
 EffectType Effect::getType(){return type;}
@@ -40,60 +46,69 @@ int Effect::getMagnitude(){return magnitude;}
 TargetType Effect::getTarget(){return target_type;}
 
 std::string Effect::log(std::deque<Character*> target, Character& source){
-   std::string log; std::string who; std::string what; std::string to_who; std::string how_much = std::to_string(magnitude);
-
-    who = color(source.getColor(), source.getName());
     
-    if(target.size()==1&& target_type != TargetType::self){to_who = color(target[0]->getColor(), target[0]->getName()) +"." ;}
-    else{
-        switch(target_type){
-            case TargetType::ally_all : to_who = "all players."; break;
-            case TargetType::enemy_all: to_who = "all enemies."; break;        
-        }
-    }
+    if(target.empty()){return "";}
+    
+    std::string log; std::string who; std::string what; std::string to_who; std::string how_much = std::to_string(abs(magnitude));
+    bool single_target = target_type == TargetType::ally || target_type == TargetType::random_enemy || 
+                         target_type == TargetType:: enemy || target_type == TargetType::self;
 
+    //Default conditions
+    if(single_target){who  = color(target[0]->getColor(), target[0]->getName());}
+    else{who = (target_type == TargetType::enemy_all)? "All enemies ":"All allies ";}
+    to_who = "";
 
     switch(type){
-            case EffectType::damage: 
-                what = " dealt " + how_much + " damage to "; 
-            break;
-            
-            case EffectType::block:
-                if(target.size()==1){
-                    who = color(target[0]->getColor(), target[0]->getName());               
-                    what = " gained "  + how_much + " block." ;
-                    to_who = ""; 
-                }
-                else{
-                    what = " gave "  + how_much + " block to " ;
-                }
-            break;
+        case EffectType::damage:
+            who = color(source.getColor(),source.getName());
+            what = " dealt " + how_much + " damage to ";
+            if(single_target){to_who  = color(target[0]->getColor(), target[0]->getName());}
+            else{to_who = (target_type == TargetType::enemy_all)? " all enemies.":" all allies.";} 
+        break;
+        case EffectType::block:
+            what = ((magnitude>0)? " gained ":" lost " ) + how_much + " block.";
+        break;
+        case EffectType::energy:
+            what = ((magnitude>0)? " gained ":" lost " ) + how_much + " energy.";
+        break;
+        case EffectType::hp:
+            what = ((magnitude>0)? " gained ":" lost " )+ how_much + " HP.";
+        break;
+        case EffectType::draw:
+            what = " drew " + how_much + " card" + ((magnitude>1)? "s.":".");
+        break;
 
-            case EffectType::draw:
-                if(target.size()==1){
-                    who = color(target[0]->getColor(), target[0]->getName());   
-                }
-                what = " drew "  + how_much + "  cards.";    
-            break;
+        case EffectType::discard:
+            what = " discarded " + how_much + " card" +((magnitude>1)? "s.":".");
+        break;
 
-            case EffectType::discard: 
-                what = " discarded "+ how_much + " cards.";   
-            break;
-            case EffectType::energy : 
-                what = ((magnitude>=0)? " gained ":" lost ")+ how_much + " energy."; 
-            break;
-            case EffectType::hp: 
-                what = ((magnitude>=0)? " gained ":" lost ") + how_much + " HP."; 
-            break;
+        case EffectType::exhaust:
+            what = " exhausted " + how_much + " card" +((magnitude>1)? "s.":".");
+        break;
+        case EffectType::strength:
+            what = ((magnitude>0)? " gained ":" lost " ) + how_much + " Strength.";
+        break;
 
-            default: what = ""; break;
+        case EffectType::dexterity:
+            what = ((magnitude>0)? " gained ":" lost " ) + how_much + " Dexterity.";
+        break;
+
+        case EffectType::weak:
+            what = ((magnitude>0)? " gained ":" lost " ) + how_much + " Weak.";
+        break;
+        case EffectType::vulnerable:
+            what = ((magnitude>0)? " gained ":" lost " ) + how_much + " Vulnerable.";
+        break;
+        case EffectType::frail:
+            what = ((magnitude>0)? " gained ":" lost " ) + how_much + " Frail.";
+        break;
+        default: return "";
+
     }
     
-    if(target_type == TargetType::self){to_who="";}
-    if(target.empty()){return "";}
-
+        
     log = who + what + to_who;
 
-    return who+what+to_who;
+    return log;
 
 }

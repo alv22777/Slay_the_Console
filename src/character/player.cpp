@@ -3,10 +3,14 @@
 #include "game_logic/game.h"
 #include "ui/colors.h"
 #include "ui/formatting.h"
+#include "ui/input.h"
 #include "card/pile.h"
 #include "card/card.h"
+#include <algorithm>
 #include <windows.h>
 #include <iomanip>
+
+
 Player::Player(std::string n,int mHP, int e, Color c): Character(n,mHP,c), max_energy(e), energy(e), played(blank_card){}
 
 
@@ -85,13 +89,12 @@ void Player::drawCards(int amount, Game& game){
 
 }
 
-
 void Player::discardHand(){hand.movePileTo(discard);}
-
 
 void Player::playCardFromHand(int pos, Game& game){
     Card tried = getCardFromPile(PileType::hand,pos);
     if(getAttribute(Attribute::energy) >= tried.getEnergyCost()){
+        tried.display(); std::cout<<'\n';
         setPlayed(tried);
         played.applyEffects(*this,game, pos);
     }
@@ -117,17 +120,27 @@ void Player::setupPlayer(int choice){
         col = Color::green;
         break;
     }
-
 }
 
-void Player::addToPlayerPile(PileType type, Card& c){
-    switch(type){
-        case PileType::deck: deck.addCardToPile(c); break;
-        case PileType::combat_deck: combat_deck.addCardToPile(c); break;
-        case PileType::hand: hand.addCardToPile(c); break;
-        case PileType::draw: draw.addCardToPile(c); break;
-        case PileType::discard: discard.addCardToPile(c); break;
-        case PileType::exhaust: exhaust.addCardToPile(c); break;
+void Player::addToPile(PileType type, Card& c, bool bottom){
+    if(bottom){
+        switch(type){
+            case PileType::deck: deck.addCardBot(c); break;
+            case PileType::combat_deck: combat_deck.addCardBot(c); break;
+            case PileType::hand: hand.addCardBot(c); break;
+            case PileType::draw: draw.addCardBot(c); break;
+            case PileType::discard: discard.addCardBot(c); break;
+            case PileType::exhaust: exhaust.addCardBot(c); break;
+        }
+    }else{
+        switch(type){
+            case PileType::deck: deck.addCardTop(c); break;
+            case PileType::combat_deck: combat_deck.addCardTop(c); break;
+            case PileType::hand: hand.addCardTop(c); break;
+            case PileType::draw: draw.addCardTop(c); break;
+            case PileType::discard: discard.addCardTop(c); break;
+            case PileType::exhaust: exhaust.addCardTop(c); break;
+        }
     }
 }
 
@@ -153,52 +166,42 @@ void Player::deletePlayerPile(PileType type){
     }
 }
 
-void Player::displayPlayerPile(PileType type){
+void Player::displayPlayerPile(PileType type, bool fixed, int n){
+    Pile choice;
     //Switched responsibility from Game to Character.
     switch(type){
         case PileType::deck: 
-            std::cout<<"Deck:\n";
-			deck.displayPile();
-			std::cout<<"Press any key to return...\n";
-			system("pause>nul");
-            break;
+        std::cout<<"Deck:\n"; choice = deck;
+        break;
 
         case PileType::combat_deck: 
-            std::cout<<"Combat Deck:\n";
-			combat_deck.displayPile();
-			std::cout<<"Press any key to return...\n";
-			system("pause>nul");
-            break;
-
+        std::cout<<"Combat Deck:\n"; choice = combat_deck;
+        break;
+            
         case PileType::hand: //Hand is combat only. Hand should be visible by default, so no need to wait for return key.
-            std::cout<<"Hand:\n";
-			hand.displayFixed(10); 
-            break;
-
+        std::cout<<"Hand:\n"; choice = hand;
+        break;
+        
         case PileType::draw: 
-            std::cout<<"Draw:\n";
-			draw.displayPile();
-			std::cout<<"Press any key to return...\n";
-			system("pause>nul");
-            break;
+        std::cout<<"Draw:\n"; choice = draw;
+        break;
         
         case PileType::discard: 
-            std::cout<<"Discard:\n";
-			discard.displayPile();
-			std::cout<<"Press any key to return...\n";
-			system("pause>nul");
-            break;
-
-        case PileType::exhaust: 
-            std::cout<<"Exhaust:\n";
-			exhaust.displayPile();
-			std::cout<<"Press any key to return...\n";
-			system("pause>nul");
-            break;
+        std::cout<<"Discard:\n"; choice = discard;
+        break;
         
+        case PileType::exhaust: 
+        std::cout<<"Exhaust:\n"; choice = exhaust;
+        break;
+        
+       
     }
-}
+    
+    if(fixed){choice.displayFixed(n);}
+    else{choice.displayPile();}
 
+}
+    
 void Player::endCombat(){
     combat_deck.deletePile();
     draw.deletePile();
@@ -228,3 +231,72 @@ Card& Player::getCardFromPile(PileType type, int position){
 }
 
 void Player::setPlayed(Card& c){played = c;}
+
+//Transfer {amount} cards manually chosen from source Pile to target Pile.
+void Player::transferCardsManual(PileType source, PileType target, int amount, bool bottom){
+    std::deque<int> choices = chooseCards(source, amount); 
+    
+    if(bottom){//cards go on bottom of the pile
+        for(int pos: choices){
+            addToPile(target,getCardFromPile(source,pos), true);
+        }       
+    }
+    else{ //Cards go on top of the pile
+        for(int pos: choices){
+            addToPile(target, getCardFromPile(source, pos), false);
+            removeFromPlayerPile(source, pos);
+        }
+    }   
+}
+
+//Transfer the selected cards (choices) from source Pile to target Pile
+void Player::transferCardsAuto(PileType source, PileType target, std::deque<int> choices, bool bottom){
+    //Go from latest index to earliest, this prevents index invalidation due to container mutation
+    std::sort(choices.begin(),choices.end(), std::greater<int>()); 
+
+    if(bottom){//cards go on bottom of the pile
+        for(int pos: choices){
+            addToPile(target,getCardFromPile(source,pos), true);
+            removeFromPlayerPile(source, pos);
+        }       
+    }   
+
+    else{ //Cards go on top of the pile
+        for(int pos: choices){
+            addToPile(target, getCardFromPile(source, pos), false);
+            removeFromPlayerPile(source, pos);
+        }
+    }   
+}
+
+
+
+//Manually choose n cards from Pile source, it returs the choices sorted in descending order.
+std::deque<int> Player::chooseCards(PileType source, int amount){
+    std::deque<int> choices;
+
+    std::cout<<"Choose "<<amount<<" card"<<((amount>1)? "s.":".")<<'\n';
+    displayPlayerPile(source, false, 0);
+
+    if(amount>=getPlayerPileSize(source)){ //We can't get 3 cards if source's pile size is 2, so just default to the whole pile!
+        for(int i = 0; i<getPlayerPileSize(source);i++){
+            choices.push_back(i);
+        }
+    }
+    else{
+        while(choices.size()<amount){
+            int input = inputInt(0,getPlayerPileSize(source)-1);
+            
+            if( std::find(choices.begin(), choices.end(), input) == choices.end() ){
+                choices.push_back(input);
+                std::cout<<amount-choices.size()<<" card"<<((amount-choices.size()>1)? "s ":" ")<< "remaining.\n";
+            }else{
+                std::cout<<"Card already selected.\n";
+            }
+        }
+    }
+
+    //Go from latest index to earliest, this prevents index invalidation due to container mutation
+    std::sort(choices.begin(),choices.end(), std::greater<int>()); 
+    return choices;
+}

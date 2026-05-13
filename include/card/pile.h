@@ -15,7 +15,9 @@ class Pile{
 	//PILE MANIPULATION METHODS//
 
 	//Use this to add a card to the pile
-	void addCardToPile(Card& card);
+	void addCardTop(Card& card);
+	void addCardBot(Card& card);
+	
 	//Use this to remove given position from this pile of cards.
 	void remove(int position);
 	

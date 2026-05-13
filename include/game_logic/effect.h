@@ -5,7 +5,12 @@
 #include<iostream>
 class Game; class Character;
 
-enum class EffectType{damage, block, draw, discard, exhaust, energy, strength, dexterity, hp};
+enum class EffectType{
+    damage, block, energy, hp, 
+    draw, discard, exhaust, exhume, hologram, seek, headbutt, forethought,
+    strength, dexterity, weak, vulnerable, frail,
+    none
+};
 enum class TargetType{ally, ally_all, enemy, enemy_all, random_enemy, self, none};
 
 
