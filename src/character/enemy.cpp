@@ -12,13 +12,13 @@ Enemy::Enemy(std::string n, int mHP, Color c, std::deque<Intent> p_i):
     Character(n,mHP,c), possible_intents(p_i), next_intent(p_i[0]){}
 
 void Enemy::displayStatus(){
-    
     std::cout<<std::left<<color(col,padRight(getName(),15));
     std::cout<<std::left<<color(Color::hp, padRight((" HP "+std::to_string(HP)+'/'+std::to_string(max_HP)),10));
     std::cout<<std::left<<color(Color::block, padRight((" Block "+std::to_string(block)),10));
     next_intent.display();
     std::cout<<'\n';
 }
+
 
 void Enemy::act(Game& game){
 

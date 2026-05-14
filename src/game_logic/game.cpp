@@ -9,8 +9,8 @@
 #include <iostream>
 #include "stdint.h"
 
-
-Game::Game(std::deque<Player> &p, std::deque<Enemy>&e, uint32_t s, EventLog log):player(p), enemies(e), rng(s), event_log(log){}
+//Takes in a deque of Player objects, an RNG uint32_t seed and an integer size for the game's event log.
+Game::Game(std::deque<Player> &p, uint32_t s, int l):player(p), enemies(), rng(s), event_log(EventLog(l)){}
 
 void Game::displayGameState(int floor, int turn){
 	system("cls"); // Clear screen
@@ -54,42 +54,31 @@ void Game::run(){
 //Things like calculating score and awarding feats will go here in the future.
 void Game::gameOver(){
 	std::cout<<"You lost! go again?(y/n)\n";
-	char replay;
-	std::cin>>replay;	
+	char replay = inputChar();
 	if(replay=='y'||replay=='Y'){
-		
-		Player p (color(Color::red, "The Ironclad"),80,3, Color::red);
 		rng.setSeed(rng.nextInt(0,UINT32_MAX));
-
-		p.setupPlayer(1);
-		player.push_back(p);
+		int choice = characterSelect();
+		player.push_back(Player::createPlayer(choice));
+		event_log.clear();
 		run();
 	}
-	else{std::cout<<"Thanks for playing!\n";
-	}
+	else{std::cout<<"Thanks for playing!\n";}
 }
 
 void Game::endTurn(){
-	//endOfTurnEffects();
-	
-	player[0].discardHand();
 	event_log.receive("---------- End of turn ----------");
-	//endofTurnEffects() or sm
-
-
+	//endOfTurnEffects();
+	player[0].discardHand();
 }
 
 void Game::startTurn(){
-	
 	event_log.receive("---------- Start of turn ----------");
 	//startOfTurnEffects();
 
-	for(size_t i = 0; i<player.size();i++){
-		if(player[i].isAlive()){
-			player[i].setAttribute(Attribute::energy, player[i].getAttribute(Attribute::max_energy));
-			player[i].setAttribute(Attribute::block, 0);
-			player[i].drawCards(5,*this);
-		}
+	for(Player& p: player){
+		p.setAttribute(Attribute::energy, p.getAttribute(Attribute::max_energy));
+		p.setAttribute(Attribute::block,0);
+		p.drawCards(5,*this);
 	}
 }
 
@@ -103,7 +92,6 @@ std::deque<Character*> Game::selectTargets(TargetType target, Character* source)
 
 	int choice = 0;
     std::deque<Character*> targets;
-	targets.clear();//this may be redundant
 
 	switch(target){
 			
@@ -268,7 +256,6 @@ void Game::fight(int& floor){
 			}
 			else{choice = 'E';} //Otherwise just end the turn (which will end the combat).
 
-		
 			//Player wishes to do other actions, such as viewing the draw or discard pile, or ending the turn.
 			switch(choice){
 				//Allow the player to view cards in the draw, discard and exhaust piles, as well as the deck.
@@ -308,9 +295,7 @@ void Game::fight(int& floor){
 						startTurn(); break;
 					}
 					
-				default:
-					std::cout<<"Not a valid choice. Please try again!\n";
-					continue;
+				default: continue;
 					
 			}
 		}

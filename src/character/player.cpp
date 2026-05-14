@@ -101,24 +101,19 @@ void Player::playCardFromHand(int pos, Game& game){
     else{std::cout<<"Not enough energy!\n";}
 }
 
-void Player::setupPlayer(int choice){
+Player Player::createPlayer(int choice){
     switch(choice){
-    case 1:
-        setName(color(Color::red, "The Ironclad")); 
-        setAttribute(Attribute::max_hp, ICL_STARTING_MAX_HP); setAttribute(Attribute::hp,ICL_STARTING_MAX_HP); 
-        setAttribute(Attribute::max_energy,STARTING_ENERGY); setAttribute(Attribute::energy,STARTING_ENERGY);
-        deck.addPileToSelf(ICL_STARTER_DECK);
-        setPlayed(blank_card);
-        col = Color::red;
-        break;
-    case 2:
-        setName("The Silent"); 
-        setAttribute(Attribute::max_hp,SLT_STARTING_MAX_HP); setAttribute(Attribute::hp,SLT_STARTING_MAX_HP); 
-        setAttribute(Attribute::max_energy,STARTING_ENERGY); setAttribute(Attribute::energy,STARTING_ENERGY);
-        deck.addPileToSelf(SLT_STARTER_DECK);
-        setPlayed(blank_card);
-        col = Color::green;
-        break;
+        case 1:{
+            Player p(color(Color::red, "The Ironclad"), ICL_STARTING_MAX_HP, STARTING_ENERGY, Color::red);
+            p.deck.addPileToSelf(ICL_STARTER_DECK);
+            return p;
+            }
+        case 2:{
+            Player p(color(Color::green, "The Silent"), SLT_STARTING_MAX_HP, STARTING_ENERGY, Color::green);
+            p.deck.addPileToSelf(SLT_STARTER_DECK);
+            return p;
+            }
+        default:{return Player("NOPLAYER",0,0,Color::colorless);}
     }
 }
 
@@ -243,20 +238,10 @@ void Player::transferCardsManual(PileType source, PileType target, int amount, b
 void Player::transferCardsAuto(PileType source, PileType target, std::deque<int> choices, bool bottom){
     //Go from latest index to earliest, this prevents index invalidation due to container mutation
     std::sort(choices.begin(),choices.end(), std::greater<int>()); 
-
-    if(bottom){//cards go on bottom of the pile
-        for(int pos: choices){
-            addToPile(target,getCardFromPile(source,pos), true);
-            removeFromPlayerPile(source, pos);
-        }       
-    }   
-
-    else{ //Cards go on top of the pile
-        for(int pos: choices){
-            addToPile(target, getCardFromPile(source, pos), false);
-            removeFromPlayerPile(source, pos);
-        }
-    }   
+    for(int pos: choices){
+        addToPile(target,getCardFromPile(source,pos), bottom);
+        removeFromPlayerPile(source, pos);
+    }
 }
 
 
@@ -276,7 +261,7 @@ std::deque<int> Player::chooseCards(PileType source, int amount){
     else{
         while(choices.size()<amount){
             int input = inputInt(0,getPlayerPileSize(source)-1);
-            
+
             if( std::find(choices.begin(), choices.end(), input) == choices.end() ){
                 choices.push_back(input);
                 std::cout<<amount-choices.size()<<" card"<<((amount-choices.size()>1)? "s ":" ")<< "remaining.\n";

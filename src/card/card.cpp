@@ -16,6 +16,7 @@ Card::Card(Color c, std::string n, CardType t, int cost, CardRarity r, std::stri
 void Card::display(){
     std::string cost;
     std::string card_type;
+    
     switch(energy_cost){
         case -2: cost = color(character, "(X)"); break;
         case -1: cost = color(character, "(-)"); break;

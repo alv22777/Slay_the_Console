@@ -57,7 +57,8 @@ class Player: public Character{
     //Play card from chosen position in player's hand.
 	void playCardFromHand(int pos, Game& game);
 
-	void setupPlayer(int choice);
+	static Player createPlayer(int choice);
+
     void endCombat();
     Card& getPlayed();
 
