@@ -38,8 +38,6 @@ class Player: public Character{
 	//Removes Card with position pos from the player's Pile type (deck, hand, discard...).
 	void removeFromPlayerPile(PileType type, int pos);
 
-	//Delete player's pile type(deck, hand, discard...).
-	void deletePlayerPile(PileType type);
 
 	//Display player Pile type (deck, hand, discard...).
 	void displayPlayerPile(PileType type, bool fixed, int n);

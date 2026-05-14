@@ -155,17 +155,6 @@ void Player::removeFromPlayerPile(PileType type, int position){
     }
 }
 
-void Player::deletePlayerPile(PileType type){
-    switch(type){
-        case PileType::deck: deck.deletePile(); break;
-        case PileType::combat_deck: combat_deck.deletePile(); break;
-        case PileType::hand: hand.deletePile(); break;
-        case PileType::draw: draw.deletePile(); break;
-        case PileType::discard: discard.deletePile(); break;
-        case PileType::exhaust: exhaust.deletePile(); break;
-    }
-}
-
 void Player::displayPlayerPile(PileType type, bool fixed, int n){
     Pile choice;
     //Switched responsibility from Game to Character.
@@ -239,6 +228,7 @@ void Player::transferCardsManual(PileType source, PileType target, int amount, b
     if(bottom){//cards go on bottom of the pile
         for(int pos: choices){
             addToPile(target,getCardFromPile(source,pos), true);
+            removeFromPlayerPile(source, pos);
         }       
     }
     else{ //Cards go on top of the pile

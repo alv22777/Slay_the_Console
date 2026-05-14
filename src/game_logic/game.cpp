@@ -162,7 +162,9 @@ std::deque<Character*> Game::selectTargets(TargetType target, Character* source)
 void Game::endOfCombat(){
 
 	event_log.receive("---------- End of combat ----------");
-	player[0].endCombat();
+	for(Player& p:player){
+		p.endCombat();
+	}
 
 }
 
@@ -314,5 +316,7 @@ void Game::fight(int& floor){
 		}
 		
 
-}
+	}
+	
+	endOfCombat();
 }

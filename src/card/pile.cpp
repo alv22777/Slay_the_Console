@@ -15,7 +15,9 @@ size_t  Pile::getSize()const {return cards.size();}
 
 void Pile::addCardTop(Card& card){cards.push_front(card);}
 void Pile::addCardBot(Card& card){cards.push_back(card);}
+
 void Pile::remove(int position){cards.erase(cards.begin()+position);}
+
 void Pile::addPileToSelf(Pile &p){ cards.insert(cards.end(), p.cards.begin(),p.cards.end()); }
 void Pile::deletePile(){cards.erase(cards.begin(),cards.end());}
 void Pile::movePileTo(Pile& p){ p.addPileToSelf(*this); deletePile(); } //Move this pile to pile p.
