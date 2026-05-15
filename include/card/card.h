@@ -27,13 +27,13 @@ public:
     Card(Color c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<Effect> e, bool ex);
     void display();    
     int getEnergyCost();
-    
     std::string getName();
     Color rarityColor(CardRarity r);
-    std::string getCardType();
+    CardType getCardType();
+    std::string getCardTypeText();
     std::string getCardRarity();
     void applyEffects(Player& source, Game& game, int pos);
-
+    bool canPlay(Player& source, Game& game);
 };
 
 

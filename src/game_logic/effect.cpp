@@ -50,8 +50,8 @@ std::string Effect::log(std::deque<Character*> target, Character& source){
     if(target.empty()){return "";}
     
     std::string log; std::string who; std::string what; std::string to_who; std::string how_much = std::to_string(abs(magnitude));
-    bool single_target = target_type == TargetType::ally || target_type == TargetType::random_enemy || 
-                         target_type == TargetType:: enemy || target_type == TargetType::self;
+    bool single_target = target_type == TargetType::ally   || target_type == TargetType::random_enemy || 
+                         target_type == TargetType::enemy  || target_type == TargetType::self;
 
     //Default conditions
     if(single_target){who  = color(target[0]->getColor(), target[0]->getName());}

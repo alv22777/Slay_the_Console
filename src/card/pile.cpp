@@ -42,3 +42,33 @@ void Pile::displayFixed(size_t n){ //Display a fixed number of cards from the pi
         std::cout<<'\n';
     }
 }
+
+std::deque<int> Pile::findMatchingIndexes(CardType c){
+    int pile_size = static_cast<int>(getSize());
+
+    if(pile_size == 0){return {};}
+
+    std::deque<int> result;
+    for(int i = pile_size-1; i>=0;i--){
+        if(cards[i].getCardType() == c){
+            result.push_back(i);
+        }
+    }
+
+    return result;
+}
+
+std::deque<int> Pile::findNonMatchingIndexes(CardType c){
+    int pile_size = static_cast<int>(getSize());
+
+    if(pile_size == 0){return {};}
+
+    std::deque<int> result;
+    for(int i = pile_size-1; i>=0;i--){
+        if(cards[i].getCardType() != c){
+            result.push_back(i);
+        }
+    }
+
+    return result;
+}

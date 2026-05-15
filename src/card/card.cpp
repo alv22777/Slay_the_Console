@@ -51,7 +51,7 @@ Color Card::rarityColor(CardRarity r){
     }
 }
 
-std::string Card::getCardType(){
+std::string Card::getCardTypeText(){
     switch(type){
         case CardType::attack: return "Attack";
         case CardType::skill: return "Skill";
@@ -62,6 +62,9 @@ std::string Card::getCardType(){
     }
 }
 
+CardType Card::getCardType(){
+    return type;
+}
 std::string Card::getCardRarity(){
         switch(rarity){
         case CardRarity::starter: return "Starter"; break;
@@ -111,3 +114,17 @@ void Card::applyEffects(Player& source, Game& game, int pos){
         else{source.addToPile(PileType::discard, source.getPlayed(), false);}
     }
 }
+
+//Determines if a card can be played. Defaults to true, overrides
+//for special cases depending on player/gamestate parameters.
+bool Card::canPlay(Player& source, Game& game){
+    bool able = true;
+    if(name == "Clash"){ 
+        able = source.findIndexes(PileType::hand, CardType::attack, false).size() == 0;
+    }
+    else if (name == "Grand Finale"){
+        able = source.getPlayerPileSize(PileType::draw) == 0;
+    }
+    return able;
+}
+

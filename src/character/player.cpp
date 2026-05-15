@@ -92,13 +92,13 @@ void Player::drawCards(int amount, Game& game){
 void Player::discardHand(){hand.movePileTo(discard);}
 
 void Player::playCardFromHand(int pos, Game& game){
-    Card tried = getCardFromPile(PileType::hand,pos);
-    if(getAttribute(Attribute::energy) >= tried.getEnergyCost()){
-        tried.display(); std::cout<<'\n';
-        setPlayed(tried);
-        played.applyEffects(*this,game, pos);
-    }
-    else{std::cout<<"Not enough energy!\n";}
+    Card& tried = getCardFromPile(PileType::hand,pos);
+    if(!tried.canPlay(*this, game)){std::cout<<"You can not play this card!\n"; return;}
+    if(getAttribute(Attribute::energy) < tried.getEnergyCost()){std::cout<<"Not enough energy!\n"; return;}
+     
+    tried.display(); std::cout<<'\n';
+    setPlayed(tried);
+    played.applyEffects(*this,game, pos);
 }
 
 Player Player::createPlayer(int choice){
@@ -274,4 +274,30 @@ std::deque<int> Player::chooseCards(PileType source, int amount){
     //Go from latest index to earliest, this prevents index invalidation due to container mutation
     std::sort(choices.begin(),choices.end(), std::greater<int>()); 
     return choices;
+}
+
+std::deque<int> Player::findIndexes(PileType p, CardType c, bool matching){
+    if(matching){
+        switch(p){
+            case PileType::deck: return deck.findMatchingIndexes(c);
+            case PileType::combat_deck: return combat_deck.findMatchingIndexes(c);
+            case PileType::hand: return hand.findMatchingIndexes(c);
+            case PileType::draw: return draw.findMatchingIndexes(c);
+            case PileType::discard: return discard.findMatchingIndexes(c);
+            case PileType::exhaust: return exhaust.findMatchingIndexes(c);
+            default: return {};
+        }
+    }
+    else{
+        switch(p){
+            case PileType::deck: return deck.findNonMatchingIndexes(c);
+            case PileType::combat_deck: return combat_deck.findNonMatchingIndexes(c);
+            case PileType::hand: return hand.findNonMatchingIndexes(c);
+            case PileType::draw: return draw.findNonMatchingIndexes(c);
+            case PileType::discard: return discard.findNonMatchingIndexes(c);
+            case PileType::exhaust: return exhaust.findNonMatchingIndexes(c);
+            default: return {};
+        }
+    }
+    
 }

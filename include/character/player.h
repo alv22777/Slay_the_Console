@@ -69,9 +69,9 @@ class Player: public Character{
     void transferCardsAuto(PileType source, PileType target, std::deque<int> choices, bool bottom);
 
     std::deque<int> chooseCards(PileType source, int amount);
-
+    std::deque<int> findIndexes(PileType p, CardType c, bool matching); 
+    
     ~Player() noexcept override = default;
-
 };
 
 #endif

@@ -1,7 +1,7 @@
 #ifndef PILE_H
 #define PILE_H
 
-class Card;
+class Card; enum class CardType;
 #include<deque>
 
 class Pile{
@@ -40,6 +40,8 @@ class Pile{
 	void displayPile();
 
 	void displayFixed(size_t n); //Displays a set number of elements from the pile.
+	std::deque<int> findMatchingIndexes(CardType c);
+	std::deque<int> findNonMatchingIndexes(CardType c);
 };
 
 #endif

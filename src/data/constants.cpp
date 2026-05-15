@@ -60,7 +60,7 @@ Card ICL_Twin_Strike = {Color::red,"Twin Strike", CardType::attack,1,CardRarity:
     Effect(EffectType::damage, 7, TargetType::enemy)
 }, false};
 
-Card ICL_Bloodletting={Color::red,"Bloodletting",CardType::skill,0,CardRarity::common,"Lose 3 HP. Gain 2 energy",{
+Card ICL_Bloodletting={Color::red,"Bloodletting",CardType::skill,0,CardRarity::uncommon,"Lose 3 HP. Gain 2 energy",{
     Effect(EffectType::hp,-3, TargetType::self),
     Effect(EffectType::energy,2, TargetType::self)
 }, false};
@@ -82,6 +82,10 @@ Card ICL_Exhume = {Color::red, "Exhume", CardType::skill, 1, CardRarity::rare, "
         Effect(EffectType::exhume,1,TargetType::self)
     }, true};
 
+Card ICL_Clash = {Color::red, "Clash", CardType::attack, 0, CardRarity::common, "Deal 14 damage. Play: every card in your hand is an attack.",
+{
+    Effect(EffectType::damage, 14, TargetType::enemy),
+}, false};
 ////////////////////SILENT CARD REWARDS//////////////////  
 Card SLT_Prepared = {Color::green, "Prepared", CardType::skill, 0, CardRarity::common, "Draw 1 card. Discard 1 card.",
     {
@@ -138,22 +142,14 @@ Pile createIroncladStarterDeck(){
     Pile deck;
     // for(int i =0; i<1;i++){deck.addCardToPile(ICL_Strike);}
     // for(int i =0; i<1;i++){deck.addCardToPile(ICL_Defend);}
-    
-    deck.addCardTop(ICL_Bash);
     deck.addCardTop(ICL_Twin_Strike);
     deck.addCardTop(ICL_Bloodletting);
-    deck.addCardBot(ICL_Headbutt);
     deck.addCardTop(ICL_True_Grit);
-    deck.addCardTop(ICL_Exhume);
     deck.addCardTop(SLT_Survivor);
     deck.addCardTop(SLT_Prepared);
-    deck.addCardTop(SLT_Acrobatics);
-    deck.addCardTop(DEF_Hologram);
-    deck.addCardTop(DEF_Skim);
     deck.addCardTop(CLS_Finesse);
     deck.addCardTop(CLS_Bite);
-    deck.addCardTop(STS_Wound);
-    deck.addCardTop(CUR_Injury);
+    deck.addCardTop(ICL_Clash);
     return deck;
 }
 Pile createSilentStarterDeck(){

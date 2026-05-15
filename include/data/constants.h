@@ -59,7 +59,7 @@ extern Card ICL_Bloodletting;
 extern Card ICL_Headbutt;
 extern Card ICL_True_Grit;
 extern Card ICL_Exhume;
-
+extern Card ICL_Clash;
 
 extern Card SLT_Prepared;
 extern Card SLT_Acrobatics;
