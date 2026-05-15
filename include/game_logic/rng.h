@@ -3,13 +3,14 @@
 #include<random>
 #include<algorithm>
 #include<deque>
+#include<iostream>
 
 class RNG{
 
-    std::mt19937 engine;
-    uint32_t seed;
+    std::mt19937_64 engine;
+    uint64_t seed;
     public:
-    RNG(uint32_t s);
+    RNG(uint64_t s);
 
     //Returns a random integer between min and max, inclusive.
     int nextInt(int min, int max);
@@ -23,9 +24,10 @@ class RNG{
     template <typename T>
     void shuffle(std::deque<T>& vec){std::shuffle(vec.begin(), vec.end(), engine);}  
     
-    uint32_t getSeed();
-    void setSeed(uint32_t s);
-    
+    uint64_t getSeed();
+    void setSeed(uint64_t s);
+
+    std::string base36();
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include "card/pile.h"
 #include "ui/colors.h"
 
+
 const int ICL_STARTING_MAX_HP = 80;
 const int SLT_STARTING_MAX_HP = 70;
 const int DEF_STARTING_MAX_HP = 75;
@@ -13,7 +14,8 @@ const int STARTING_BLOCK = 0;
 const int MAX_BLOCK = 999;
 const int EVENT_LOG_SIZE = 8;
 const int MAX_HAND_SIZE = 10;
-
+const uint64_t SEED_MIN = 0;
+const uint64_t SEED_MAX = UINT64_MAX;
 
 ////////////////////STARTER DECKS//////////////////
 

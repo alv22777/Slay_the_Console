@@ -1,5 +1,6 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
+#include"stdint.h"
 
 class Card;
 class Pile;
@@ -30,6 +31,8 @@ extern const int STARTING_BLOCK;
 extern const int MAX_BLOCK;
 extern const int EVENT_LOG_SIZE;
 extern const int MAX_HAND_SIZE;
+extern const uint64_t SEED_MIN;
+extern const uint64_t SEED_MAX;
 
 extern Pile empty_deck;
 extern Pile ICL_STARTER_DECK;

@@ -15,7 +15,7 @@ class Game{
 	RNG rng;
 	EventLog event_log;
 
-	Game(std::deque<Player> &p, uint32_t s, int l);
+	Game(std::deque<Player> &p, uint64_t s, int l);
 	
 	void displayGameState(int floor, int turn);
 	

@@ -8,13 +8,17 @@
 
 int main() {
 		SetConsoleOutputCP(CP_UTF8); //Allows UTF8 decoding for printing symbols.
-		uint32_t seed = std::time(nullptr);
 		
+		uint64_t time = std::time(nullptr);
+		RNG pregame(time);
+		uint64_t seed = pregame.nextInt(SEED_MIN,SEED_MAX);
+
+
 		int choice = characterSelect();
 		std::deque<Player> players = {Player::createPlayer(choice)};
 
 		Game run(players, seed, EVENT_LOG_SIZE);
         run.run(); // This is funny.
-
+		
 		return 0;
 }
