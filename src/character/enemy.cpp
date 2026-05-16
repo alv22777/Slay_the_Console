@@ -22,41 +22,11 @@ void Enemy::displayStatus(){
 
 void Enemy::act(Game& game){
 
-    std::vector<Effect> actions = next_intent.getActions();
-
+    std::vector<Effect> &actions = next_intent.getActions();
+    
     if(actions.empty()){return;}
+    game.resolveEffects(*this, actions);
 
-    //Initial conditions
-    std::deque<Character*> targets = game.selectTargets(actions[0].getTarget(), this);
-    TargetType prev_target = actions[0].getTarget();
-    bool originalTargetDied = false;
-    if(!targets.empty()){        
-        for(Effect e : actions){
-            // Retarget if needed
-            if(
-                prev_target != e.getTarget() ||
-                e.getTarget() == TargetType::ally_all ||
-                e.getTarget() == TargetType::enemy_all ||
-                e.getTarget() == TargetType::random_enemy
-            )
-            {targets = game.selectTargets(e.getTarget(), this); }
-            else{if(originalTargetDied){continue;}}
-    
-            prev_target = e.getTarget();
-    
-            // Apply only if valid targets exist
-            if(!targets.empty()){
-                e.apply(targets, *this, game); 
-                game.event_log.receive(e.log(targets,*this));
-            }
-    
-            // Check whether reused single target died
-            if((e.getTarget() == TargetType::ally || e.getTarget() == TargetType::enemy) && !targets[0]->isAlive() ){ originalTargetDied = true; }
-    
-            game.removeDeadCharacters();
-            if(game.isCombatOver()){break;}
-        }
-    }
 }
 
 void Enemy::chooseIntent(Game& game){

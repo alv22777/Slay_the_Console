@@ -17,6 +17,10 @@ const int MAX_HAND_SIZE = 10;
 const uint64_t SEED_MIN = 0;
 const uint64_t SEED_MAX = UINT64_MAX;
 
+
+
+Effect NO_EFFECT(EffectType::none, 0, TargetType::self);
+
 ////////////////////STARTER DECKS//////////////////
 
 Card blank_card = {Color::colorless,"None",CardType::status,0,CardRarity::status,"None",{}, false};

@@ -79,41 +79,21 @@ std::string Card::getCardRarity(){
 
 void Card::applyEffects(Player& source, Game& game, int pos){
 
-    if(effects.empty()){return;}
-    std::deque<Character*> targets = game.selectTargets(effects[0].getTarget(), &source);
-    TargetType prev_target = effects[0].getTarget();
 
 
-    if(!targets.empty()){ //If valid target
-        
+    if(effects[0].isSingleTarget()||game.hasValidTargets(effects[0].getTarget(),  source)){
         source.removeFromPlayerPile(PileType::hand, pos); //Card is now "hovering" (not on any player pile).
         source.changeAttribute(Attribute::energy,-source.getPlayed().getEnergyCost()); //Pay energy cost.
-        bool originalTargetDied = false;
-
-        for(Effect e: effects){         //Iterate through every effect in the card.
-            if( //Retarget if needed
-                prev_target!=e.getTarget() || 
-                e.getTarget() == TargetType::ally_all || 
-                e.getTarget() == TargetType::enemy_all ||
-                e.getTarget() == TargetType::random_enemy
-            )
-            {targets = game.selectTargets(e.getTarget(), &source);}
-            else{if(originalTargetDied){continue;}} //Otherwise, if this effect would hit a single target that has died, don't resolve.
-
-            prev_target = e.getTarget(); 
-            e.apply(targets,source,game); //apply effects
-
-            game.event_log.receive(e.log(targets,source));
-
-            if((e.getTarget() == TargetType::ally || e.getTarget() == TargetType::enemy) && !targets[0]->isAlive()){originalTargetDied = true;}
-
-            game.removeDeadCharacters(); //Do cleanup
-        }
-        //Post resolution
-        if(exhaust){source.addToPile(PileType::exhaust, source.getPlayed(), false);}
-        else{source.addToPile(PileType::discard, source.getPlayed(), false);}
     }
+
+    game.resolveEffects(source,effects);
+
+    if(exhaust){source.addToPile(PileType::exhaust, source.getPlayed(), false);}
+    else{source.addToPile(PileType::discard, source.getPlayed(), false);}
+
 }
+
+
 
 //Determines if a card can be played. Defaults to true, overrides
 //for special cases depending on player/gamestate parameters.

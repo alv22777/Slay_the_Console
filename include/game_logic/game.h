@@ -30,8 +30,9 @@ class Game{
 	void startTurn();
 	void endTurn();
 	bool isCombatOver();
-	void enemyTurn();
-	
+    bool hasValidTargets(TargetType t, Character& source);
+    void enemyTurn();
+    void resolveEffects(Character& source, std::vector<Effect>& effects);
 
 	void endOfCombat();
 };

@@ -44,6 +44,10 @@ void Effect::apply(std::deque<Character*> target, Character& source, Game& game)
 EffectType Effect::getType(){return type;}
 int Effect::getMagnitude(){return magnitude;}
 TargetType Effect::getTarget(){return target_type;}
+bool Effect::isSingleTarget(){
+    if(target_type == TargetType::self || target_type == TargetType::enemy || target_type == TargetType::ally){return true;}
+    else{return false;}
+}
 
 std::string Effect::log(std::deque<Character*> target, Character& source){
     

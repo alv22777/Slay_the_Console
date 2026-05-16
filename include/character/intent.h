@@ -17,7 +17,7 @@ class Intent{
 
         Intent(std::vector<Effect> a);
         
-        std::vector<Effect> getActions();
+        std::vector<Effect>& getActions();
         
         void display();
         

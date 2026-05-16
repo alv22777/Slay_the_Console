@@ -4,7 +4,7 @@
 
 class Card;
 class Pile;
-
+class Effect;
 
 /*
 	Glossary:
@@ -74,7 +74,7 @@ extern Card CUR_Injury;
 
 extern Card STS_Wound;
 
-
+extern Effect NO_EFFECT;
 
 
 ////////////////////STARTER DECK//////////////////

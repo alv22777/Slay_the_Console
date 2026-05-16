@@ -9,6 +9,7 @@
 #include <iostream>
 #include "stdint.h"
 
+
 //Takes in a deque of Player objects, an RNG uint32_t seed and an integer size for the game's event log.
 Game::Game(std::deque<Player> &p, uint64_t s, int l):player(p), enemies(), rng(s), event_log(EventLog(l)){
 }
@@ -56,7 +57,7 @@ void Game::gameOver(){
 	std::cout<<"You lost! go again?(y/n)\n";
 	char replay = inputChar();
 	if(replay=='y'||replay=='Y'){
-		rng.setSeed(rng.nextInt(0,UINT32_MAX));
+		rng.setSeed(rng.nextInt(SEED_MIN,SEED_MAX));
 		int choice = characterSelect();
 		player.push_back(Player::createPlayer(choice));
 		event_log.clear();
@@ -136,6 +137,20 @@ bool Game::isCombatOver(){
 	if(enemies.empty()||player.empty()){return true;}
 	return false;
 }
+bool Game::hasValidTargets(TargetType t, Character& source){
+	switch(t){
+		case TargetType::ally:
+		case TargetType::ally_all:
+			return player.empty();
+		case TargetType::enemy:
+		case TargetType::enemy_all:
+		case TargetType::random_enemy:
+			return enemies.empty();
+		case TargetType::self:
+			return source.isAlive();
+		default: return true;
+	}
+}
 
 void Game::startTurn(){
 	event_log.receive("----------- Start of turn -----------");
@@ -157,6 +172,40 @@ void Game::endOfCombat(){
 	event_log.receive("---------- End of combat -----------");
 	for(Player& p:player){
 		p.endCombat();
+	}
+}
+
+void Game::resolveEffects(Character& source, std::vector<Effect>& effects){
+
+	std::deque<Character*> targets;
+	if(effects.empty()){NO_EFFECT.apply({},source,*this); return;}
+    //Initial conditions
+    TargetType prev = effects[0].getTarget();
+    bool is_single_target = effects[0].isSingleTarget();
+    if(is_single_target){ targets = selectTargets(prev, &source);}
+    bool target_died = false;
+
+    for(Effect e : effects){
+
+        //Target validation and selection
+        TargetType current = e.getTarget();
+        is_single_target = e.isSingleTarget();
+        // Retarget if needed
+        if(prev != current || !is_single_target){ targets = selectTargets(current, &source); }
+        else if(target_died){continue;}
+        prev = current;
+
+        if(targets.empty()){continue;}
+        
+        e.apply(targets,source,*this);
+
+		event_log.receive(e.log(targets,source));
+		
+		if(!source.isAlive()){removeDeadCharacters(); break;}
+        // Check whether reused single target died
+        target_died = is_single_target && !targets.empty() && !targets[0]->isAlive();
+
+        removeDeadCharacters(); //Cleanup
 	}
 }
 
@@ -193,7 +242,7 @@ void Game::fight(int& floor){
 
 		while(choice != 'E'){
 
-			removeDeadCharacters(); //This might not be necessary in the future.
+			
 			
 			if(!isCombatOver()){ //If combat isn't over, we take user input
 

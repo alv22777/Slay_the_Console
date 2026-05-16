@@ -24,6 +24,7 @@ class Effect{
     void apply(std::deque<Character*> target, Character& source, Game& game); //Applies this effect to the target character. 
     EffectType getType();
     TargetType getTarget();
+    bool isSingleTarget();
     int getMagnitude();
     std::string log(std::deque<Character*> target, Character& source);
 };
