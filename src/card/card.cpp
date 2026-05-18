@@ -31,7 +31,7 @@ void Card::display(){
         default: card_type="none"; break; 
     }
 
-    std::cout<<cost<<card_type<<color(rarityColor(rarity), name)<<": "<<card_text;
+    std::cout<<cost<<card_type<<color(rarityColor(), name)<<": "<<card_text;
     if(exhaust){std::cout<<color(Color::exhaust," Exhaust.");}
 }
 
@@ -39,8 +39,8 @@ int Card::getEnergyCost(){return energy_cost;}
 
 std::string Card::getName(){return name;}
 
-Color Card::rarityColor(CardRarity r){
-    switch(r){
+Color Card::rarityColor(){
+    switch(rarity){
         case CardRarity::common: return Color::common;
         case CardRarity::uncommon: return Color::uncommon;
         case CardRarity::rare: return Color::rare;
@@ -62,9 +62,7 @@ std::string Card::getCardTypeText(){
     }
 }
 
-CardType Card::getCardType(){
-    return type;
-}
+CardType Card::getCardType(){return type;}
 std::string Card::getCardRarity(){
         switch(rarity){
         case CardRarity::starter: return "Starter"; break;
@@ -78,8 +76,6 @@ std::string Card::getCardRarity(){
 }
 
 void Card::applyEffects(Player& source, Game& game, int pos){
-
-
 
     if(effects[0].isSingleTarget()||game.hasValidTargets(effects[0].getTarget(),  source)){
         source.removeFromPlayerPile(PileType::hand, pos); //Card is now "hovering" (not on any player pile).

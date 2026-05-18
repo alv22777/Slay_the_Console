@@ -28,7 +28,7 @@ public:
     void display();    
     int getEnergyCost();
     std::string getName();
-    Color rarityColor(CardRarity r);
+    Color rarityColor();
     CardType getCardType();
     std::string getCardTypeText();
     std::string getCardRarity();

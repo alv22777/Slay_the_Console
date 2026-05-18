@@ -10,12 +10,13 @@
 #include "stdint.h"
 
 
+
 //Takes in a deque of Player objects, an RNG uint32_t seed and an integer size for the game's event log.
-Game::Game(std::deque<Player> &p, uint64_t s, int l):player(p), enemies(), rng(s), event_log(EventLog(l)){
+Game::Game(std::deque<Player> &p, uint64_t s, int l):player(p), enemies(), rng(s), event_log(EventLog(l)), floor(0), turn(0){
 }
 
 //Display game state. later will be split into displayGameState(); and displayCombatState();
-void Game::displayGameState(int floor, int turn){
+void Game::displayGameState(){
 	system("cls"); // Clear screen
 	std::cout<<"========================================\n";
 	std::cout<<"FLOOR "<<floor<<" - TURN "<<turn<<"  seed: "<<rng.base36()<<"\n";
@@ -33,13 +34,15 @@ void Game::displayGameState(int floor, int turn){
 	std::cout<<" End Turn [E]\n";
 	std::cout<<"========================================\n";
 	event_log.broadcast();
-	std::cout<<"Choice > ";
+
+	std::cout<<"Last Played: ";
+	if(player[0].getPlayed().getName() != blank_card.getName()){player[0].getPlayed().display();}
+
+	std::cout<<"\nChoice > ";
 }
 
 void Game::run(){
-	int floor = 0;
-	
-
+	floor = 0;
 	while(!player.empty()){
 		floor++;
 		fight(floor); //This will be dependent on the floor type, for now, it's always a fight.	
@@ -66,8 +69,9 @@ void Game::gameOver(){
 	else{std::cout<<"Thanks for playing!\n";}
 }
 
+
 void Game::endTurn(){
-	event_log.receive("---------- End of turn ----------");
+	pushLog("---------- End of turn ----------",0);
 	//endOfTurnEffects();
 	player[0].discardHand();
 }
@@ -85,14 +89,8 @@ std::deque<Character*> Game::selectTargets(TargetType target, Character* source)
 		else{
 			std::cout<<"Choose an ally:\n";
 			for(size_t i = 0; i<player.size();i++){std::cout<<i<<". "<<player[i].getName()<<'\n';}
-			
-			std::cin>>choice;
-			if(std::cin.fail()){std::cin.clear(); std::cin.ignore(1000,'\n'); std::cerr<<"Not a number. "; }
-			else{
-				if(choice>=0 && choice<player.size()){ 
-					targets.push_back(&player[choice]);
-				}else{std::cout<<" Invalid target!\n"; }
-			}
+			choice = inputInt(0,player.size(), true);
+			targets.push_back(&player[choice]);
 			
 		}
 		
@@ -104,13 +102,8 @@ std::deque<Character*> Game::selectTargets(TargetType target, Character* source)
 		else if (enemies.size()==0){std::cout<<"No enemies to target!\n"; targets.clear(); break;}
 		else{
 			for(size_t i = 0; i<enemies.size();i++){std::cout<<i<<". "<<enemies[i].getName()<<'\n';}
-			std::cin>>choice;
-			if(std::cin.fail()){std::cin.clear(); std::cin.ignore(1000,'\n'); std::cerr<<"Not a number. ";}
-			else{
-				if(choice>=0 && choice<enemies.size()){
-					targets.push_back(&enemies[choice]);
-				}else{std::cout<<" Invalid target!\n"; }
-			}
+			choice = inputInt(0,player.size(), true);
+			targets.push_back(&enemies[choice]);
 		}
 		break;
 		case TargetType::enemy_all:	
@@ -153,7 +146,7 @@ bool Game::hasValidTargets(TargetType t, Character& source){
 }
 
 void Game::startTurn(){
-	event_log.receive("----------- Start of turn -----------");
+	pushLog("----------- Start of turn -----------", 0);
 	//startOfTurnEffects();
 	for(Player& p: player){
 		p.setAttribute(Attribute::energy, p.getAttribute(Attribute::max_energy));
@@ -163,13 +156,13 @@ void Game::startTurn(){
 }
 
 void Game::enemyTurn(){
-	event_log.receive("----------- Enemy turn -----------");
+	pushLog("----------- Enemy turn -----------",0);
 	enemyActions();
 	enemyPlanning();
 }
 
 void Game::endOfCombat(){
-	event_log.receive("---------- End of combat -----------");
+	pushLog("---------- End of combat -----------",0);
 	for(Player& p:player){
 		p.endCombat();
 	}
@@ -182,8 +175,12 @@ void Game::resolveEffects(Character& source, std::vector<Effect>& effects){
     //Initial conditions
     TargetType prev = effects[0].getTarget();
     bool is_single_target = effects[0].isSingleTarget();
-    if(is_single_target){ targets = selectTargets(prev, &source);}
+    if(is_single_target){ 
+		targets = selectTargets(prev, &source);
+	}
     bool target_died = false;
+	
+	displayGameState( );
 
     for(Effect e : effects){
 
@@ -198,13 +195,12 @@ void Game::resolveEffects(Character& source, std::vector<Effect>& effects){
         if(targets.empty()){continue;}
         
         e.apply(targets,source,*this);
-
-		event_log.receive(e.log(targets,source));
-		
+		pushLog(e.log(targets,source), 1);
 		if(!source.isAlive()){removeDeadCharacters(); break;}
-        // Check whether reused single target died
         target_died = is_single_target && !targets.empty() && !targets[0]->isAlive();
 
+        // Check whether reused single target died
+		displayGameState( );
         removeDeadCharacters(); //Cleanup
 	}
 }
@@ -214,7 +210,7 @@ void Game::fight(int& floor){
 	
 
 	for(Player &p: player){p.StartCombat(*this);}
-	event_log.receive("---------- Start of combat ---------");
+	pushLog("---------- Start of combat ---------", 0);
 	
  
 	//Placeholder enemy, will be replaced with actual enemies in the future.
@@ -234,7 +230,7 @@ void Game::fight(int& floor){
 	enemies.push_back(GreenLouse); enemies.push_back(RedLouse);
 	
 	char choice = ' ';
-	int turn = 1;
+	turn = 1;
 	
 	//while player hasn't chosen to end turn, or the combat hasn't ended
 	while(!isCombatOver()){
@@ -247,7 +243,7 @@ void Game::fight(int& floor){
 			if(!isCombatOver()){ //If combat isn't over, we take user input
 
 
-				displayGameState(floor, turn);
+				displayGameState();
 								
 				choice = inputChar();
 
@@ -339,7 +335,7 @@ bool Game::removeDeadCharacters(){
 	enemies.erase(
 		std::remove_if(enemies.begin(),enemies.end(),
 			[&](Character& e){
-				if(!e.isAlive()){event_log.receive( color(e.getColor(),e.getName())+ " died." ); death = true; return true;}
+				if(!e.isAlive()){pushLog( color(e.getColor(),e.getName())+ " died.", 0 ); death = true; return true;}
 				else{return false;}
 			}
 		),enemies.end());
@@ -347,10 +343,19 @@ bool Game::removeDeadCharacters(){
 	player.erase(
 		std::remove_if(player.begin(),player.end(),
 			[&](Character& p){
-				if(!p.isAlive()){event_log.receive( color(p.getColor(),p.getName())+ " died." ); death = true; return true;}
+				if(!p.isAlive()){pushLog( color(p.getColor(),p.getName())+ " died.", 0); death = true; return true;}
 				else{return false;}
 				
 			}
 		),player.end());
 	return death;
+}
+
+void Game::pushLog(std::string s, uint8_t level){
+	std::string indentation = "";
+
+	for(int i = 0; i<level;i++){
+		indentation += "  ";
+	}
+	event_log.receive(indentation + s);
 }

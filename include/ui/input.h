@@ -3,8 +3,8 @@
 
 #include<iostream>
 
-//Takes a boolean to indicate if the output should be a number
-int inputInt(int min, int max);
+
+int inputInt(int min, int max, bool mandatory);
 char inputChar();
 int characterSelect();
 #endif

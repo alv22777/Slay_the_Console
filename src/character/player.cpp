@@ -98,6 +98,7 @@ void Player::playCardFromHand(int pos, Game& game){
      
     tried.display(); std::cout<<'\n';
     setPlayed(tried);
+    game.pushLog(color(col, name) + " played " + color(tried.rarityColor(), tried.getName()), 0);
     played.applyEffects(*this,game, pos);
 }
 
@@ -250,8 +251,7 @@ void Player::transferCardsAuto(PileType source, PileType target, std::deque<int>
 std::deque<int> Player::chooseCards(PileType source, int amount){
     std::deque<int> choices;
 
-    std::cout<<"Choose "<<amount<<" card"<<((amount>1)? "s.":".")<<'\n';
-    displayPlayerPile(source, false, 0);
+    std::cout<<"Choose "<<amount<<" card"<<((amount>1)? "s > ":" > ");
 
     if(amount>=getPlayerPileSize(source)){ //We can't get 3 cards if source's pile size is 2, so just default to the whole pile!
         for(int i = 0; i<getPlayerPileSize(source);i++){
@@ -260,7 +260,7 @@ std::deque<int> Player::chooseCards(PileType source, int amount){
     }
     else{
         while(choices.size()<amount){
-            int input = inputInt(0,getPlayerPileSize(source)-1);
+            int input = inputInt(0,getPlayerPileSize(source)-1,true);
 
             if( std::find(choices.begin(), choices.end(), input) == choices.end() ){
                 choices.push_back(input);
