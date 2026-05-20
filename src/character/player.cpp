@@ -54,10 +54,7 @@ int Player::getPlayerPileSize(PileType type){
 
 //This method allows a Character to initiate combat.
 void Player::StartCombat(Game& game){
-    
     setPlayed(blank_card);
-    
-
     combat_deck.addPileToSelf(deck); //Create the combat deck (copy of master deck)
     combat_deck.movePileTo(draw); //Make the combat deck the new draw pile.
     game.rng.shuffle(draw.cards); //Shuffle the draw pile
@@ -65,29 +62,38 @@ void Player::StartCombat(Game& game){
     //Reset energy and block.
     setAttribute(Attribute::energy, this->max_energy);
     setAttribute(Attribute::block,0);
-    
+    setPlayed(blank_card);
     //Draw 5 cards.
     drawCards(5,game);
 }
 
-void Player::drawCards(int amount, Game& game){
+bool Player::drawCard(Game& game){
+    
+    if(draw.empty()){ game.rng.shuffle(discard.cards); discard.movePileTo(draw); }
 
-    if(draw.getSize()<amount){//Draw pile is smaller than cards left to draw.
-        
-        amount -= draw.getSize(); 
-        hand.drawFrom(draw, draw.getSize());
-            
-        discard.movePileTo(draw); game.rng.shuffle(draw.cards);
+    if(draw.empty()){return false;}
 
-        //Now, check if there are enough cards in the draw pile to finish drawing. If not, draw as many as possible, then stop drawing.
-        if(draw.getSize()<amount){hand.drawFrom(draw, draw.getSize()); return;} //Draw as many as possible, then stop drawing.
-        else{hand.drawFrom(draw, amount); return;} //Draw the rest of the cards needed to reach the full amount.
+    hand.drawFrom(draw,1);
+    return true;
+}
 
-    }else{ //draw normally.
-        hand.drawFrom(draw, amount);    
+uint32_t Player::drawCards(int amount, Game& game){
+    
+    int drawn = 0;
+
+    for(int i = 0; i<amount; i++){
+       
+        if(isHandFull()){game.pushLog("My hand is full!",2); return drawn;}
+       
+        bool success = drawCard(game);
+       
+        if(success){drawn++;}
     }
 
+    return drawn;
 }
+
+bool Player::isHandFull(){return hand.getSize()==MAX_HAND_SIZE;}
 
 void Player::discardHand(){hand.movePileTo(discard);}
 

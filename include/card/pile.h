@@ -26,7 +26,7 @@ class Pile{
 	void movePileTo(Pile& p);
 
 	void drawFrom(Pile& p, int amount);
-
+	bool empty();
 	//UI
 	void displayPile();
 	void displayFixed(size_t n); //Displays a set number of elements from the pile.

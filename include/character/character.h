@@ -3,6 +3,8 @@
 
 
 #include<iostream>
+#include "stdint.h"
+
 
 enum class Color;
 enum class Attribute{hp, max_hp, block, energy, max_energy};
@@ -29,8 +31,9 @@ class Character{
 	void changeAttribute(Attribute att, int Delta);
     Color getColor();
 	bool isAlive();	
-	void takeDamage(int magnitude);
-	void gainBlock(int magnitude);
+	uint32_t takeDamage(int magnitude);
+	uint32_t gainBlock(int magnitude);
+
 	void hpChange(int magnitude);
 	virtual ~Character() noexcept = default;
 };
@@ -42,4 +45,6 @@ class Character{
 // deque <Potion> potions; //Your current potions. Persistent through floors, but you can only use them in combat.
 //^^^^ Future Potion class will be very simple, since effects that can be applied by potions will be limited to the same effects that can be applied by cards. 
 
+
 #endif
+

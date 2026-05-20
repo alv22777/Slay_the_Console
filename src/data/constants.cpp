@@ -17,8 +17,6 @@ const int MAX_HAND_SIZE = 10;
 const uint64_t SEED_MIN = 0;
 const uint64_t SEED_MAX = UINT64_MAX;
 
-
-
 Effect NO_EFFECT(EffectType::none, 0, TargetType::self);
 
 ////////////////////STARTER DECKS//////////////////
@@ -28,7 +26,11 @@ Card blank_card = {Color::colorless,"None",CardType::status,0,CardRarity::status
 ////////////////////THE IRONCLAD//////////////////
 Card ICL_Strike = {Color::red, "Strike", CardType::attack, 1, CardRarity::starter,"Deal 6 damage.", {Effect(EffectType::damage, 6,TargetType::enemy)}, false};
 Card ICL_Defend = {Color::red, "Defend", CardType::skill, 1, CardRarity::starter, "Gain 5 block.", {Effect(EffectType::block,5,TargetType::self)}, false};
-Card ICL_Bash = {Color::red, "Bash", CardType::attack, 2,  CardRarity::starter, "Deal 8 damage. Apply 2 vulnerable.", {Effect(EffectType::damage, 8, TargetType::enemy)}, false};
+Card ICL_Bash = {Color::red, "Bash", CardType::attack, 2,  CardRarity::starter, "Deal 8 damage. Apply 2 vulnerable.", 
+    {
+        Effect(EffectType::damage, 8, TargetType::enemy),
+        Effect(EffectType::vulnerable, 2, TargetType::enemy)
+    }, false};
 
 ////////////////////THE SILENT//////////////////
 Card SLT_Strike = {Color::green, "Strike", CardType::attack, 1, CardRarity::starter,"Deal 6 damage.", {Effect(EffectType::damage, 6,TargetType::enemy)},  false};
@@ -113,6 +115,14 @@ Card DEF_Hologram = {Color:: blue, "Hologram", CardType::skill, 1, CardRarity::c
         Effect(EffectType::hologram, 1, TargetType::self)
     }, true};
 
+
+////////////////////WATCHER CARD REWARDS//////////////////
+
+Card WAT_Scrawl = {Color::purple, "Scrawl", CardType::skill, 1, CardRarity::rare, "Draw cards until your hand is full",
+    {
+        Effect(EffectType::expertise, MAX_HAND_SIZE, TargetType::self)
+    }, true};
+
 ////////////////////COLORLESS CARD REWARDS//////////////////  
 
 Card CLS_Finesse = {Color::colorless, "Finesse", CardType::skill, 0, CardRarity::common, "Gain 4 block. Draw 1 card.",
@@ -144,8 +154,8 @@ Pile SLT_STARTER_DECK = createSilentStarterDeck();
 
 Pile createIroncladStarterDeck(){
     Pile deck;
-    // for(int i =0; i<1;i++){deck.addCardToPile(ICL_Strike);}
-    // for(int i =0; i<1;i++){deck.addCardToPile(ICL_Defend);}
+    for(int i =0; i<5;i++){deck.addCardTop(ICL_Strike);}
+    for(int i =0; i<4;i++){deck.addCardTop(ICL_Defend);}
     deck.addCardTop(ICL_Twin_Strike);
     deck.addCardTop(ICL_Bloodletting);
     deck.addCardTop(ICL_True_Grit);
@@ -153,9 +163,12 @@ Pile createIroncladStarterDeck(){
     deck.addCardTop(SLT_Prepared);
     deck.addCardTop(CLS_Finesse);
     deck.addCardTop(CLS_Bite);
-    deck.addCardTop(ICL_Clash);
+    deck.addCardTop(WAT_Scrawl);
+
     return deck;
 }
+
+
 Pile createSilentStarterDeck(){
     Pile deck;
     for(int i = 0; i<5; i++){deck.addCardTop(SLT_Strike);}

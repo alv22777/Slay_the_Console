@@ -67,6 +67,8 @@ extern Card SLT_Acrobatics;
 extern Card DEF_Skim;
 extern Card DEF_Hologram;
 
+extern Card WAT_Scrawl;
+
 extern Card CLS_Finesse;
 extern Card CLS_Bite;
 

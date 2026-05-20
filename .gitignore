@@ -1,4 +1,5 @@
-SLAY.exe
-launch.json
-settings.json
-tasks.json
+.vscode/
+documentation/code
+
+
+*.exe

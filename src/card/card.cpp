@@ -81,7 +81,7 @@ void Card::applyEffects(Player& source, Game& game, int pos){
         source.removeFromPlayerPile(PileType::hand, pos); //Card is now "hovering" (not on any player pile).
         source.changeAttribute(Attribute::energy,-source.getPlayed().getEnergyCost()); //Pay energy cost.
     }
-
+    
     game.resolveEffects(source,effects);
 
     if(exhaust){source.addToPile(PileType::exhaust, source.getPlayed(), false);}

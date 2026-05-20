@@ -172,6 +172,8 @@ void Game::resolveEffects(Character& source, std::vector<Effect>& effects){
 
 	std::deque<Character*> targets;
 	if(effects.empty()){NO_EFFECT.apply({},source,*this); return;}
+	std::vector<EffectReport> results;
+
     //Initial conditions
     TargetType prev = effects[0].getTarget();
     bool is_single_target = effects[0].isSingleTarget();
@@ -182,26 +184,28 @@ void Game::resolveEffects(Character& source, std::vector<Effect>& effects){
 	
 	displayGameState( );
 
-    for(Effect e : effects){
+	for(size_t i = 0; i<effects.size();i++){
+		//Target validation and selection
+		TargetType current = effects[i].getTarget();
+		is_single_target = effects[i].isSingleTarget();
+		// Retarget if needed
+		if(prev != current || !is_single_target){ targets = selectTargets(current, &source); }
+		else if(target_died){continue;}
+		prev = current;
 
-        //Target validation and selection
-        TargetType current = e.getTarget();
-        is_single_target = e.isSingleTarget();
-        // Retarget if needed
-        if(prev != current || !is_single_target){ targets = selectTargets(current, &source); }
-        else if(target_died){continue;}
-        prev = current;
+		if(targets.empty()){continue;}
 
-        if(targets.empty()){continue;}
-        
-        e.apply(targets,source,*this);
-		pushLog(e.log(targets,source), 1);
+		results.push_back(effects[i].apply(targets,source,*this));
+
+		pushLog(effects[i].log(targets, source, results[i]), 1);
+
 		if(!source.isAlive()){removeDeadCharacters(); break;}
-        target_died = is_single_target && !targets.empty() && !targets[0]->isAlive();
-
-        // Check whether reused single target died
+		target_died = is_single_target && !targets.empty() && !targets[0]->isAlive();
+		
+		
+		// Check whether reused single target died
 		displayGameState( );
-        removeDeadCharacters(); //Cleanup
+		removeDeadCharacters(); //Cleanup
 	}
 }
 

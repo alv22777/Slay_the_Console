@@ -28,6 +28,8 @@ void Pile::drawFrom(Pile& p, int amount){
     } 
 }
 
+bool Pile::empty(){return cards.empty();}
+
 void Pile::displayPile(){ //Display all cards in pile p.
     int j=0;
     for (Card i: cards){std::cout<<"["<<j++<<"] "; i.display(); std::cout<<"\n";}

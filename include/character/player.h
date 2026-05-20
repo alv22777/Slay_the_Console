@@ -20,7 +20,8 @@ class Player: public Character{
 	Pile exhaust; //Cards that have exhausted this combat.
 
 	Card played; //player's last played card.
-
+    
+    bool drawCard(Game& game);
     public:
     Player(std::string name, int maxHP, int maxEnergy, Color c);
 
@@ -42,8 +43,9 @@ class Player: public Character{
 	//Display player Pile type (deck, hand, discard...).
 	void displayPlayerPile(PileType type, bool fixed, int n);
 	
+
 	//Draw x cards from player's draw pile into hand. If draw is empty, shuffle discard into draw and continue drawing. If both draw and discard are empty, stop drawing.
-	void drawCards(int amount, Game& game);
+	uint32_t drawCards(int amount, Game& game);
 	//Discard the player's hand at the end of the turn.
 	void discardHand();
 
@@ -58,7 +60,7 @@ class Player: public Character{
 	void playCardFromHand(int pos, Game& game);
 
 	static Player createPlayer(int choice);
-
+    bool isHandFull();
     void endCombat();
     Card& getPlayed();
 
