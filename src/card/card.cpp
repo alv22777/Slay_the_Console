@@ -3,25 +3,21 @@
 #include "character/player.h"
 #include "game_logic/effect.h"
 #include "ui/colors.h"
+#include "ui/formatting.h"
 #include<iostream>
 #include<vector>
 
 
 
 //Creates a Card and initializes it's values with the given arguments.
-Card::Card(Color c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<Effect> e, bool ex)//Character, name, type, energy cost, rarity, card text
-    :character(c), name(n), type(t), energy_cost(cost), rarity(r), card_text(text), effects(e), exhaust(ex){}   
+Card::Card(CID i, Color c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<Effect> e, bool ex)//Character, name, type, energy cost, rarity, card text
+    :character(c), name(n), type(t), energy_cost(cost), rarity(r), card_text(text), effects(e), exhaust(ex), id(i){}   
     
 //Display this card
 void Card::display(){
-    std::string cost;
-    std::string card_type;
+    std::string cost = color(Color::keyword, to_energy(energy_cost));
     
-    switch(energy_cost){
-        case -2: cost = color(character, "(X)"); break;
-        case -1: cost = color(character, "(-)"); break;
-        default: cost = color(character, "("+std::to_string(energy_cost)+") "); break;
-    }
+    std::string card_type;
     switch(type){
         case CardType::attack: card_type = color(character, u8" ▲ "); break;
         case CardType::skill: card_type = color(character, u8" ■ "); break;
@@ -37,6 +33,7 @@ void Card::display(){
 
 int Card::getEnergyCost(){return energy_cost;}
 
+CID Card::getID(){return id;}
 std::string Card::getName(){return name;}
 
 Color Card::rarityColor(){
@@ -88,8 +85,6 @@ void Card::applyEffects(Player& source, Game& game, int pos){
     else{source.addToPile(PileType::discard, source.getPlayed(), false);}
 
 }
-
-
 
 //Determines if a card can be played. Defaults to true, overrides
 //for special cases depending on player/gamestate parameters.

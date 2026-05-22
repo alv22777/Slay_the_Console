@@ -16,11 +16,8 @@ void EventLog::clear(){log.clear();}
 void EventLog::broadcast(){
     std::cout<<"Recent Events:\n";
     for(int i = 0; i<size;i++){
-
         //output log entry if there is one, otherwise just output empty line
-        if(i<log.size()){
-            std::cout<<log[i];
-        }
+        if(i<log.size()){ std::cout<<log[i]; }
         std::cout<<'\n';
     }
 }

@@ -1,6 +1,7 @@
 #include "card/pile.h"
 #include "card/card.h"
 #include <iostream>
+#include <algorithm>
 
 //Returns a card in the pile in the given position.
 Card& Pile::getCard(int position){
@@ -73,4 +74,95 @@ std::deque<int> Pile::findNonMatchingIndexes(CardType c){
     }
 
     return result;
+}
+
+// 0: ID, 1: Cost, 2: Type, 3: Name, default: 0.
+void Pile::sortBy(int category, bool asc){
+    
+    if(asc){
+
+        switch(category){
+            case 0: //By card ID    
+               std::sort(cards.begin(),cards.end(), [](Card& a, Card& b){
+                    return a.getID()>b.getID();
+               });
+            break;
+    
+            case 1: //By cost
+               std::sort(cards.begin(),cards.end(), [](Card& a, Card& b){
+                    return a.getEnergyCost()>b.getEnergyCost();
+               });
+            break;
+            case 2: //By card type
+                std::sort(cards.begin(),cards.end(), [](Card& a, Card& b){
+                        return a.getCardType()>b.getCardType();   
+                });
+            break;
+            case 3: //By name
+                std::sort(cards.begin(),cards.end(), [](Card& a, Card& b){
+                    return a.getName()>b.getName();
+               });
+            break;
+    
+            default: //Default to card ID
+                std::sort(cards.begin(),cards.end(), [](Card& a, Card& b){
+                    return a.getID()>b.getID();
+               });
+            break;
+        }
+    }
+    else{
+        switch(category){
+            case 0: //By card ID    
+               std::sort(cards.begin(),cards.end(), [](Card& a, Card& b){
+                    return a.getID()<b.getID();
+               });
+            break;
+    
+            case 1: //By cost
+               std::sort(cards.begin(),cards.end(), [](Card& a, Card& b){
+                    return a.getEnergyCost()<b.getEnergyCost();
+               });
+            break;
+            case 2: //By card type
+                std::sort(cards.begin(),cards.end(), [](Card& a, Card& b){
+                        return a.getCardType()<b.getCardType();   
+                });
+            break;
+            case 3: //By name
+                std::sort(cards.begin(),cards.end(), [](Card& a, Card& b){
+                    return a.getName()<b.getName();
+               });
+            break;
+    
+            default: //Default to card ID
+                std::sort(cards.begin(),cards.end(), [](Card& a, Card& b){
+                    return a.getID()<b.getID();
+               });
+            break;
+        }
+
+    }
+}
+
+std::deque<IndexedCard> Pile::indexed(bool display)
+{
+    std::deque<IndexedCard> indexed_cards;
+
+    for(int i = 0; i<getSize(); i++){
+        IndexedCard iCard = {&getCard(i),i};
+        indexed_cards.push_back(iCard);
+    }
+
+    std::sort(indexed_cards.begin(), indexed_cards.end(), [](IndexedCard a, IndexedCard b){
+        return (a.c)->getID() < (b.c)->getID();
+    });
+
+    if(display){
+
+        for(int i = 0; i<indexed_cards.size();i++){
+            std::cout<<"["<<i<<"] "; indexed_cards[i].c->display(); std::cout<<"\n";
+        }
+    }
+    return indexed_cards;
 }

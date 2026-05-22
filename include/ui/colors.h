@@ -6,7 +6,7 @@
 enum class Color{
     red = 1, green = 82, blue = 44, purple = 5, colorless = 244,
 
-    common = 8, uncommon = 14, rare = 226, curse = 61, status = 8,
+    common = 7, uncommon = 14, rare = 226, curse = 61, status = 8,
 
 
     hp = 168, block = 6, 

@@ -27,7 +27,7 @@ void Game::displayGameState(){
 	for(size_t i = 0; i<enemies.size();i++){std::cout<<i<<") "; enemies[i].displayStatus();}
 	std::cout<<"----------------------------------------\n";
 
-	player[0].displayPlayerPile(PileType::hand, true, 10);	
+	player[0].displayPlayerPile(PileType::hand, true, 10, false);	
 	std::cout<<    "Draw [A]: "<<player[0].getPlayerPileSize(PileType::draw);
 	std::cout<<" Discard [D]: "<<player[0].getPlayerPileSize(PileType::discard);
 	std::cout<<" Exhaust [X]: "<<player[0].getPlayerPileSize(PileType::exhaust);
@@ -87,11 +87,9 @@ std::deque<Character*> Game::selectTargets(TargetType target, Character* source)
 		if(player.size()==1){targets.push_back(&player[0]);}
 		else if (player.size()==0){std::cout<<"No allies to target!\n"; break;}
 		else{
-			std::cout<<"Choose an ally:\n";
-			for(size_t i = 0; i<player.size();i++){std::cout<<i<<". "<<player[i].getName()<<'\n';}
+			std::cout<<" Choose an ally > ";
 			choice = inputInt(0,player.size(), true);
 			targets.push_back(&player[choice]);
-			
 		}
 		
 		
@@ -101,7 +99,7 @@ std::deque<Character*> Game::selectTargets(TargetType target, Character* source)
 		if(enemies.size()==1){targets.push_back(&enemies[0]);}
 		else if (enemies.size()==0){std::cout<<"No enemies to target!\n"; targets.clear(); break;}
 		else{
-			for(size_t i = 0; i<enemies.size();i++){std::cout<<i<<". "<<enemies[i].getName()<<'\n';}
+			std::cout<<"Choose an enemy > ";
 			choice = inputInt(0,player.size(), true);
 			targets.push_back(&enemies[choice]);
 		}
@@ -133,10 +131,8 @@ bool Game::isCombatOver(){
 bool Game::hasValidTargets(TargetType t, Character& source){
 	switch(t){
 		case TargetType::ally:
-		case TargetType::ally_all:
 			return player.empty();
 		case TargetType::enemy:
-		case TargetType::enemy_all:
 		case TargetType::random_enemy:
 			return enemies.empty();
 		case TargetType::self:
@@ -268,23 +264,23 @@ void Game::fight(int& floor){
 			switch(choice){
 				//Allow the player to view cards in the draw, discard and exhaust piles, as well as the deck.
 				case 'a': 
-					player[0].displayPlayerPile(PileType::draw, false, 0);
+					player[0].displayPlayerPile(PileType::draw, false, 0, true);
 					std::cout<<"Press any key to return...\n";
 					system("pause>nul"); 
 				break;
 
 				case 'k': 
-					player[0].displayPlayerPile(PileType::deck, false, 0);
+					player[0].displayPlayerPile(PileType::deck, false, 0, false);
 					std::cout<<"Press any key to return...\n";
 					system("pause>nul"); 
 				break;
 				case 'd': 
-					player[0].displayPlayerPile(PileType::discard, false, 0);
+					player[0].displayPlayerPile(PileType::discard, false, 0, false);
 					std::cout<<"Press any key to return...\n";
 					system("pause>nul"); 
 				break;
 				case 'x': 
-					player[0].displayPlayerPile(PileType::exhaust, false, 0);
+					player[0].displayPlayerPile(PileType::exhaust, false, 0,false);
 					std::cout<<"Press any key to return...\n";
 					system("pause>nul"); 
 				break;
@@ -357,9 +353,6 @@ bool Game::removeDeadCharacters(){
 
 void Game::pushLog(std::string s, uint8_t level){
 	std::string indentation = "";
-
-	for(int i = 0; i<level;i++){
-		indentation += "  ";
-	}
-	event_log.receive(indentation + s);
+	for(int i = 0; i<level;i++){ indentation += "---"; }
+	if(!s.empty()){event_log.receive(indentation + s);}
 }

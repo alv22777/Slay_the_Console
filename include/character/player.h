@@ -41,8 +41,8 @@ class Player: public Character{
 
 
 	//Display player Pile type (deck, hand, discard...).
-	void displayPlayerPile(PileType type, bool fixed, int n);
-	
+	void displayPlayerPile(PileType type, bool fixed, int n, bool indexed);
+    
 
 	//Draw x cards from player's draw pile into hand. If draw is empty, shuffle discard into draw and continue drawing. If both draw and discard are empty, stop drawing.
 	uint32_t drawCards(int amount, Game& game);
@@ -66,9 +66,9 @@ class Player: public Character{
 
 
 
-    void transferCardsManual(PileType source, PileType target, int amount, bool bottom);
+    uint32_t transferCardsManual(PileType source, PileType target, int amount, bool bottom);
 
-    void transferCardsAuto(PileType source, PileType target, std::deque<int> choices, bool bottom);
+    uint32_t transferCardsAuto(PileType source, PileType target, std::deque<int> choices, bool bottom);
 
     std::deque<int> chooseCards(PileType source, int amount);
     std::deque<int> findIndexes(PileType p, CardType c, bool matching); 

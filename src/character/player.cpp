@@ -157,9 +157,9 @@ void Player::removeFromPlayerPile(PileType type, int position){
     }
 }
 
-void Player::displayPlayerPile(PileType type, bool fixed, int n){
+void Player::displayPlayerPile(PileType type, bool fixed, int n, bool indexed = false){
     Pile choice;
-    //Switched responsibility from Game to Character.
+    
     switch(type){
         case PileType::deck: 
         std::cout<<"Deck:\n"; choice = deck;
@@ -189,6 +189,7 @@ void Player::displayPlayerPile(PileType type, bool fixed, int n){
     }
     
     if(fixed){choice.displayFixed(n);}
+    else if(indexed){choice.indexed(true);}
     else{choice.displayPile();}
 
 }
@@ -224,7 +225,7 @@ Card& Player::getCardFromPile(PileType type, int position){
 void Player::setPlayed(Card& c){played = c;}
 
 //Transfer {amount} cards manually chosen from source Pile to target Pile.
-void Player::transferCardsManual(PileType source, PileType target, int amount, bool bottom){
+uint32_t Player::transferCardsManual(PileType source, PileType target, int amount, bool bottom){
     std::deque<int> choices = chooseCards(source, amount); 
     
     if(bottom){//cards go on bottom of the pile
@@ -238,48 +239,65 @@ void Player::transferCardsManual(PileType source, PileType target, int amount, b
             addToPile(target, getCardFromPile(source, pos), false);
             removeFromPlayerPile(source, pos);
         }
-    }   
+    }  
+    return choices.size();
 }
 
 //Transfer the selected cards (choices) from source Pile to target Pile
-void Player::transferCardsAuto(PileType source, PileType target, std::deque<int> choices, bool bottom){
+uint32_t Player::transferCardsAuto(PileType source, PileType target, std::deque<int> choices, bool bottom){
     //Go from latest index to earliest, this prevents index invalidation due to container mutation
     std::sort(choices.begin(),choices.end(), std::greater<int>()); 
     for(int pos: choices){
         addToPile(target,getCardFromPile(source,pos), bottom);
         removeFromPlayerPile(source, pos);
     }
+    return choices.size();
 }
 
 
 
 //Manually choose n cards from Pile source, it returs the choices sorted in descending order.
 std::deque<int> Player::chooseCards(PileType source, int amount){
-    std::deque<int> choices;
+    std::deque<int> selected;
 
+    if(amount>=getPlayerPileSize(source)){ //We can't get more cards if source's pile size is smaller, so just default to the whole pile
+        for(int i = 0; i<getPlayerPileSize(source);i++){ selected.push_back(i); }
+        std::sort(selected.begin(),selected.end(), std::greater<int>()); 
+        return selected;
+    }
+    
     std::cout<<"Choose "<<amount<<" card"<<((amount>1)? "s > ":" > ");
 
-    if(amount>=getPlayerPileSize(source)){ //We can't get 3 cards if source's pile size is 2, so just default to the whole pile!
-        for(int i = 0; i<getPlayerPileSize(source);i++){
-            choices.push_back(i);
-        }
+    std::deque<IndexedCard> IndexedCards;
+    if(source == PileType::draw){
+        std::cout<<"\n";
+        IndexedCards = draw.indexed(true);
     }
-    else{
-        while(choices.size()<amount){
-            int input = inputInt(0,getPlayerPileSize(source)-1,true);
 
-            if( std::find(choices.begin(), choices.end(), input) == choices.end() ){
-                choices.push_back(input);
-                std::cout<<amount-choices.size()<<" card"<<((amount-choices.size()>1)? "s ":" ")<< "remaining.\n";
-            }else{
-                std::cout<<"Card already selected.\n";
-            }
+    else if(source != PileType::hand){displayPlayerPile(source, false, 0);}
+    
+    while(selected.size()<amount){
+        int input = inputInt(0,getPlayerPileSize(source)-1,true);
+        
+        if( std::find(selected.begin(), selected.end(), input) == selected.end() ){
+            selected.push_back(input);
+            std::cout<<amount-selected.size()<<" card"<<((amount-selected.size()>1)? "s ":" ")<< "remaining.\n";
+        }else{
+            std::cout<<"Card already selected.\n";
+        }
+
+    }
+    
+    //Finally, if we were selecting from draw, remap to correct indices
+    if(source == PileType::draw){
+        for(int i = 0; i<selected.size();i++){
+            selected[i] = IndexedCards[selected[i]].index;
         }
     }
 
     //Go from latest index to earliest, this prevents index invalidation due to container mutation
-    std::sort(choices.begin(),choices.end(), std::greater<int>()); 
-    return choices;
+    std::sort(selected.begin(),selected.end(), std::greater<int>()); 
+    return selected;
 }
 
 std::deque<int> Player::findIndexes(PileType p, CardType c, bool matching){

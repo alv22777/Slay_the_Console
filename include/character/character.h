@@ -28,11 +28,11 @@ class Character{
 	void setName(std::string n);
 	void setAttribute(Attribute att, int value);
 	
-	void changeAttribute(Attribute att, int Delta);
+	int32_t changeAttribute(Attribute att, int Delta);
     Color getColor();
 	bool isAlive();	
-	uint32_t takeDamage(int magnitude);
-	uint32_t gainBlock(int magnitude);
+	int32_t takeDamage(int magnitude);
+	int32_t gainBlock(int magnitude);
 
 	void hpChange(int magnitude);
 	virtual ~Character() noexcept = default;

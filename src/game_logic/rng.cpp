@@ -2,7 +2,7 @@
 RNG::RNG(uint64_t s): engine(s), seed(s){}
 
 //Returns a random integer between min and max, inclusive. Very useful for things like random enemy targets.
-int RNG::nextInt(int min, int max){
+uint64_t RNG::nextInt(int min, int max){
     std::uniform_int_distribution<uint64_t> dist(min, max);
     return dist(engine);
 }

@@ -13,7 +13,7 @@ class RNG{
     RNG(uint64_t s);
 
     //Returns a random integer between min and max, inclusive.
-    int nextInt(int min, int max);
+    uint64_t nextInt(int min, int max);
     //Returns a random float between min and max.
     float nextFloat(float min, float max);
     

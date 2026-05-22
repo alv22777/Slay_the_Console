@@ -30,9 +30,14 @@ void Character::setAttribute(Attribute att, int value){
 }
 
 //Changes chosen attribute by an amount delta.
-void Character::changeAttribute(Attribute a, int Delta){
+int32_t Character::changeAttribute(Attribute a, int Delta){
+    int d = Delta;
+
     switch(a){
         case Attribute::hp: 
+
+            if(HP+Delta>max_HP){d = max_HP-HP;}
+
             HP += Delta; 
             if(HP>max_HP){HP = max_HP;}
             break;
@@ -41,23 +46,27 @@ void Character::changeAttribute(Attribute a, int Delta){
 
             max_HP += Delta;
 
+
             if(Delta>0){HP += Delta;}
             else{ if(HP>max_HP){HP = max_HP;}}
             
-            if(max_HP<1){max_HP=1; HP = 1;}
+            if(max_HP<1){max_HP=1; HP = 1; d = max_HP-1;}
 
             break;
 
         case Attribute::block: 
+            if(block+Delta>MAX_BLOCK){d = MAX_BLOCK-block;}
+
             block += Delta; 
             if(block>MAX_BLOCK){block = MAX_BLOCK;}
             break;
     }
+    return d;
 }
 
 bool Character::isAlive(){return (HP>0);}
 
-uint32_t Character::takeDamage(int magnitude){
+int32_t Character::takeDamage(int magnitude){
     uint32_t unblocked = 0;
     if(magnitude>block){//Unblocked damage was dealt. 
         unblocked = magnitude - block;
@@ -70,7 +79,7 @@ uint32_t Character::takeDamage(int magnitude){
     return unblocked;               
 }
 
-uint32_t Character::gainBlock(int magnitude){
+int32_t Character::gainBlock(int magnitude){
     uint32_t gained = 0;
 
     if(block+magnitude>MAX_BLOCK){
