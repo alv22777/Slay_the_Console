@@ -41,7 +41,9 @@ class Pile{
 	std::deque<int> findNonMatchingIndexes(CardType c);
 
 	void sortBy(int category, bool asc); 
-	std::deque<IndexedCard> indexed(bool display);
+	void displaySortedBy(int category, bool asc);
+
+	std::deque<IndexedCard> indexed();
 };
 
 #endif

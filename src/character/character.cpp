@@ -1,6 +1,7 @@
 #include "character/character.h"
 #include "data/constants.h"
 #include "game_logic/game.h"
+#include "ui/formatting.h"
 #include <iostream>
 Character::Character(std::string N, int MHP, Color c)
     :name(N), max_HP(MHP), HP(MHP),block(0), col(c){}
@@ -29,6 +30,12 @@ void Character::setAttribute(Attribute att, int value){
     }
 }
 
+void Character::displayStatus(){
+    //STATUS BAR
+    std::cout<<color(col, padRight(getName(),15))<<
+    color(Color::hp, " ♥ "+std::to_string(HP)+'/'+std::to_string(max_HP))<<
+    color(Color::block, " 🛡️ "+std::to_string(block)+" ");
+}
 //Changes chosen attribute by an amount delta.
 int32_t Character::changeAttribute(Attribute a, int Delta){
     int d = Delta;

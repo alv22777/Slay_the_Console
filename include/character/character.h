@@ -35,6 +35,7 @@ class Character{
 	int32_t gainBlock(int magnitude);
 
 	void hpChange(int magnitude);
+	void displayStatus();
 	virtual ~Character() noexcept = default;
 };
 // int Stance; //WAT, PSM (Prismatic): Current Stance. 0: Neutral NTL, 1: Calm CLM, 2: Wrath WRT, 3: Divinity DIV. Combat only.

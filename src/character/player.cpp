@@ -157,7 +157,7 @@ void Player::removeFromPlayerPile(PileType type, int position){
     }
 }
 
-void Player::displayPlayerPile(PileType type, bool fixed, int n, bool indexed = false){
+void Player::displayPlayerPile(PileType type, bool fixed, int n, bool sorted = false){
     Pile choice;
     
     switch(type){
@@ -189,9 +189,8 @@ void Player::displayPlayerPile(PileType type, bool fixed, int n, bool indexed = 
     }
     
     if(fixed){choice.displayFixed(n);}
-    else if(indexed){choice.indexed(true);}
+    else if(sorted){choice.displaySortedBy(0,true);}
     else{choice.displayPile();}
-
 }
     
 void Player::endCombat(){
@@ -203,11 +202,8 @@ void Player::endCombat(){
 }
 
 void Player::displayStatus(){
-    //STATUS BAR
-    std::cout<<color(col, padRight(getName(),15))<<
-    color(Color::hp, " HP "+std::to_string(HP)+'/'+std::to_string(max_HP))<<
-    color(col, " Energy "+std::to_string(energy)+'/'+std::to_string(max_energy))<<
-    color(Color::block, " Block "+std::to_string(block)+'\n');
+    Character::displayStatus();
+    std::cout<<color(col, " ● "+std::to_string(energy)+'/'+std::to_string(max_energy))<<"\n";
 }
 
 Card& Player::getCardFromPile(PileType type, int position){
@@ -225,44 +221,69 @@ Card& Player::getCardFromPile(PileType type, int position){
 void Player::setPlayed(Card& c){played = c;}
 
 //Transfer {amount} cards manually chosen from source Pile to target Pile.
-uint32_t Player::transferCardsManual(PileType source, PileType target, int amount, bool bottom){
-    std::deque<int> choices = chooseCards(source, amount); 
-    
-    if(bottom){//cards go on bottom of the pile
-        for(int pos: choices){
-            addToPile(target,getCardFromPile(source,pos), true);
-            removeFromPlayerPile(source, pos);
-        }       
-    }
-    else{ //Cards go on top of the pile
-        for(int pos: choices){
-            addToPile(target, getCardFromPile(source, pos), false);
-            removeFromPlayerPile(source, pos);
+//If cards go into hand, and the amount would take the player over maximum hand size
+//only enough cards to fill hand are transferred, and remaining cards go into discard.
+uint32_t Player::transferCardsManual(PileType source, PileType target, int amount, bool bottom, Game& game){
+    std::deque<int> selected = chooseCards(source, amount, game); 
+
+    int slots = MAX_HAND_SIZE-hand.getSize();
+    bool will_fill = slots < selected.size();
+
+    if(will_fill && target == PileType::hand){
+        for(int i = 0; i<selected.size();i++){
+            if(i<slots){ addToPile(target,getCardFromPile(source,selected[i]),true); }  //if slot available, add to hand
+            else{ addToPile(PileType::discard,getCardFromPile(source,selected[i]),true); } //otherwise, add to discard.
         }
-    }  
-    return choices.size();
+    }    
+    else{ 
+        for(int pos: selected){ addToPile(target,getCardFromPile(source,pos), bottom); }       
+    }
+
+
+    //Go from latest index to earliest, this prevents index invalidation due to container mutation
+    std::sort(selected.begin(),selected.end(), std::greater<int>()); 
+    for(int pos: selected){ removeFromPlayerPile(source,pos); }
+
+    return selected.size();
 }
 
 //Transfer the selected cards (choices) from source Pile to target Pile
-uint32_t Player::transferCardsAuto(PileType source, PileType target, std::deque<int> choices, bool bottom){
+uint32_t Player::transferCardsAuto(PileType source, PileType target, std::deque<int> selected, bool bottom){
+  
+  if(target == PileType::hand){ //If cards go into hand, order matters
+        bool over_hand_size = (hand.getSize()+selected.size())> MAX_HAND_SIZE;
+        int slots = MAX_HAND_SIZE-hand.getSize();
+
+        if(over_hand_size){
+            for(int i = 0; i<selected.size();i++){
+                if(i<slots){ addToPile(target,getCardFromPile(source,selected[i]),true); }  //if slot available, add to hand
+                else{ addToPile(PileType::discard,getCardFromPile(source,selected[i]),true); } //otherwise, add to discard.
+            }
+        }
+    }
+    else{
+        for(int pos: selected){
+            addToPile(target, getCardFromPile(source,pos),bottom);
+        }
+    }
+    
     //Go from latest index to earliest, this prevents index invalidation due to container mutation
-    std::sort(choices.begin(),choices.end(), std::greater<int>()); 
-    for(int pos: choices){
-        addToPile(target,getCardFromPile(source,pos), bottom);
+    std::sort(selected.begin(),selected.end(), std::greater<int>()); 
+    for(int pos: selected)  {
         removeFromPlayerPile(source, pos);
     }
-    return choices.size();
+
+    return selected.size();
 }
 
 
 
 //Manually choose n cards from Pile source, it returs the choices sorted in descending order.
-std::deque<int> Player::chooseCards(PileType source, int amount){
+std::deque<int> Player::chooseCards(PileType source, int amount, Game& game){
     std::deque<int> selected;
-
+    
     if(amount>=getPlayerPileSize(source)){ //We can't get more cards if source's pile size is smaller, so just default to the whole pile
         for(int i = 0; i<getPlayerPileSize(source);i++){ selected.push_back(i); }
-        std::sort(selected.begin(),selected.end(), std::greater<int>()); 
         return selected;
     }
     
@@ -271,19 +292,33 @@ std::deque<int> Player::chooseCards(PileType source, int amount){
     std::deque<IndexedCard> IndexedCards;
     if(source == PileType::draw){
         std::cout<<"\n";
-        IndexedCards = draw.indexed(true);
+        IndexedCards = draw.indexed();
+        draw.displaySortedBy(0,true);
     }
-
     else if(source != PileType::hand){displayPlayerPile(source, false, 0);}
     
     while(selected.size()<amount){
+
+        game.displayGameState();
+        
+        std::cout<<"Selected: { ";
+        for(int pos: selected){
+            std::cout<<pos<<" ";
+        }
+        std::cout<<" }\n";
+        
+        if(source == PileType::draw){draw.displaySortedBy(0,true);}
+        else if (source != PileType::hand){displayPlayerPile(source, false, 0);}
+
+        std::cout<<"Choose "<<amount-selected.size()<<" card"<<((amount-selected.size()>1)? "s > ":" > ");
+        
         int input = inputInt(0,getPlayerPileSize(source)-1,true);
         
-        if( std::find(selected.begin(), selected.end(), input) == selected.end() ){
-            selected.push_back(input);
-            std::cout<<amount-selected.size()<<" card"<<((amount-selected.size()>1)? "s ":" ")<< "remaining.\n";
+        if(auto it = std::find(selected.begin(), selected.end(), input) == selected.end() ){
+            selected.push_back(input);    
         }else{
-            std::cout<<"Card already selected.\n";
+            selected.erase(selected.begin()+it);
+            std::cout<< "Card deselected.\n";
         }
 
     }
@@ -295,8 +330,6 @@ std::deque<int> Player::chooseCards(PileType source, int amount){
         }
     }
 
-    //Go from latest index to earliest, this prevents index invalidation due to container mutation
-    std::sort(selected.begin(),selected.end(), std::greater<int>()); 
     return selected;
 }
 

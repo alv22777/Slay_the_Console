@@ -66,11 +66,11 @@ class Player: public Character{
 
 
 
-    uint32_t transferCardsManual(PileType source, PileType target, int amount, bool bottom);
+    uint32_t transferCardsManual(PileType source, PileType target, int amount, bool bottom, Game& game);
 
-    uint32_t transferCardsAuto(PileType source, PileType target, std::deque<int> choices, bool bottom);
+    uint32_t transferCardsAuto(PileType source, PileType target, std::deque<int> selected, bool bottom);
 
-    std::deque<int> chooseCards(PileType source, int amount);
+    std::deque<int> chooseCards(PileType source, int amount, Game& game);
     std::deque<int> findIndexes(PileType p, CardType c, bool matching); 
     
     ~Player() noexcept override = default;

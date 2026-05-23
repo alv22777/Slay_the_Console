@@ -45,25 +45,25 @@ EffectReport Effect::apply(std::deque<Character*> target, Character& source, Gam
                 if(player){report.cards_drawn += player->drawCards(magnitude,game);}
                 break; }
             case EffectType::discard:{
-                if(player){report.cards_discarded += player->transferCardsManual(PileType::hand, PileType::discard, magnitude, false);}
+                if(player){report.cards_discarded += player->transferCardsManual(PileType::hand, PileType::discard, magnitude, false, game);}
                 break;}
             case EffectType::exhaust:{
-                if(player){report.cards_exhausted += player->transferCardsManual(PileType::hand, PileType::exhaust, magnitude, false);} 
+                if(player){report.cards_exhausted += player->transferCardsManual(PileType::hand, PileType::exhaust, magnitude, false, game);} 
                 break;}
             case EffectType::exhume:{
-                if(player){player->transferCardsManual(PileType::exhaust,PileType::hand, magnitude, true);} 
+                if(player){player->transferCardsManual(PileType::exhaust,PileType::hand, magnitude, true, game);} 
                 break;}
             case EffectType::hologram:{
-                if(player){player->transferCardsManual(PileType::discard,PileType::hand, magnitude, true);} 
+                if(player){player->transferCardsManual(PileType::discard,PileType::hand, magnitude, true, game);} 
                 break;}
             case EffectType::seek:{
-                if(player){player->transferCardsManual(PileType::draw,   PileType::hand, magnitude, true);} 
+                if(player){player->transferCardsManual(PileType::draw,   PileType::hand, magnitude, true,game);} 
                 break;}
             case EffectType::headbutt:{
-                if(player){player->transferCardsManual(PileType::discard,PileType::draw, magnitude, false);} 
+                if(player){player->transferCardsManual(PileType::discard,PileType::draw, magnitude, false, game);} 
                 break;}
             case EffectType::forethought:{
-                if(player){player->transferCardsManual(PileType::hand,   PileType::draw, magnitude, true );} 
+                if(player){player->transferCardsManual(PileType::hand,   PileType::draw, magnitude, true, game);} 
                 break;}
             case EffectType::expertise:{
                 if(player){report.cards_drawn += player->drawCards(magnitude - player->getPlayerPileSize(PileType::hand), game);}
