@@ -204,6 +204,8 @@ void Player::endCombat(){
 void Player::displayStatus(){
     Character::displayStatus();
     std::cout<<color(col, " ● "+std::to_string(energy)+'/'+std::to_string(max_energy))<<"\n";
+    Character::displayPowers();
+    std::cout<<'\n';
 }
 
 Card& Player::getCardFromPile(PileType type, int position){

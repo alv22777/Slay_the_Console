@@ -1,13 +1,12 @@
 #include "game_logic/effect.h"
-
 #include "character/player.h"
 #include "character/enemy.h"
 #include "character/character.h"
 #include "data/constants.h"
 
 
-Effect::Effect(EffectType t, int m, TargetType tar)
-    :type(t), magnitude(m), target_type(tar){}
+Effect::Effect(EffectType t, int m, TargetType tar, std::optional<PID> p)
+    :type(t), magnitude(m), target_type(tar), power(p){}
 
 EffectReport Effect::apply(std::deque<Character*> target, Character& source, Game& game){
 
@@ -18,7 +17,7 @@ EffectReport Effect::apply(std::deque<Character*> target, Character& source, Gam
 
         //Preventive programming for Player/Enemy specific behavior.
         player = dynamic_cast<Player*>(c); 
-        enemy = dynamic_cast<Enemy*>(c);
+        enemy  = dynamic_cast<Enemy*>(c);
         
         switch(type){
             //General behavior
@@ -68,13 +67,19 @@ EffectReport Effect::apply(std::deque<Character*> target, Character& source, Gam
             case EffectType::expertise:{
                 if(player){report.cards_drawn += player->drawCards(magnitude - player->getPlayerPileSize(PileType::hand), game);}
                 break;}
-
+            case EffectType::gain:{
+                report.power_gained = *power;
+                c->addPower(Power::createPower(*power, magnitude, c));
+                break;
+            }
+            
             default: {std::cout<<"No implementation yet!\n"; break;}
         }
     }
 
     return report;
 }
+
 
 EffectType Effect::getType(){return type;}
 int Effect::getMagnitude(){return magnitude;}
@@ -143,27 +148,9 @@ std::string Effect::log(std::deque<Character*> target, Character& source, Effect
             how_much = std::to_string(abs(report.cards_exhausted));
             what = " exhausted " + how_much + " card" +((magnitude>1)? "s.":".");
         break;}
-        case EffectType::strength:{
+        case EffectType::gain:{
             if(magnitude == 0){return "";}
-            what = ((magnitude>0)? " gained ":" lost " ) + how_much + " Strength.";
-        break;}
-
-        case EffectType::dexterity:{
-            if(magnitude == 0){return "";}
-            what = ((magnitude>0)? " gained ":" lost " ) + how_much + " Dexterity.";
-        break;}
-
-        case EffectType::weak:{
-            if(magnitude == 0){return "";}   
-            what = ((magnitude>0)? " gained ":" lost " ) + how_much + " Weak.";
-        break;}
-        case EffectType::vulnerable:{
-            if(magnitude == 0){return "";}
-            what = ((magnitude>0)? " gained ":" lost " ) + how_much + " Vulnerable.";
-        break;}
-        case EffectType::frail:{
-            if(magnitude == 0){return "";}
-            what = ((magnitude>0)? " gained ":" lost " ) + how_much + " Frail.";
+            what = ((magnitude>0)? " gained ":" lost " ) + how_much +" "+Power::IDtoString(*power, true)+".";
         break;}
 
         case EffectType::expertise:{

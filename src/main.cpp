@@ -15,8 +15,9 @@ int main() {
 
 
 		int choice = characterSelect();
-		std::deque<Player> players = {Player::createPlayer(choice)};
-
+		std::deque<Player> players;
+		players.push_back(std::move(Player::createPlayer(choice)));
+	
 		Game run(players, seed, EVENT_LOG_SIZE);
         run.run(); // This is funny.
 		

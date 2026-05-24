@@ -212,7 +212,9 @@ void Game::fight(int& floor){
 	for(Player &p: player){p.StartCombat(*this);}
 	pushLog("---------- Start of combat ---------", 0);
 	
- 
+	player[0].addPower( std::make_unique<Weak>(2, &player[0]) );
+	player[0].addPower( std::make_unique<Vulnerable>(2, &player[0]) );
+	
 	//Placeholder enemy, will be replaced with actual enemies in the future.
 	Enemy GreenLouse("Green Louse",10, Color::green, 
 		{
@@ -227,7 +229,7 @@ void Game::fight(int& floor){
 		}
 	);
 
-	enemies.push_back(GreenLouse); enemies.push_back(RedLouse);
+	enemies.push_back(std::move(GreenLouse)); enemies.push_back(std::move(RedLouse));
 	
 	char choice = ' ';
 	turn = 1;

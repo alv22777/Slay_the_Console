@@ -1,5 +1,6 @@
 #include "data/constants.h"
 #include "game_logic/effect.h"
+#include "game_logic/power.h"
 #include "card/card.h"
 #include "card/pile.h"
 #include "ui/colors.h"
@@ -14,6 +15,8 @@ const int STARTING_BLOCK = 0;
 const int MAX_BLOCK = 999;
 const int EVENT_LOG_SIZE = 8;
 const int MAX_HAND_SIZE = 10;
+extern const int VULNERABLE_PCENT = 50;
+extern const int WEAK_PCENT = 25;
 const uint64_t SEED_MIN = 0;
 const uint64_t SEED_MAX = UINT64_MAX;
 
@@ -32,7 +35,7 @@ Card ICL_Defend = {CID::ICL_Defend, Color::red, "Defend", CardType::skill, 1, Ca
 Card ICL_Bash = {CID::Bash, Color::red, "Bash", CardType::attack, 2,  CardRarity::starter, "Deal 8 damage. Apply 2 vulnerable.", 
     {
         Effect(EffectType::damage, 8, TargetType::enemy),
-        Effect(EffectType::vulnerable, 2, TargetType::enemy)
+        Effect(EffectType::gain, 2, TargetType::enemy, PID::vulnerable),
     }, false};
 
 ////////////////////THE SILENT//////////////////
@@ -41,6 +44,7 @@ Card SLT_Defend = {CID::SLT_Defend, Color::green, "Defend", CardType::skill, 1, 
 Card SLT_Neutralize = {CID::Neutralize, Color::green, "Neutralize", CardType::attack, 0, CardRarity::starter,"Deal 3 damage, apply 1 weak.", 
     {
         Effect(EffectType::damage, 3, TargetType::enemy),
+        Effect(EffectType::gain, 1, TargetType::enemy, PID::weak),
     }, false};
 
 Card SLT_Survivor = {CID::Survivor ,Color::green, "Survivor", CardType::skill, 1, CardRarity::starter,"Discard 1 hand. Gain 8 block.", 
@@ -161,8 +165,8 @@ Pile SLT_STARTER_DECK = createSilentStarterDeck();
 
 Pile createIroncladStarterDeck(){
     Pile deck;
-    for(int i =0; i<5;i++){deck.addCardTop(ICL_Strike);}
-    for(int i =0; i<4;i++){deck.addCardTop(ICL_Defend);}
+    for(int i =0; i<1;i++){deck.addCardTop(ICL_Strike);}
+    for(int i =0; i<1;i++){deck.addCardTop(ICL_Defend);}
     deck.addCardTop(ICL_Twin_Strike);
     deck.addCardTop(ICL_Bloodletting);
     deck.addCardTop(ICL_True_Grit);
@@ -172,6 +176,8 @@ Pile createIroncladStarterDeck(){
     deck.addCardTop(CLS_Bite);
     deck.addCardTop(WAT_Scrawl);
     deck.addCardTop(DEF_Seek);
+    deck.addCardTop(ICL_Bash);
+    deck.addCardTop(SLT_Neutralize);
     return deck;
 }
 

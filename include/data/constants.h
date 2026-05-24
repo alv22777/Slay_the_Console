@@ -31,6 +31,8 @@ extern const int STARTING_BLOCK;
 extern const int MAX_BLOCK;
 extern const int EVENT_LOG_SIZE;
 extern const int MAX_HAND_SIZE;
+extern const int VULNERABLE_PCENT;
+extern const int WEAK_PCENT;
 extern const uint64_t SEED_MIN;
 extern const uint64_t SEED_MAX;
 

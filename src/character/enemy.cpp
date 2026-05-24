@@ -14,6 +14,8 @@ Enemy::Enemy(std::string n, int mHP, Color c, std::deque<Intent> p_i):
 void Enemy::displayStatus(){
     Character::displayStatus();
     next_intent.display();
+    std::cout<<'\n'<<"   ";
+    Character::displayPowers();
     std::cout<<'\n';
 }
 

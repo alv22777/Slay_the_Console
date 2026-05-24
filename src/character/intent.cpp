@@ -13,7 +13,7 @@ void Intent::display(){
     bool displayedAttack = false;
     bool attack;
     for(Effect e:actions){
-        (e.getType()==EffectType::damage)?  n++ : n;
+        if(e.getType()==EffectType::damage){n++;}
     }
 
     for(Effect e: actions){
@@ -30,7 +30,7 @@ void Intent::display(){
                     }
                 }else{ std::cout<<color(Color::attack, "ATTACK "+std::to_string(e.getMagnitude())); }
             break;
-            case EffectType::strength: std::cout<<color(Color::buff, "BUFF"); break;
+            case EffectType::gain: std::cout<<color(Color::buff, "BUFF"); break;
             default: std::cout<<color(Color::unknown, "???"); break;
         }
         

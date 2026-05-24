@@ -2,7 +2,11 @@
 #include "data/constants.h"
 #include "game_logic/game.h"
 #include "ui/formatting.h"
+#include "game_logic/power.h"
+
 #include <iostream>
+
+
 Character::Character(std::string N, int MHP, Color c)
     :name(N), max_HP(MHP), HP(MHP),block(0), col(c){}
 
@@ -36,6 +40,15 @@ void Character::displayStatus(){
     color(Color::hp, " ♥ "+std::to_string(HP)+'/'+std::to_string(max_HP))<<
     color(Color::block, " 🛡️ "+std::to_string(block)+" ");
 }
+
+void Character::displayPowers(){
+    std::cout<<"{ ";
+    for(std::unique_ptr<Power>& p: powers){
+        p->display(); std::cout<< " ";
+    }
+    std::cout<<"}";
+}
+
 //Changes chosen attribute by an amount delta.
 int32_t Character::changeAttribute(Attribute a, int Delta){
     int d = Delta;
@@ -104,4 +117,16 @@ int32_t Character::gainBlock(int magnitude){
 void Character::hpChange(int magnitude){
     HP+=magnitude;
     if(HP>max_HP){HP = max_HP;} //Don't go over max HP!
+}
+
+void Character::addPower(std::unique_ptr<Power> p){
+
+    auto it = std::find_if(powers.begin(), powers.end(), [&](const std::unique_ptr<Power>& a){
+        return a->getID() == p->getID();
+    }); 
+
+    if(it != powers.end()){ //Power already in list
+        (*it)->changeMagnitude(p->getMagnitude());
+    }
+    else{powers.push_back(std::move(p));}
 }

@@ -18,6 +18,11 @@ class Enemy: public Character{
     void displayStatus();
     void chooseIntent(Game& game);
 
+    Enemy(const Enemy&) = delete;
+    Enemy& operator=(const Enemy&) = delete;
+
+    Enemy(Enemy&&) noexcept = default;
+    Enemy& operator=(Enemy&&) noexcept = default;
     ~Enemy() noexcept override = default;
 };
 

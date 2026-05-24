@@ -73,6 +73,12 @@ class Player: public Character{
     std::deque<int> chooseCards(PileType source, int amount, Game& game);
     std::deque<int> findIndexes(PileType p, CardType c, bool matching); 
     
+    Player(const Player&) = delete;
+    Player& operator=(const Player&) = delete;
+
+    Player(Player&&) noexcept = default;
+    Player& operator=(Player&&) noexcept = default;
+    
     ~Player() noexcept override = default;
 };
 

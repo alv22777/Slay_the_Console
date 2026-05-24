@@ -4,10 +4,13 @@
 
 #include<iostream>
 #include "stdint.h"
-
+#include <memory>
+#include <vector>
+#include "game_logic/power.h"
 
 enum class Color;
 enum class Attribute{hp, max_hp, block, energy, max_energy};
+
 
 //This is a Slay The Spire Character, it has several core attributes like HP, energy and block.
 class Character{
@@ -18,7 +21,9 @@ class Character{
 	int max_HP; 
 	int HP; 
 	int block;
+	std::vector<std::unique_ptr<Power>> powers;
 
+	
 	public:
 	Character(std::string N, int MHP, Color c);
 
@@ -33,9 +38,18 @@ class Character{
 	bool isAlive();	
 	int32_t takeDamage(int magnitude);
 	int32_t gainBlock(int magnitude);
-
+	void addPower(std::unique_ptr<Power> p);
+	
 	void hpChange(int magnitude);
 	void displayStatus();
+	void displayPowers();
+
+	Character(const Character&) = delete;
+	Character& operator=(const Character&) = delete;
+
+	Character(Character&&) noexcept = default;
+	Character& operator=(Character&&) noexcept = default;
+
 	virtual ~Character() noexcept = default;
 };
 // int Stance; //WAT, PSM (Prismatic): Current Stance. 0: Neutral NTL, 1: Calm CLM, 2: Wrath WRT, 3: Divinity DIV. Combat only.

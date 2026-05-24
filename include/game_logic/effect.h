@@ -3,8 +3,9 @@
 
 #include<deque>
 #include<iostream>
+#include<optional>
 #include "stdint.h"
-class Game; class Character;
+class Game; class Character; enum class PID; class Power;
 
 /*
 exhume: n cards go from exhaust to hand.
@@ -17,7 +18,7 @@ expertise: target player draws cards until hand size is n.
 enum class EffectType{
     damage, block, energy, hp, 
     draw, discard, exhaust, exhume, hologram, seek, headbutt, forethought, expertise,
-    strength, dexterity, weak, vulnerable, frail,
+    gain,
     none
 };
 
@@ -32,7 +33,7 @@ struct EffectReport{
     int32_t cards_drawn = 0;
     int32_t cards_exhausted = 0;
     int32_t cards_discarded = 0;
-
+    PID power_gained;
     bool target_died = false;
     bool fatal = false;
 };
@@ -41,9 +42,9 @@ class Effect{
     EffectType type;
     TargetType target_type;
     int magnitude;
-     
+    std::optional<PID> power;
     public:
-    Effect(EffectType t, int m, TargetType tar); //Effect constructor, initializes type and magnitude.
+    Effect(EffectType t, int m, TargetType tar, std::optional<PID> p = std::nullopt);//Effect constructor, initializes type and magnitude.
     EffectReport apply(std::deque<Character*> target, Character& source, Game& game); //Applies this effect to the target character. 
     EffectType getType();
     TargetType getTarget();
