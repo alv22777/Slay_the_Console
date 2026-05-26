@@ -4,6 +4,7 @@
 #include<deque>
 #include<iostream>
 #include<optional>
+
 #include "stdint.h"
 class Game; class Character; enum class PID; class Power;
 
@@ -22,7 +23,7 @@ enum class EffectType{
     none
 };
 
-enum class TargetType{ally, ally_all, enemy, enemy_all, random_enemy, self, none};
+enum class TargetType{player, enemy, enemy_all, random_enemy, self, none};
 
 struct EffectReport{
     int32_t damage_dealt=0;
@@ -45,12 +46,12 @@ class Effect{
     std::optional<PID> power;
     public:
     Effect(EffectType t, int m, TargetType tar, std::optional<PID> p = std::nullopt);//Effect constructor, initializes type and magnitude.
-    EffectReport apply(std::deque<Character*> target, Character& source, Game& game); //Applies this effect to the target character. 
+    EffectReport apply(std::deque<Character*> target, Character* source, Game& game); //Applies this effect to the target character. 
     EffectType getType();
     TargetType getTarget();
     bool isSingleTarget();
     int getMagnitude();
-    std::string log(std::deque<Character*> target, Character& source, EffectReport report);
+    std::string log(std::deque<Character*> target, Character* source, EffectReport report);
 };
 
 #endif

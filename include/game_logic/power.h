@@ -35,10 +35,8 @@ class Power{
     public:
     Power(PID id, int32_t i, bool in, bool d, Character* own);
     
-    virtual void onTurnStart();
-
-    virtual uint32_t modOutDamage(uint32_t base);
-    virtual uint32_t modIncDamage(uint32_t base);
+    
+    
     int32_t getMagnitude() const;
     PID getID() const;
     Character* getOwner();
@@ -50,6 +48,15 @@ class Power{
     void changeMagnitude(int32_t delta);
     void eliminate();
     virtual ~Power() noexcept = default;
+
+
+    //Hooks
+    virtual void onPlayerTurnStart();
+    virtual void onPlayerTurnEnd();
+    virtual void onEnemyTurnStart();
+    virtual void onEnemyTurnEnd();
+    virtual uint32_t modOutDamage(uint32_t base);
+    virtual uint32_t modIncDamage(uint32_t base);
 
     protected:
     PID ID;
@@ -70,5 +77,11 @@ class Vulnerable: public Power{
     Vulnerable(uint32_t i, Character* own);
 };
 
+class Ritual: public Power{
+    public:
+    Ritual(uint32_t i, Character* own);
+};
+
 
 #endif
+

@@ -108,19 +108,29 @@ void Player::playCardFromHand(int pos, Game& game){
     played.applyEffects(*this,game, pos);
 }
 
-Player Player::createPlayer(int choice){
+std::unique_ptr<Player> Player::createPlayer(int choice){
     switch(choice){
         case 1:{
-            Player p(color(Color::red, "The Ironclad"), ICL_STARTING_MAX_HP, STARTING_ENERGY, Color::red);
-            p.deck.addPileToSelf(ICL_STARTER_DECK);
-            return p;
+                std::unique_ptr<Player> p = std::make_unique<Player>(
+                    color(Color::red, "The Ironclad"), 
+                    ICL_STARTING_MAX_HP, 
+                    STARTING_ENERGY, 
+                    Color::red);
+
+                p.get()->deck.addPileToSelf(ICL_STARTER_DECK);
+                return p;
             }
         case 2:{
-            Player p(color(Color::green, "The Silent"), SLT_STARTING_MAX_HP, STARTING_ENERGY, Color::green);
-            p.deck.addPileToSelf(SLT_STARTER_DECK);
-            return p;
+                std::unique_ptr<Player> p = std::make_unique<Player>(
+                    color(Color::green,"The Silent"), 
+                    SLT_STARTING_MAX_HP, 
+                    STARTING_ENERGY, 
+                    Color::green); 
+                p.get()->deck.addPileToSelf(SLT_STARTER_DECK);
+                return p;
             }
-        default:{return Player("NOPLAYER",0,0,Color::colorless);}
+            
+        default:{return std::make_unique<Player>("NOPLAYER",0,0,Color::colorless);}
     }
 }
 
@@ -199,6 +209,7 @@ void Player::endCombat(){
     discard.deletePile();
     exhaust.deletePile();
     hand.deletePile();
+    removeAllPowers();
 }
 
 void Player::displayStatus(){

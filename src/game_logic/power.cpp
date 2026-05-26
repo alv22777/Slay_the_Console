@@ -1,12 +1,22 @@
 #include "game_logic/power.h"
+#include "character/character.h"
+
+
 #include "data/constants.h"
 
 Power::Power(PID id, int32_t i, bool in, bool d, Character* own):
-    ID(id), magnitude(i), stacks_intensity(in), stacks_duration(d), owner(own){}
+    ID(id), magnitude(i), stacks_intensity(in), stacks_duration(d), owner(std::move(own)){}
 
-void Power::onTurnStart(){
-    if(stacks_duration && magnitude>0){magnitude--;}
+void Power::onPlayerTurnStart(){
+    changeMagnitude(-1);
 }
+void Power::onPlayerTurnEnd(){}
+
+void Power::onEnemyTurnStart(){
+    if(stacks_duration){changeMagnitude(-1);}     
+}
+void Power::onEnemyTurnEnd(){}
+
 
 void Power::changeMagnitude(int32_t delta){
     if(stacks_duration || stacks_intensity){magnitude += delta;}
@@ -28,7 +38,6 @@ uint32_t Power::modIncDamage(uint32_t base){return base;}
 int32_t Power::getMagnitude()const{return magnitude;}
 PID Power::getID()const{return ID;}
 Character* Power::getOwner(){return owner;}
-
 
 std::string Power::IDtoString(PID id, bool plain_text){
     if(plain_text){
@@ -97,21 +106,24 @@ void Power::display(){
 }
 
 
-Weak::Weak(uint32_t i, Character* own): Power(PID::weak, i, false, true, own){}
+Weak::Weak(uint32_t i, Character* own): Power(PID::weak, i, false, true, std::move(own)){}
 uint32_t Weak::modOutDamage(uint32_t base){
     return base * (100 - WEAK_PCENT)/100;
 }
 
-Vulnerable::Vulnerable(uint32_t i, Character* own):Power(PID::vulnerable, i, false, true, own){}
+Vulnerable::Vulnerable(uint32_t i, Character* own):Power(PID::vulnerable, i, false, true, std::move(own)){}
 uint32_t Vulnerable::modIncDamage(uint32_t base){
     return base * (100 + VULNERABLE_PCENT)/100;
 }
+
+Ritual::Ritual(uint32_t i, Character* own): Power(PID::ritual, i, true, false, std::move(own)){}
 
 std::unique_ptr<Power> Power::createPower(PID id, int32_t magnitude, Character* owner){
     switch(id){
         case PID::weak: return std::make_unique<Weak>(magnitude, owner);
         case PID::vulnerable: return std::make_unique<Vulnerable>(magnitude,owner);
-
+        case PID::ritual: return std::make_unique<Ritual>(magnitude, owner);
+        
         default:
             throw std::runtime_error("Invalid PID");
     }

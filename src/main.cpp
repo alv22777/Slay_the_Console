@@ -5,6 +5,7 @@
 #include <ctime>
 #include <iostream>
 #include <windows.h>
+#include <memory>
 
 int main() {
 		SetConsoleOutputCP(CP_UTF8); //Allows UTF8 decoding for printing symbols.
@@ -14,11 +15,11 @@ int main() {
 		uint64_t seed = pregame.nextInt(SEED_MIN,SEED_MAX);
 
 
+		std::deque<std::unique_ptr<Enemy>> enemies;
 		int choice = characterSelect();
-		std::deque<Player> players;
-		players.push_back(std::move(Player::createPlayer(choice)));
+		std::unique_ptr<Player> player = Player::createPlayer(choice);
 	
-		Game run(players, seed, EVENT_LOG_SIZE);
+		Game run(player, enemies, seed, EVENT_LOG_SIZE);
         run.run(); // This is funny.
 		
 		return 0;

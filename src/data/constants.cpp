@@ -40,7 +40,7 @@ Card ICL_Bash = {CID::Bash, Color::red, "Bash", CardType::attack, 2,  CardRarity
 
 ////////////////////THE SILENT//////////////////
 Card SLT_Strike = {CID::SLT_Strike, Color::green, "Strike", CardType::attack, 1, CardRarity::starter,"Deal 6 damage.", {Effect(EffectType::damage, 6,TargetType::enemy)},  false};
-Card SLT_Defend = {CID::SLT_Defend, Color::green, "Defend", CardType::skill, 1, CardRarity::starter,"Gain 5 block.", {Effect(EffectType::block, 5, TargetType::ally)}, false};
+Card SLT_Defend = {CID::SLT_Defend, Color::green, "Defend", CardType::skill, 1, CardRarity::starter,"Gain 5 block.", {Effect(EffectType::block, 5, TargetType::self)}, false};
 Card SLT_Neutralize = {CID::Neutralize, Color::green, "Neutralize", CardType::attack, 0, CardRarity::starter,"Deal 3 damage, apply 1 weak.", 
     {
         Effect(EffectType::damage, 3, TargetType::enemy),
@@ -50,7 +50,7 @@ Card SLT_Neutralize = {CID::Neutralize, Color::green, "Neutralize", CardType::at
 Card SLT_Survivor = {CID::Survivor ,Color::green, "Survivor", CardType::skill, 1, CardRarity::starter,"Discard 1 hand. Gain 8 block.", 
     {
         Effect(EffectType::discard,1,TargetType::self),
-        Effect(EffectType::block, 8, TargetType::ally)
+        Effect(EffectType::block, 8, TargetType::self)
     }, false};
      
 ////////////////////THE DEFECT//////////////////
@@ -165,17 +165,9 @@ Pile SLT_STARTER_DECK = createSilentStarterDeck();
 
 Pile createIroncladStarterDeck(){
     Pile deck;
-    for(int i =0; i<1;i++){deck.addCardTop(ICL_Strike);}
-    for(int i =0; i<1;i++){deck.addCardTop(ICL_Defend);}
+    //for(int i =0; i<1;i++){deck.addCardTop(ICL_Strike);}
+    //for(int i =0; i<1;i++){deck.addCardTop(ICL_Defend);}
     deck.addCardTop(ICL_Twin_Strike);
-    deck.addCardTop(ICL_Bloodletting);
-    deck.addCardTop(ICL_True_Grit);
-    deck.addCardTop(SLT_Survivor);
-    deck.addCardTop(SLT_Prepared);
-    deck.addCardTop(CLS_Finesse);
-    deck.addCardTop(CLS_Bite);
-    deck.addCardTop(WAT_Scrawl);
-    deck.addCardTop(DEF_Seek);
     deck.addCardTop(ICL_Bash);
     deck.addCardTop(SLT_Neutralize);
     return deck;

@@ -8,16 +8,15 @@
 Effect::Effect(EffectType t, int m, TargetType tar, std::optional<PID> p)
     :type(t), magnitude(m), target_type(tar), power(p){}
 
-EffectReport Effect::apply(std::deque<Character*> target, Character& source, Game& game){
+EffectReport Effect::apply(std::deque<Character*> target, Character* source, Game& game){
 
-    Player* player; Enemy* enemy;
     EffectReport report;
 
     for(Character* c: target){//For every character in selected targets
 
         //Preventive programming for Player/Enemy specific behavior.
-        player = dynamic_cast<Player*>(c); 
-        enemy  = dynamic_cast<Enemy*>(c);
+        Player* p = dynamic_cast<Player*>(c); 
+        Enemy*  e = dynamic_cast<Enemy*>(c);
         
         switch(type){
             //General behavior
@@ -38,34 +37,34 @@ EffectReport Effect::apply(std::deque<Character*> target, Character& source, Gam
             }    
             //Player specific behavior
             case EffectType::energy:{
-                if(player){player->changeAttribute(Attribute::energy,magnitude);} 
+                if(p){p->changeAttribute(Attribute::energy,magnitude);} 
                 break;}
             case EffectType::draw:{
-                if(player){report.cards_drawn += player->drawCards(magnitude,game);}
+                if(p){report.cards_drawn += p->drawCards(magnitude,game);}
                 break; }
             case EffectType::discard:{
-                if(player){report.cards_discarded += player->transferCardsManual(PileType::hand, PileType::discard, magnitude, false, game);}
+                if(p){report.cards_discarded += p->transferCardsManual(PileType::hand, PileType::discard, magnitude, false, game);}
                 break;}
             case EffectType::exhaust:{
-                if(player){report.cards_exhausted += player->transferCardsManual(PileType::hand, PileType::exhaust, magnitude, false, game);} 
+                if(p){report.cards_exhausted += p->transferCardsManual(PileType::hand, PileType::exhaust, magnitude, false, game);} 
                 break;}
             case EffectType::exhume:{
-                if(player){player->transferCardsManual(PileType::exhaust,PileType::hand, magnitude, true, game);} 
+                if(p){p->transferCardsManual(PileType::exhaust,PileType::hand, magnitude, true, game);} 
                 break;}
             case EffectType::hologram:{
-                if(player){player->transferCardsManual(PileType::discard,PileType::hand, magnitude, true, game);} 
+                if(p){p->transferCardsManual(PileType::discard,PileType::hand, magnitude, true, game);} 
                 break;}
             case EffectType::seek:{
-                if(player){player->transferCardsManual(PileType::draw,   PileType::hand, magnitude, true,game);} 
+                if(p){p->transferCardsManual(PileType::draw,   PileType::hand, magnitude, true,game);} 
                 break;}
             case EffectType::headbutt:{
-                if(player){player->transferCardsManual(PileType::discard,PileType::draw, magnitude, false, game);} 
+                if(p){p->transferCardsManual(PileType::discard,PileType::draw, magnitude, false, game);} 
                 break;}
             case EffectType::forethought:{
-                if(player){player->transferCardsManual(PileType::hand,   PileType::draw, magnitude, true, game);} 
+                if(p){p->transferCardsManual(PileType::hand,   PileType::draw, magnitude, true, game);} 
                 break;}
             case EffectType::expertise:{
-                if(player){report.cards_drawn += player->drawCards(magnitude - player->getPlayerPileSize(PileType::hand), game);}
+                if(p){report.cards_drawn += p->drawCards(magnitude - p->getPlayerPileSize(PileType::hand), game);}
                 break;}
             case EffectType::gain:{
                 report.power_gained = *power;
@@ -85,16 +84,16 @@ EffectType Effect::getType(){return type;}
 int Effect::getMagnitude(){return magnitude;}
 TargetType Effect::getTarget(){return target_type;}
 bool Effect::isSingleTarget(){
-    if(target_type == TargetType::self || target_type == TargetType::enemy || target_type == TargetType::ally){return true;}
+    if(target_type == TargetType::self || target_type == TargetType::enemy || target_type == TargetType::player){return true;}
     else{return false;}
 }
 
-std::string Effect::log(std::deque<Character*> target, Character& source, EffectReport report){
+std::string Effect::log(std::deque<Character*> target, Character* source, EffectReport report){
 
     if(target.empty()){return "";}
     
     std::string log; std::string who; std::string what; std::string to_who; std::string how_much = std::to_string(abs(magnitude));
-    bool single_target = target_type == TargetType::ally   || target_type == TargetType::random_enemy || 
+    bool single_target = target_type == TargetType::player   || target_type == TargetType::random_enemy || 
                          target_type == TargetType::enemy  || target_type == TargetType::self;
 
     //Default conditions
@@ -105,7 +104,7 @@ std::string Effect::log(std::deque<Character*> target, Character& source, Effect
 
     switch(type){
         case EffectType::damage:{
-            who = color(source.getColor(),source.getName());
+            who = color(source->getColor(),source->getName());
             
             if(single_target){
                 how_much = std::to_string(abs(report.damage_dealt));

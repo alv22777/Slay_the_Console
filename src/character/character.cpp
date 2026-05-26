@@ -24,6 +24,8 @@ int Character::getAttribute(Attribute a){
 
 Color Character::getColor(){return col;}
 
+const std::vector<std::unique_ptr<Power>>& Character::getPowers(){return powers;}
+
 void Character::setName(std::string n){name = n;}
 
 void Character::setAttribute(Attribute att, int value){
@@ -130,3 +132,17 @@ void Character::addPower(std::unique_ptr<Power> p){
     }
     else{powers.push_back(std::move(p));}
 }
+
+void Character::removePower(int pos){
+    powers.erase(powers.begin()+pos);
+}   
+void Character::removeAllPowers(){
+    powers.clear();
+}
+
+void Character::removeInvalidPowers(){
+    powers.erase(std::remove_if(powers.begin(), powers.end(), [](const std::unique_ptr<Power>& p){
+        return p->isExpired(); 
+    }), powers.end());
+}
+

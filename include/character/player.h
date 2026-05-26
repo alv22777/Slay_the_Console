@@ -4,6 +4,7 @@
 #include"card/pile.h"
 #include"card/card.h"
 #include"ui/colors.h"
+#include <memory>
 
 //The player can have 6 Piles, 
 enum class PileType{deck, combat_deck, hand, draw, discard, exhaust};
@@ -59,7 +60,7 @@ class Player: public Character{
     //Play card from chosen position in player's hand.
 	void playCardFromHand(int pos, Game& game);
 
-	static Player createPlayer(int choice);
+	static std::unique_ptr<Player> createPlayer(int choice);
     bool isHandFull();
     void endCombat();
     Card& getPlayed();

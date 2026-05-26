@@ -35,11 +35,17 @@ class Character{
 	
 	int32_t changeAttribute(Attribute att, int Delta);
     Color getColor();
+	
+	const std::vector<std::unique_ptr<Power>>& getPowers();
+
 	bool isAlive();	
 	int32_t takeDamage(int magnitude);
 	int32_t gainBlock(int magnitude);
+
 	void addPower(std::unique_ptr<Power> p);
-	
+	void removePower(int pos);
+	void removeAllPowers();
+	void removeInvalidPowers();
 	void hpChange(int magnitude);
 	void displayStatus();
 	void displayPowers();

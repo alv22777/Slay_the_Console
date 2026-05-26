@@ -1,7 +1,7 @@
 #include "game_logic/rng.h"
 RNG::RNG(uint64_t s): engine(s), seed(s){}
 
-//Returns a random integer between min and max, inclusive. Very useful for things like random enemy targets.
+//Returns a random uint64_t between min and max, inclusive. Very useful for things like random enemy targets.
 uint64_t RNG::nextInt(int min, int max){
     std::uniform_int_distribution<uint64_t> dist(min, max);
     return dist(engine);
@@ -28,10 +28,8 @@ std::string RNG::base36(){
     std::string result; char pushed;
     int i=1;
     while(n>=36){
-
         remainder = n%36;
         n /= 36;
-        
         (remainder<10)? pushed = '0' + remainder : pushed = 'A' - 10 + remainder ;
         result.push_back(pushed);
     }
@@ -40,6 +38,7 @@ std::string RNG::base36(){
     n /= 36;
     (remainder<10)? pushed = '0' + remainder : pushed = 'A' - 10 + remainder ;
     result.push_back(pushed);
+
     std::reverse(result.begin(),result.end());
 
     return result;
