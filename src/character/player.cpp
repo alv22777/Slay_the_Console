@@ -1,6 +1,7 @@
 #include "character/player.h"
 #include "data/constants.h"
 #include "game_logic/game.h"
+
 #include "ui/colors.h"
 #include "ui/formatting.h"
 #include "ui/input.h"
@@ -11,7 +12,8 @@
 #include <iomanip>
 
 
-Player::Player(std::string n,int mHP, int e, Color c): Character(n,mHP,c), max_energy(e), energy(e), played(blank_card){}
+Player::Player(std::string n,int mHP, int e, Color c): 
+Character(n,mHP,c), max_energy(e), energy(e), played(blank_card), potion_slots(STARTING_POTION_SLOTS){}
 
 
 Card& Player::getPlayed(){return played;}
@@ -40,14 +42,14 @@ void Player::changeAttribute(Attribute a, int Delta){
     }
 }
 
-int Player::getPlayerPileSize(PileType type){
+int Player::getPlayerPileSize(PileID type){
     switch(type){
-        case PileType::deck: return deck.getSize();
-        case PileType::combat_deck: return combat_deck.getSize();
-        case PileType::hand: return hand.getSize();
-        case PileType::draw: return draw.getSize();
-        case PileType::discard: return discard.getSize();
-        case PileType::exhaust: return exhaust.getSize();
+        case PileID::deck: return deck.getSize();
+        case PileID::combat_deck: return combat_deck.getSize();
+        case PileID::hand: return hand.getSize();
+        case PileID::draw: return draw.getSize();
+        case PileID::discard: return discard.getSize();
+        case PileID::exhaust: return exhaust.getSize();
         default : return 0;
     }
 }
@@ -98,7 +100,7 @@ bool Player::isHandFull(){return hand.getSize()==MAX_HAND_SIZE;}
 void Player::discardHand(){hand.movePileTo(discard);}
 
 void Player::playCardFromHand(int pos, Game& game){
-    Card& tried = getCardFromPile(PileType::hand,pos);
+    Card& tried = getCardFromPile(PileID::hand,pos);
     if(!tried.canPlay(*this, game)){std::cout<<"You can not play this card!\n"; return;}
     if(getAttribute(Attribute::energy) < tried.getEnergyCost()){std::cout<<"Not enough energy!\n"; return;}
      
@@ -111,13 +113,8 @@ void Player::playCardFromHand(int pos, Game& game){
 std::unique_ptr<Player> Player::createPlayer(int choice){
     switch(choice){
         case 1:{
-                std::unique_ptr<Player> p = std::make_unique<Player>(
-                    color(Color::red, "The Ironclad"), 
-                    ICL_STARTING_MAX_HP, 
-                    STARTING_ENERGY, 
-                    Color::red);
-
-                p.get()->deck.addPileToSelf(ICL_STARTER_DECK);
+                std::unique_ptr<Player> p = std::make_unique<Player>(color(Color::red, "The Ironclad"), ICL_STARTING_MAX_HP, STARTING_ENERGY,  Color::red);
+                p->deck.addPileToSelf(ICL_STARTER_DECK);
                 return p;
             }
         case 2:{
@@ -126,7 +123,7 @@ std::unique_ptr<Player> Player::createPlayer(int choice){
                     SLT_STARTING_MAX_HP, 
                     STARTING_ENERGY, 
                     Color::green); 
-                p.get()->deck.addPileToSelf(SLT_STARTER_DECK);
+                p->deck.addPileToSelf(SLT_STARTER_DECK);
                 return p;
             }
             
@@ -134,64 +131,64 @@ std::unique_ptr<Player> Player::createPlayer(int choice){
     }
 }
 
-void Player::addToPile(PileType type, Card& c, bool bottom){
+void Player::addToPile(PileID type, Card& c, bool bottom){
     if(bottom){
         switch(type){
-            case PileType::deck: deck.addCardBot(c); break;
-            case PileType::combat_deck: combat_deck.addCardBot(c); break;
-            case PileType::hand: hand.addCardBot(c); break;
-            case PileType::draw: draw.addCardBot(c); break;
-            case PileType::discard: discard.addCardBot(c); break;
-            case PileType::exhaust: exhaust.addCardBot(c); break;
+            case PileID::deck: deck.addCardBot(c); break;
+            case PileID::combat_deck: combat_deck.addCardBot(c); break;
+            case PileID::hand: hand.addCardBot(c); break;
+            case PileID::draw: draw.addCardBot(c); break;
+            case PileID::discard: discard.addCardBot(c); break;
+            case PileID::exhaust: exhaust.addCardBot(c); break;
         }
     }else{
         switch(type){
-            case PileType::deck: deck.addCardTop(c); break;
-            case PileType::combat_deck: combat_deck.addCardTop(c); break;
-            case PileType::hand: hand.addCardTop(c); break;
-            case PileType::draw: draw.addCardTop(c); break;
-            case PileType::discard: discard.addCardTop(c); break;
-            case PileType::exhaust: exhaust.addCardTop(c); break;
+            case PileID::deck: deck.addCardTop(c); break;
+            case PileID::combat_deck: combat_deck.addCardTop(c); break;
+            case PileID::hand: hand.addCardTop(c); break;
+            case PileID::draw: draw.addCardTop(c); break;
+            case PileID::discard: discard.addCardTop(c); break;
+            case PileID::exhaust: exhaust.addCardTop(c); break;
         }
     }
 }
 
-void Player::removeFromPlayerPile(PileType type, int position){
+void Player::removeFromPlayerPile(PileID type, int position){
     switch(type){
-        case PileType::deck: deck.remove(position); break;
-        case PileType::combat_deck: combat_deck.remove(position); break;
-        case PileType::hand: hand.remove(position);break;
-        case PileType::draw: draw.remove(position);break;
-        case PileType::discard: discard.remove(position);break;
-        case PileType::exhaust: exhaust.remove(position);break;
+        case PileID::deck: deck.remove(position); break;
+        case PileID::combat_deck: combat_deck.remove(position); break;
+        case PileID::hand: hand.remove(position);break;
+        case PileID::draw: draw.remove(position);break;
+        case PileID::discard: discard.remove(position);break;
+        case PileID::exhaust: exhaust.remove(position);break;
     }
 }
 
-void Player::displayPlayerPile(PileType type, bool fixed, int n, bool sorted = false){
+void Player::displayPlayerPile(PileID type, bool fixed, int n, bool sorted = false){
     Pile choice;
     
     switch(type){
-        case PileType::deck: 
+        case PileID::deck: 
         std::cout<<"Deck:\n"; choice = deck;
         break;
 
-        case PileType::combat_deck: 
+        case PileID::combat_deck: 
         std::cout<<"Combat Deck:\n"; choice = combat_deck;
         break;
             
-        case PileType::hand: //Hand is combat only. Hand should be visible by default, so no need to wait for return key.
+        case PileID::hand: //Hand is combat only. Hand should be visible by default, so no need to wait for return key.
         std::cout<<"Hand:\n"; choice = hand;
         break;
         
-        case PileType::draw: 
+        case PileID::draw: 
         std::cout<<"Draw:\n"; choice = draw;
         break;
         
-        case PileType::discard: 
+        case PileID::discard: 
         std::cout<<"Discard:\n"; choice = discard;
         break;
         
-        case PileType::exhaust: 
+        case PileID::exhaust: 
         std::cout<<"Exhaust:\n"; choice = exhaust;
         break;
         
@@ -219,14 +216,14 @@ void Player::displayStatus(){
     std::cout<<'\n';
 }
 
-Card& Player::getCardFromPile(PileType type, int position){
+Card& Player::getCardFromPile(PileID type, int position){
     switch(type){
-        case PileType::deck: return deck.getCard(position);
-        case PileType::combat_deck: return combat_deck.getCard(position);
-        case PileType::hand: return hand.getCard(position);
-        case PileType::draw: return draw.getCard(position);
-        case PileType::discard: return discard.getCard(position);
-        case PileType::exhaust: return exhaust.getCard(position);
+        case PileID::deck: return deck.getCard(position);
+        case PileID::combat_deck: return combat_deck.getCard(position);
+        case PileID::hand: return hand.getCard(position);
+        case PileID::draw: return draw.getCard(position);
+        case PileID::discard: return discard.getCard(position);
+        case PileID::exhaust: return exhaust.getCard(position);
         default : return blank_card;            
     }
 }
@@ -236,16 +233,16 @@ void Player::setPlayed(Card& c){played = c;}
 //Transfer {amount} cards manually chosen from source Pile to target Pile.
 //If cards go into hand, and the amount would take the player over maximum hand size
 //only enough cards to fill hand are transferred, and remaining cards go into discard.
-uint32_t Player::transferCardsManual(PileType source, PileType target, int amount, bool bottom, Game& game){
+uint32_t Player::transferCardsManual(PileID source, PileID target, int amount, bool bottom, Game& game){
     std::deque<int> selected = chooseCards(source, amount, game); 
 
     int slots = MAX_HAND_SIZE-hand.getSize();
     bool will_fill = slots < selected.size();
 
-    if(will_fill && target == PileType::hand){
+    if(will_fill && target == PileID::hand){
         for(int i = 0; i<selected.size();i++){
             if(i<slots){ addToPile(target,getCardFromPile(source,selected[i]),true); }  //if slot available, add to hand
-            else{ addToPile(PileType::discard,getCardFromPile(source,selected[i]),true); } //otherwise, add to discard.
+            else{ addToPile(PileID::discard,getCardFromPile(source,selected[i]),true); } //otherwise, add to discard.
         }
     }    
     else{ 
@@ -261,16 +258,16 @@ uint32_t Player::transferCardsManual(PileType source, PileType target, int amoun
 }
 
 //Transfer the selected cards (choices) from source Pile to target Pile
-uint32_t Player::transferCardsAuto(PileType source, PileType target, std::deque<int> selected, bool bottom){
+uint32_t Player::transferCardsAuto(PileID source, PileID target, std::deque<int> selected, bool bottom){
   
-  if(target == PileType::hand){ //If cards go into hand, order matters
+  if(target == PileID::hand){ //If cards go into hand, order matters
         bool over_hand_size = (hand.getSize()+selected.size())> MAX_HAND_SIZE;
         int slots = MAX_HAND_SIZE-hand.getSize();
 
         if(over_hand_size){
             for(int i = 0; i<selected.size();i++){
                 if(i<slots){ addToPile(target,getCardFromPile(source,selected[i]),true); }  //if slot available, add to hand
-                else{ addToPile(PileType::discard,getCardFromPile(source,selected[i]),true); } //otherwise, add to discard.
+                else{ addToPile(PileID::discard,getCardFromPile(source,selected[i]),true); } //otherwise, add to discard.
             }
         }
     }
@@ -292,7 +289,7 @@ uint32_t Player::transferCardsAuto(PileType source, PileType target, std::deque<
 
 
 //Manually choose n cards from Pile source, it returs the choices sorted in descending order.
-std::deque<int> Player::chooseCards(PileType source, int amount, Game& game){
+std::deque<int> Player::chooseCards(PileID source, int amount, Game& game){
     std::deque<int> selected;
     
     if(amount>=getPlayerPileSize(source)){ //We can't get more cards if source's pile size is smaller, so just default to the whole pile
@@ -303,12 +300,12 @@ std::deque<int> Player::chooseCards(PileType source, int amount, Game& game){
     std::cout<<"Choose "<<amount<<" card"<<((amount>1)? "s > ":" > ");
 
     std::deque<IndexedCard> IndexedCards;
-    if(source == PileType::draw){
+    if(source == PileID::draw){
         std::cout<<"\n";
         IndexedCards = draw.indexed();
         draw.displaySortedBy(0,true);
     }
-    else if(source != PileType::hand){displayPlayerPile(source, false, 0);}
+    else if(source != PileID::hand){displayPlayerPile(source, false, 0);}
     
     while(selected.size()<amount){
 
@@ -320,8 +317,8 @@ std::deque<int> Player::chooseCards(PileType source, int amount, Game& game){
         }
         std::cout<<" }\n";
         
-        if(source == PileType::draw){draw.displaySortedBy(0,true);}
-        else if (source != PileType::hand){displayPlayerPile(source, false, 0);}
+        if(source == PileID::draw){draw.displaySortedBy(0,true);}
+        else if (source != PileID::hand){displayPlayerPile(source, false, 0);}
 
         std::cout<<"Choose "<<amount-selected.size()<<" card"<<((amount-selected.size()>1)? "s > ":" > ");
         
@@ -337,7 +334,7 @@ std::deque<int> Player::chooseCards(PileType source, int amount, Game& game){
     }
     
     //Finally, if we were selecting from draw, remap to correct indices
-    if(source == PileType::draw){
+    if(source == PileID::draw){
         for(int i = 0; i<selected.size();i++){
             selected[i] = IndexedCards[selected[i]].index;
         }
@@ -346,26 +343,26 @@ std::deque<int> Player::chooseCards(PileType source, int amount, Game& game){
     return selected;
 }
 
-std::deque<int> Player::findIndexes(PileType p, CardType c, bool matching){
+std::deque<int> Player::findIndexes(PileID p, CardType c, bool matching){
     if(matching){
         switch(p){
-            case PileType::deck: return deck.findMatchingIndexes(c);
-            case PileType::combat_deck: return combat_deck.findMatchingIndexes(c);
-            case PileType::hand: return hand.findMatchingIndexes(c);
-            case PileType::draw: return draw.findMatchingIndexes(c);
-            case PileType::discard: return discard.findMatchingIndexes(c);
-            case PileType::exhaust: return exhaust.findMatchingIndexes(c);
+            case PileID::deck: return deck.findMatchingIndexes(c);
+            case PileID::combat_deck: return combat_deck.findMatchingIndexes(c);
+            case PileID::hand: return hand.findMatchingIndexes(c);
+            case PileID::draw: return draw.findMatchingIndexes(c);
+            case PileID::discard: return discard.findMatchingIndexes(c);
+            case PileID::exhaust: return exhaust.findMatchingIndexes(c);
             default: return {};
         }
     }
     else{
         switch(p){
-            case PileType::deck: return deck.findNonMatchingIndexes(c);
-            case PileType::combat_deck: return combat_deck.findNonMatchingIndexes(c);
-            case PileType::hand: return hand.findNonMatchingIndexes(c);
-            case PileType::draw: return draw.findNonMatchingIndexes(c);
-            case PileType::discard: return discard.findNonMatchingIndexes(c);
-            case PileType::exhaust: return exhaust.findNonMatchingIndexes(c);
+            case PileID::deck: return deck.findNonMatchingIndexes(c);
+            case PileID::combat_deck: return combat_deck.findNonMatchingIndexes(c);
+            case PileID::hand: return hand.findNonMatchingIndexes(c);
+            case PileID::draw: return draw.findNonMatchingIndexes(c);
+            case PileID::discard: return discard.findNonMatchingIndexes(c);
+            case PileID::exhaust: return exhaust.findNonMatchingIndexes(c);
             default: return {};
         }
     }

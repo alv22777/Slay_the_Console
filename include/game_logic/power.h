@@ -51,13 +51,13 @@ class Power{
 
 
     //Hooks
-    virtual void onPlayerTurnStart();
-    virtual void onPlayerTurnEnd();
-    virtual void onEnemyTurnStart();
-    virtual void onEnemyTurnEnd();
-    virtual uint32_t modOutDamage(uint32_t base);
-    virtual uint32_t modIncDamage(uint32_t base);
-
+    virtual void onTurnStart();
+    virtual void onTurnEnd();
+    virtual int32_t modOutDamageAdd(int32_t base);
+    virtual int32_t modOutDamageMult(int32_t base);
+    virtual int32_t modIncDamage(int32_t base);
+    virtual int32_t modBlockGain(int32_t base);
+    
     protected:
     PID ID;
     int32_t magnitude; //Can be negative
@@ -67,19 +67,32 @@ class Power{
 
 class Weak: public Power{    
     public:
-    uint32_t modOutDamage(uint32_t base) override;
-    Weak(uint32_t i, Character* own);
+    int32_t modOutDamageMult(int32_t base) override;
+    Weak(int32_t i, Character* own);
+};
+
+class Strength: public Power{
+    public:
+    int32_t modOutDamageAdd(int32_t base) override;
+    Strength(int32_t i, Character* own);
 };
 
 class Vulnerable: public Power{
     public:
-    uint32_t modIncDamage(uint32_t base) override;
-    Vulnerable(uint32_t i, Character* own);
+    int32_t modIncDamage(int32_t base) override;
+    Vulnerable(int32_t i, Character* own);
 };
 
 class Ritual: public Power{
     public:
-    Ritual(uint32_t i, Character* own);
+    Ritual(int32_t i, Character* own);
+    void onTurnEnd() override;
+};
+
+class Frail: public Power{
+    public:
+    Frail(int32_t i, Character* own);
+    int32_t modBlockGain(int32_t base);
 };
 
 

@@ -16,7 +16,6 @@ Card::Card(CID i, Color c, std::string n, CardType t, int cost, CardRarity r, st
 //Display this card
 void Card::display(){
     std::string cost = color(Color::keyword, to_energy(energy_cost));
-    
     std::string card_type;
     switch(type){
         case CardType::attack: card_type = color(character, u8" ▲ "); break;
@@ -26,13 +25,11 @@ void Card::display(){
         case CardType::curse: card_type = color(Color::curse,u8"  ⛦ "); break;
         default: card_type="none"; break; 
     }
-
     std::cout<<cost<<card_type<<color(rarityColor(), name)<<": "<<card_text;
     if(exhaust){std::cout<<color(Color::exhaust," Exhaust.");}
 }
 
 int Card::getEnergyCost(){return energy_cost;}
-
 CID Card::getID(){return id;}
 std::string Card::getName(){return name;}
 
@@ -75,14 +72,14 @@ std::string Card::getCardRarity(){
 void Card::applyEffects(Player& source, Game& game, int pos){
 
     if(effects[0].isSingleTarget()||game.hasValidTargets(effects[0].getTarget(),  source)){
-        source.removeFromPlayerPile(PileType::hand, pos); //Card is now "hovering" (not on any player pile).
+        source.removeFromPlayerPile(PileID::hand, pos); //Card is now "hovering" (not on any player pile).
         source.changeAttribute(Attribute::energy,-source.getPlayed().getEnergyCost()); //Pay energy cost.
     }
     
     game.resolveEffects(source,effects);
 
-    if(exhaust){source.addToPile(PileType::exhaust, source.getPlayed(), false);}
-    else{source.addToPile(PileType::discard, source.getPlayed(), false);}
+    if(exhaust){source.addToPile(PileID::exhaust, source.getPlayed(), false);}
+    else{source.addToPile(PileID::discard, source.getPlayed(), false);}
 
 }
 
@@ -91,10 +88,10 @@ void Card::applyEffects(Player& source, Game& game, int pos){
 bool Card::canPlay(Player& source, Game& game){
     bool able = true;
     if(name == "Clash"){ 
-        able = source.findIndexes(PileType::hand, CardType::attack, false).size() == 0;
+        able = source.findIndexes(PileID::hand, CardType::attack, false).size() == 0;
     }
     else if (name == "Grand Finale"){
-        able = source.getPlayerPileSize(PileType::draw) == 0;
+        able = source.getPlayerPileSize(PileID::draw) == 0;
     }
     return able;
 }

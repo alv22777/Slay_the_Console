@@ -29,8 +29,7 @@ int inputInt(int min, int max, bool mandatory){
 }
 
 char inputChar(){
-    char choice = _getch();
-    return tolower(choice);
+    return tolower(_getch());
 }
 
 int characterSelect(){

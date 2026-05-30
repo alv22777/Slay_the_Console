@@ -7,15 +7,10 @@
 Power::Power(PID id, int32_t i, bool in, bool d, Character* own):
     ID(id), magnitude(i), stacks_intensity(in), stacks_duration(d), owner(std::move(own)){}
 
-void Power::onPlayerTurnStart(){
-    changeMagnitude(-1);
-}
-void Power::onPlayerTurnEnd(){}
-
-void Power::onEnemyTurnStart(){
+void Power::onTurnStart(){
     if(stacks_duration){changeMagnitude(-1);}     
 }
-void Power::onEnemyTurnEnd(){}
+void Power::onTurnEnd(){}
 
 
 void Power::changeMagnitude(int32_t delta){
@@ -32,10 +27,12 @@ bool Power::isExpired(){
     else{return magnitude == 0;}
 }
 
-uint32_t Power::modOutDamage(uint32_t base){return base;}
-uint32_t Power::modIncDamage(uint32_t base){return base;}
-
+int32_t Power::modOutDamageAdd(int32_t base){return base;}
+int32_t Power::modOutDamageMult(int32_t base){return base;}
+int32_t Power::modIncDamage(int32_t base){return base;}
+int32_t Power::modBlockGain(int32_t base){return base;}
 int32_t Power::getMagnitude()const{return magnitude;}
+
 PID Power::getID()const{return ID;}
 Character* Power::getOwner(){return owner;}
 
@@ -106,25 +103,41 @@ void Power::display(){
 }
 
 
-Weak::Weak(uint32_t i, Character* own): Power(PID::weak, i, false, true, std::move(own)){}
-uint32_t Weak::modOutDamage(uint32_t base){
+Weak::Weak(int32_t i, Character* own): Power(PID::weak, i, false, true, std::move(own)){}
+int32_t Weak::modOutDamageMult(int32_t base){
     return base * (100 - WEAK_PCENT)/100;
 }
 
-Vulnerable::Vulnerable(uint32_t i, Character* own):Power(PID::vulnerable, i, false, true, std::move(own)){}
-uint32_t Vulnerable::modIncDamage(uint32_t base){
+Strength::Strength(int32_t i, Character* own): Power(PID::strength, i , true, false, std::move(own)){ }
+int32_t Strength::modOutDamageAdd(int32_t base){
+    return base +  magnitude;
+}
+
+
+Vulnerable::Vulnerable(int32_t i, Character* own):Power(PID::vulnerable, i, false, true, std::move(own)){}
+int32_t Vulnerable::modIncDamage(int32_t base){
     return base * (100 + VULNERABLE_PCENT)/100;
 }
 
-Ritual::Ritual(uint32_t i, Character* own): Power(PID::ritual, i, true, false, std::move(own)){}
+Ritual::Ritual(int32_t i, Character* own): Power(PID::ritual, i, true, false, std::move(own)){}
+void Ritual::onTurnEnd(){
+    owner->addPower(createPower(PID::strength, magnitude, owner));
+}
+
+Frail::Frail(int32_t i, Character* own): Power(PID::frail, i, false, true, std::move(own)) {}
+int32_t Frail::modBlockGain(int32_t base){
+    return base * (100 - FRAIL_PCENT)/100; 
+}
 
 std::unique_ptr<Power> Power::createPower(PID id, int32_t magnitude, Character* owner){
     switch(id){
         case PID::weak: return std::make_unique<Weak>(magnitude, owner);
         case PID::vulnerable: return std::make_unique<Vulnerable>(magnitude,owner);
         case PID::ritual: return std::make_unique<Ritual>(magnitude, owner);
-        
+        case PID::frail: return std::make_unique<Frail>(magnitude,owner);
+        case PID::strength: return std::make_unique<Strength>(magnitude, owner);
         default:
             throw std::runtime_error("Invalid PID");
     }
 }
+

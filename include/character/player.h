@@ -1,13 +1,17 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 #include"character/character.h"
-#include"card/pile.h"
-#include"card/card.h"
-#include"ui/colors.h"
 #include <memory>
+#include "card/pile.h"
+#include "card/card.h"
+#include "item/potion.h"
+
+
+enum class Color;
 
 //The player can have 6 Piles, 
-enum class PileType{deck, combat_deck, hand, draw, discard, exhaust};
+enum class PileID{deck, combat_deck, hand, draw, discard, exhaust};
+
 class Player: public Character{
     int max_energy;
     int energy;
@@ -22,6 +26,9 @@ class Player: public Character{
 
 	Card played; //player's last played card.
     
+    uint8_t potion_slots;
+	std::vector<Potion> potions;
+    
     bool drawCard(Game& game);
     public:
     Player(std::string name, int maxHP, int maxEnergy, Color c);
@@ -34,15 +41,15 @@ class Player: public Character{
     int getAttribute(Attribute a);
 
     //Add Card c to player Pile type (deck, hand, discard...). 
-    void addToPile(PileType type, Card &c, bool bottom);
+    void addToPile(PileID type, Card &c, bool bottom);
 
-    int getPlayerPileSize(PileType type);
+    int getPlayerPileSize(PileID type);
 	//Removes Card with position pos from the player's Pile type (deck, hand, discard...).
-	void removeFromPlayerPile(PileType type, int pos);
+	void removeFromPlayerPile(PileID type, int pos);
 
 
 	//Display player Pile type (deck, hand, discard...).
-	void displayPlayerPile(PileType type, bool fixed, int n, bool indexed);
+	void displayPlayerPile(PileID type, bool fixed, int n, bool indexed);
     
 
 	//Draw x cards from player's draw pile into hand. If draw is empty, shuffle discard into draw and continue drawing. If both draw and discard are empty, stop drawing.
@@ -53,7 +60,7 @@ class Player: public Character{
 	//Display a simple status bar for the current state of the player.
 	void displayStatus();
 
-    Card &getCardFromPile(PileType type, int position);
+    Card &getCardFromPile(PileID type, int position);
 
     void setPlayed(Card &c);
 
@@ -67,12 +74,12 @@ class Player: public Character{
 
 
 
-    uint32_t transferCardsManual(PileType source, PileType target, int amount, bool bottom, Game& game);
+    uint32_t transferCardsManual(PileID source, PileID target, int amount, bool bottom, Game& game);
 
-    uint32_t transferCardsAuto(PileType source, PileType target, std::deque<int> selected, bool bottom);
+    uint32_t transferCardsAuto(PileID source, PileID target, std::deque<int> selected, bool bottom);
 
-    std::deque<int> chooseCards(PileType source, int amount, Game& game);
-    std::deque<int> findIndexes(PileType p, CardType c, bool matching); 
+    std::deque<int> chooseCards(PileID source, int amount, Game& game);
+    std::deque<int> findIndexes(PileID p, CardType c, bool matching); 
     
     Player(const Player&) = delete;
     Player& operator=(const Player&) = delete;

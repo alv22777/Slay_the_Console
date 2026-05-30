@@ -4,9 +4,9 @@
 
 #include<iostream>
 #include "stdint.h"
+#include "game_logic/power.h"
 #include <memory>
 #include <vector>
-#include "game_logic/power.h"
 
 enum class Color;
 enum class Attribute{hp, max_hp, block, energy, max_energy};
@@ -21,8 +21,8 @@ class Character{
 	int max_HP; 
 	int HP; 
 	int block;
+	
 	std::vector<std::unique_ptr<Power>> powers;
-
 	
 	public:
 	Character(std::string N, int MHP, Color c);
@@ -41,14 +41,20 @@ class Character{
 	bool isAlive();	
 	int32_t takeDamage(int magnitude);
 	int32_t gainBlock(int magnitude);
+	void hpChange(int magnitude);
 
 	void addPower(std::unique_ptr<Power> p);
 	void removePower(int pos);
 	void removeAllPowers();
 	void removeInvalidPowers();
-	void hpChange(int magnitude);
+
+	
 	void displayStatus();
 	void displayPowers();
+
+	int32_t modOutDamage(int32_t base);
+	int32_t modIncDamage(int32_t base);
+	int32_t modBlockGain(int32_t base);
 
 	Character(const Character&) = delete;
 	Character& operator=(const Character&) = delete;

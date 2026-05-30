@@ -39,7 +39,8 @@ void Character::setAttribute(Attribute att, int value){
 void Character::displayStatus(){
     //STATUS BAR
     std::cout<<color(col, padRight(getName(),15))<<
-    color(Color::hp, " ♥ "+std::to_string(HP)+'/'+std::to_string(max_HP))<<
+    color(Color::hp, " ♥");
+    std::cout<<color(Color::hp, center(std::to_string(HP)+'/'+std::to_string(max_HP),9));
     color(Color::block, " 🛡️ "+std::to_string(block)+" ");
 }
 
@@ -146,3 +147,12 @@ void Character::removeInvalidPowers(){
     }), powers.end());
 }
 
+int32_t Character::modOutDamage(int32_t base){ 
+    for(auto& p: powers){ base = p->modOutDamageAdd(base); } 
+    for(auto& p: powers){ base = p->modOutDamageMult(base); } 
+    return base;
+}   
+
+int32_t Character::modIncDamage(int32_t base){ for(auto& p: powers){ base = p->modIncDamage(base); } return base;}
+
+int32_t Character::modBlockGain(int32_t base){ for(auto& p: powers){ base = p->modBlockGain(base); } return base;}

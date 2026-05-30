@@ -22,12 +22,13 @@ class Game{
 	//RUN FLOW
 
     void run();
-	void gameOver();
+	bool gameOver();
 	
 	//COMBAT FLOW
 
-	void fight(int& floor);	
-
+	void fight();	
+		void initEnemies();
+		void startOfCombat();
 		void startPlayerTurn();
 		void endPlayerTurn();
 	

@@ -12,11 +12,13 @@ const int DEF_STARTING_MAX_HP = 75;
 const int WAT_STARTING_MAX_HP = 72;
 const int STARTING_ENERGY = 3;
 const int STARTING_BLOCK = 0;
+const int STARTING_POTION_SLOTS = 3;
 const int MAX_BLOCK = 999;
 const int EVENT_LOG_SIZE = 8;
 const int MAX_HAND_SIZE = 10;
-extern const int VULNERABLE_PCENT = 50;
-extern const int WEAK_PCENT = 25;
+const int VULNERABLE_PCENT = 50;
+const int WEAK_PCENT = 25;
+const int FRAIL_PCENT = 25;
 const uint64_t SEED_MIN = 0;
 const uint64_t SEED_MAX = UINT64_MAX;
 
@@ -111,6 +113,12 @@ Card SLT_Acrobatics ={CID::Acrobatics, Color::green, "Acrobatics", CardType::ski
         Effect(EffectType::draw,3,TargetType::self),
         Effect(EffectType::discard, 1, TargetType::self)
     }, false};
+
+Card SLT_Grand_Finale ={CID::Grand_Finale, Color::green, "Grand Finale", CardType::attack, 0, CardRarity::rare, "Deal 50 damage to all enemies. Play: your draw pile is empty.",
+    {
+        Effect(EffectType::damage,50,TargetType::enemy_all)
+    }, false};
+
 ////////////////////DEFECT CARD REWARDS//////////////////
 Card DEF_Skim = {CID::Skim, Color::blue, "Skim", CardType::skill, 1, CardRarity::uncommon, "Draw 3 cards.",
     {
@@ -170,6 +178,7 @@ Pile createIroncladStarterDeck(){
     deck.addCardTop(ICL_Twin_Strike);
     deck.addCardTop(ICL_Bash);
     deck.addCardTop(SLT_Neutralize);
+
     return deck;
 }
 
