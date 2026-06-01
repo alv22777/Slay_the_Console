@@ -15,7 +15,8 @@ class Enemy: public Character{
     public:
     Enemy(std::string n, int mHP, Color c, std::deque<Intent> p_i);
     void act(Game& game);
-    void displayStatus();
+    void displayStatus(Game& game);
+    void displayIntent(Game& game);
     void chooseIntent(Game& game);
 
     Enemy(const Enemy&) = delete;

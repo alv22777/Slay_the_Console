@@ -4,16 +4,15 @@
 #include "ui/colors.h"
 #include "game_logic/effect.h"
 #include "game_logic/game.h"
-#include "ui/formatting.h"
 
 #include <iostream>
-#include <iomanip>
+
 Enemy::Enemy(std::string n, int mHP, Color c, std::deque<Intent> p_i): 
     Character(n,mHP,c), possible_intents(p_i), next_intent(p_i[0]){}
 
-void Enemy::displayStatus(){
+void Enemy::displayStatus(Game& game){
     Character::displayStatus();
-    next_intent.display();
+    displayIntent(game);
     std::cout<<'\n'<<"   ";
     Character::displayPowers();
     std::cout<<'\n';
@@ -25,6 +24,43 @@ void Enemy::act(Game& game){
     if(actions.empty()){return;}
     game.resolveEffects(*this, actions);
 
+}
+
+void Enemy::displayIntent(Game& game){
+    
+    
+    std::vector<Effect> &actions = next_intent.getActions(); 
+    
+    int n = 0;
+    for(Effect e:actions){ if(e.getType()==EID::damage){n++;} } //get number of hits
+    
+    bool displayedAttack = false;
+    for(Effect e: actions){
+
+        switch(e.getType()){
+
+            case EID::block: std::cout<<"("<<color(Color::block," 🛡️ ")<<")"; break;
+            
+            case EID::damage:{
+                
+                int32_t damage = game.calculateIntentDamage(e.getMagnitude(), this);
+                if(!displayedAttack){
+                    std::cout<<"("<<color(Color::attack,  "🗡️ "+std::to_string(damage) );
+
+                    if(n>1){ std::cout<<color(Color::attack, "x"+std::to_string(n)); }
+
+                    std::cout<<")";
+
+                    displayedAttack = true;
+                }
+
+                break;
+            }
+
+            case EID::gain: std::cout<<"( "<<color(Color::buff, "🠉")<<" )"; break;
+            default: std::cout<<"( "<<color(Color::unknown, "???")<<" )"; break;
+        }
+    }
 }
 
 void Enemy::chooseIntent(Game& game){

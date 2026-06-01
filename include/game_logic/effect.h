@@ -16,14 +16,14 @@ headbutt: n cards go from discard to draw top.
 forethought: n cards go from hand to draw bot.
 expertise: target player draws cards until hand size is n.
 */
-enum class EffectType{
+enum class EID{
     damage, block, energy, hp, 
-    draw, discard, exhaust, exhume, hologram, seek, headbutt, forethought, expertise,
+    draw, discard, exhaust, exhume, hologram, seek, headbutt, forethought, setup, expertise,
     gain, addCard,
     none
 };
 
-enum class TargetType{player, enemy, enemy_all, random_enemy, self, none};
+enum class TID{player, enemy, enemy_all, random_enemy, self, none};
 
 struct EffectReport{
     int32_t damage_dealt=0;
@@ -44,20 +44,20 @@ struct EffectReport{
 };
 
 class Effect{
-    EffectType type;
-    TargetType target_type;
+    EID type;
+    TID target_type;
     int magnitude;
     std::optional<PID> power;
     std::optional<CID> card;
 
     public:
-    Effect(EffectType t, int m, TargetType tar); //Normal effect
-    Effect(EffectType t, int m, TargetType tar, PID p);//Gain Power effect
-    Effect(EffectType t, int m, TargetType tar, CID c);//add card effect
+    Effect(EID t, int m, TID tar); //Normal effect
+    Effect(EID t, int m, TID tar, PID p);//Gain Power effect
+    Effect(EID t, int m, TID tar, CID c);//add card effect
 
     EffectReport apply(std::deque<Character*> target, Character* source, Game& game); //Applies this effect to the target character. 
-    EffectType getType();
-    TargetType getTarget();
+    EID getType();
+    TID getTarget();
     bool isSingleTarget();
     int getMagnitude();
     std::string log(std::deque<Character*> target, Character* source, EffectReport report);

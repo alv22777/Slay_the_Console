@@ -7,10 +7,8 @@
 Power::Power(PID id, int32_t i, bool in, bool d, Character* own):
     ID(id), magnitude(i), stacks_intensity(in), stacks_duration(d), owner(std::move(own)){}
 
-void Power::onTurnStart(){
-    if(stacks_duration){changeMagnitude(-1);}     
-}
-void Power::onTurnEnd(){}
+void Power::onTurnStart(){}
+void Power::onTurnEnd(){if(stacks_duration){changeMagnitude(-1);}}
 
 
 void Power::changeMagnitude(int32_t delta){

@@ -1,7 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
-class Player; class Enemy; class Character; enum class TargetType;
+class Player; class Enemy; class Character; enum class TID;
 
 #include<deque>
 #include"game_logic/rng.h"
@@ -46,13 +46,14 @@ class Game{
 		
 	//TARGET ENFORCEMENT / EFFECT RESOLUTION
 
-	std::deque<Character*> selectTargets(TargetType target, Character* source);
-    bool hasValidTargets(TargetType t, Character& source);
+	std::deque<Character*> selectTargets(TID target, Character* source);
+    bool hasValidTargets(TID t, Character& source);
     void resolveEffects(Character& source, std::vector<Effect>& effects);
 
 	//UI
 
 	void displayGameState();
+	int32_t calculateIntentDamage(int32_t base, Enemy* source);
     void pushLog(std::string s, uint8_t level);
 
 	//CLEANUP

@@ -4,6 +4,7 @@
 #include"game_logic/effect.h"
 #include"character/player.h"
 #include"character/enemy.h"
+#include"character/intent.h"
 #include"data/constants.h"
 #include"card/card.h"
 #include"ui/input.h"
@@ -33,9 +34,8 @@ bool Game::gameOver(){
 	std::cout<<"You lost! go again?(y/n)\n";
 	
 	char replay;
-	do{
-		replay = inputChar();
-	}while(!(replay== 'y' || replay == 'n'));
+	do{replay = inputChar();}
+	while(!(replay== 'y' || replay == 'n'));
 	
 	if(replay=='y'){
 		rng.setSeed(rng.nextInt(SEED_MIN,SEED_MAX));
@@ -53,9 +53,7 @@ void Game::fight(){
 	startOfCombat();
 	char choice;
 	turn = 1;
-	
-	initEnemies();
-	//while player hasn't chosen to end turn, or the combat hasn't ended
+
 	while(!isCombatOver()){
 		choice = ' ';
 
@@ -91,7 +89,7 @@ void Game::fight(){
 		}
 
 		//If combat's over, end the combat, otherwise end the turn.
-		if(isCombatOver()){ if(player){endOfCombat();} }
+		if(isCombatOver()){ break; }
 		else{
 			endPlayerTurn();
 			enemyTurn(); 
@@ -100,35 +98,34 @@ void Game::fight(){
 		}
 
 	}
-	endOfCombat();
+	if(player){endOfCombat();}
 }
 
 void Game::initEnemies(){
-
-	//Placeholder enemies, will be replaced with actual enemies in the future.
 	enemies.push_back(std::make_unique<Enemy>(
 		"Green Louse",9,Color::green,
 		std::deque<Intent>{
-			Intent({ Effect(EffectType::damage,3,TargetType::player), Effect(EffectType::damage,3,TargetType::player) }), 
-			Intent({ Effect(EffectType::damage,2,TargetType::player) })
+			Intent({ Effect(EID::damage,3,TID::player), Effect(EID::damage,3,TID::player) }), 
+			Intent({ Effect(EID::damage,2,TID::player) })
 		}
 	));
 	enemies.push_back(std::make_unique<Enemy>(
 		"Red Louse", 9, Color::red, 
 		std::deque<Intent>{
-			Intent({ Effect(EffectType::damage, 2, TargetType::player)})
+			Intent({ Effect(EID::damage, 2, TID::player)})
 		}
 	));
 	enemies.push_back(std::make_unique<Enemy>(
 		"Cultist", 30 ,Color::blue,
 		std::deque<Intent>{
-			Intent({ Effect(EffectType::gain,   1, TargetType::self, PID::ritual)}),
-			Intent({ Effect(EffectType::damage, 2, TargetType::player)})
+			Intent({ Effect(EID::gain,   1, TID::self, PID::ritual)}),
+			Intent({ Effect(EID::damage, 2, TID::player)})
 		}
 	));
 }
 void Game::startOfCombat(){
 	player->StartCombat(*this);
+	initEnemies();
 	pushLog("---------- Start of combat ---------", 0);
 }
 void Game::startPlayerTurn(){
@@ -151,12 +148,10 @@ void Game::startPlayerTurn(){
 void Game::endPlayerTurn(){
 	pushLog("----------- End of turn ------------",0);
 
-
-	for(auto& pw: player->getPowers()){
-		pw->onTurnEnd();
-	}
+	for(auto& pw: player->getPowers()){ pw->onTurnEnd(); }
 	player->removeInvalidPowers();
 	player->discardHand();
+
 }
 
 void Game::enemyTurn(){
@@ -215,7 +210,7 @@ bool Game::isCombatOver(){
 
 //TARGET ENFORCING / EFFECT RESOLUTION
 
-std::deque<Character*> Game::selectTargets(TargetType target, Character* source){
+std::deque<Character*> Game::selectTargets(TID target, Character* source){
 	
 	int choice = 0;
     std::deque<Character*> targets;
@@ -223,12 +218,12 @@ std::deque<Character*> Game::selectTargets(TargetType target, Character* source)
 
 	switch(target){
 		
-		case TargetType::player:
+		case TID::player:
 			if(player){targets.push_back(player.get());}
 			else{std::cout<<"No player to target!\n";}		
 		break;
 
-		case TargetType::enemy:
+		case TID::enemy:
 		
 		if(enemies.size()==1){targets.push_back(enemies[0].get());}
 		else if (enemies.size()==0){std::cout<<"No enemies to target!\n"; targets.clear(); break;}
@@ -239,17 +234,17 @@ std::deque<Character*> Game::selectTargets(TargetType target, Character* source)
 		}
 		break;
 		
-		case TargetType::enemy_all:	
+		case TID::enemy_all:	
 		if(!enemies.empty()){for(auto &e :enemies){targets.push_back(e.get());} }
 		else{std::cout<<"No enemies to target!\n";}
 		break;
 		
-		case TargetType::random_enemy:
+		case TID::random_enemy:
 		if(!enemies.empty()){targets.push_back(enemies[rng.nextInt(0,enemies.size()-1)].get());}
 		else{std::cout<<"No enemies to target!\n";}
 		break;
 		
-		case TargetType::self: targets.push_back(source); break;
+		case TID::self: targets.push_back(source); break;
 		
 		default: std::cout<<"Invalid target type!\n"; break;
 	}
@@ -258,17 +253,27 @@ std::deque<Character*> Game::selectTargets(TargetType target, Character* source)
 	
 }
 
-bool Game::hasValidTargets(TargetType t, Character& source){
+bool Game::hasValidTargets(TID t, Character& source){
 	switch(t){
-		case TargetType::player:
+		case TID::player:
 			return (player != nullptr);
-		case TargetType::enemy:
-		case TargetType::random_enemy:
+		case TID::enemy:
+		case TID::random_enemy:
 			return enemies.empty();
-		case TargetType::self:
+		case TID::self:
 			return source.isAlive();
 		default: return true;
 	}
+}
+
+int32_t Game::calculateIntentDamage(int32_t base, Enemy* source){
+	int32_t damage = base;
+
+	damage = player->modIncDamage(damage);
+	damage = source->modOutDamage(damage);
+	
+	return damage;
+
 }
 
 void Game::resolveEffects(Character& source, std::vector<Effect>& effects){
@@ -278,18 +283,16 @@ void Game::resolveEffects(Character& source, std::vector<Effect>& effects){
 	std::vector<EffectReport> results;
 
     //Initial conditions
-    TargetType prev = effects[0].getTarget();
+    TID prev = effects[0].getTarget();
     bool is_single_target = effects[0].isSingleTarget();
-    if(is_single_target){ 
-		targets = selectTargets(prev, &source);
-	}
+    if(is_single_target){ targets = selectTargets(prev, &source); }
     bool target_died = false;
 	
-	displayGameState( );
+	displayGameState();
 
 	for(size_t i = 0; i<effects.size();i++){
 		//Target validation and selection
-		TargetType current = effects[i].getTarget();
+		TID current = effects[i].getTarget();
 		is_single_target = effects[i].isSingleTarget();
 		// Retarget if needed
 		if(prev != current || !is_single_target){ targets = selectTargets(current, &source); }
@@ -322,7 +325,8 @@ void Game::displayGameState(){
 	//Show game and player status.
 	player->displayStatus();
 	std::cout<<"Enemies:\n";
-	for(size_t i = 0; i<enemies.size();i++){std::cout<<i<<") "; enemies[i]->displayStatus();}
+	for(size_t i = 0; i<enemies.size();i++){std::cout<<i<<") "; enemies[i]->displayStatus(*this);}
+	
 	std::cout<<"----------------------------------------\n";
 
 	player->displayPlayerPile(PileID::hand, true, 10, false);	

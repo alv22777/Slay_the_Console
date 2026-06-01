@@ -40,7 +40,10 @@ void Character::displayStatus(){
     //STATUS BAR
     std::cout<<color(col, padRight(getName(),15))<<
     color(Color::hp, " ♥");
-    std::cout<<color(Color::hp, center(std::to_string(HP)+'/'+std::to_string(max_HP),9));
+    std::cout<<color(Color::hp, 
+        padLeft(std::to_string(HP),3) +"/"+
+        padRight(std::to_string(max_HP),3));
+
     color(Color::block, " 🛡️ "+std::to_string(block)+" ");
 }
 
@@ -123,11 +126,9 @@ void Character::hpChange(int magnitude){
 }
 
 void Character::addPower(std::unique_ptr<Power> p){
-
     auto it = std::find_if(powers.begin(), powers.end(), [&](const std::unique_ptr<Power>& a){
         return a->getID() == p->getID();
     }); 
-
     if(it != powers.end()){ //Power already in list
         (*it)->changeMagnitude(p->getMagnitude());
     }

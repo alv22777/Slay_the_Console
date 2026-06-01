@@ -15,7 +15,7 @@ enum class PID{
     weak, wrath, phantasmal, pen_nib, 
 
     //Modify incoming damage
-    vulnerable, lock_on, surrounded, 
+    vulnerable, lock_on, surrounded, buffer, intangible,
 
     //Modify block (from self)
     frail, barricade, blur, dexterity,
@@ -28,6 +28,13 @@ enum class PID{
 
     //Card draw mod
     draw_next, machine_learning, 
+
+    //Character specific powers
+    //The Ironclad
+    //The Silent
+    poison,
+    //The Defect
+    focus,
 };
 
 class Power{

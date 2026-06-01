@@ -21,10 +21,10 @@ enum class CID{
     Wild_Strike, 
     
     //Uncommon//
-    Battle_Trance, Blood_For_Blood, Bloodletting, Burning_Pact, Carnage, Combusat, Dark_Embrace, Disarm, Dropkick,
+    Battle_Trance, Blood_For_Blood, Bloodletting, Burning_Pact, Carnage, Combust, Dark_Embrace, Disarm, Dropkick,
     Dual_Wield, Entrench, Evolve, Feel_No_Pain, Fire_Breathing, Flame_Barrier, Ghostly_Armor, Hemokinesis, Infernal_Blade,
     Inflame, Intimidate, Metallicize, Power_Through, Pummel, Rage, Rampage, Reckless_Charge, Rupture, Searing_Blow, 
-    Second_Wind, Seeing_Red, Sentinel, Sever_Soul, Shockwave, Spot_Weakness, Upeercut, Whirlwind,
+    Second_Wind, Seeing_Red, Sentinel, Sever_Soul, Shockwave, Spot_Weakness, Uppercut, Whirlwind,
     
     //Rare//
     Barricade, Berserk, Bludgeon, Brutality, Corruption, Demon_Form, Double_Tap, Exhume, Feed, Fiend_Fire, Immolate, 
@@ -39,7 +39,7 @@ enum class CID{
     
     //Uncommon//
     Accuracy, All_Out_Attack, Backstab, Blur, Bouncing_Flask, Calculated_Gamble, Caltrops, Catalyst, Choke, Concentrate,
-    Crippling_Cloud, Dash, Distraction, Endless_Agony, Escape_Plan, Eviscerate, Expertise, Finisher, Flechettes, Foorwork,
+    Crippling_Cloud, Dash, Distraction, Endless_Agony, Escape_Plan, Eviscerate, Expertise, Finisher, Flechettes, Footwork,
     Heel_Hook, Infinite_Blades, Leg_Sweep, Masterful_Stab, Noxious_Fumes, Predator, Reflex, Riddle_with_Holes, Setup, Skewer, 
     Tactician, Terror, Well_Laid_PLans,
     
@@ -51,7 +51,7 @@ enum class CID{
     // DEFECT //
     DEF_Strike, DEF_Defend, Zap, Dualcast, 
     //Common
-    Ball_Lightning, Barrage, Beam_Cell, Charge_Battery, Clwa, Cold_Snap, Compile_Driver, Coolheaded, Go_for_the_Eyes, Hologram,
+    Ball_Lightning, Barrage, Beam_Cell, Charge_Battery, Claw, Cold_Snap, Compile_Driver, Coolheaded, Go_for_the_Eyes, Hologram,
     Leap,Rebound, Recursion, Stack, Steam_Barrier, Streamline, Sweeping_Beam, Turbo, 
     
     //Uncommon//
@@ -126,5 +126,6 @@ public:
     bool canPlay(Player& source, Game& game);
 };
 
+Card createCard(CID id);
 
 #endif

@@ -18,11 +18,12 @@ int main() {
 		std::unique_ptr<Player> player = Player::createPlayer(choice);
 	
 		Game run(player, enemies, seed, EVENT_LOG_SIZE);
+		
 		bool replay = 1;
 		while(replay){
 			run.run(); // This is funny.
 			replay = run.gameOver();
 		}
-		
+
 		return 0;
 }
