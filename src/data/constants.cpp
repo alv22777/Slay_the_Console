@@ -56,7 +56,7 @@ Card Havoc = blank_card;
 Card Headbutt={CID::Headbutt, Color::red, "Headbutt",CardType::attack, 1, CardRarity::common, "Deal 9 damage. Put 1 card from your discard pile on top of your draw pile.",
     {
         Effect(EID::damage, 9, TID::enemy),
-        Effect(EID::headbutt, 1, TID::self)
+        Effect(EID::cards_top, 1, PileID::discard, PileID::draw)
     }, false}; 
 Card Heavy_Blade = blank_card; 
 Card Iron_Wave={CID::Iron_Wave, Color::red, "Iron Wave", CardType::attack, 1, CardRarity::common, "Gain 5 block. Deal 5 damage",{
@@ -92,7 +92,7 @@ Card Twin_Strike = {CID::Twin_Strike, Color::red,"Twin Strike", CardType::attack
 }, false};
 Card Warcry={CID::Warcry, Color::red, "Warcry", CardType::skill, 0, CardRarity::common, "Draw 1 card. Put 1 card from your hand on top of your draw pile.",{
     Effect(EID::draw, 1, TID::self),
-    Effect(EID::setup, 1, TID::self)
+    Effect(EID::cards_top, 1, PileID::hand, PileID::draw)
 }, false}; 
 Card Wild_Strike = blank_card; 
 
@@ -181,7 +181,7 @@ Card Demon_Form = {CID::Demon_Form, Color::red, "Demon Form", CardType::power, 3
 Card Double_Tap = blank_card; 
 Card Exhume = {CID::Exhume, Color::red, "Exhume", CardType::skill, 1, CardRarity::rare, "Put 1 card from your exhaust pile into your hand.",
     {
-        Effect(EID::exhume,1,TID::self)
+        Effect(EID::cards_bottom,1,PileID::exhaust, PileID::hand)
     }, true};
 Card Feed = blank_card; 
 Card Fiend_Fire = blank_card; 
@@ -224,7 +224,7 @@ Card Backflip = {CID::Backflip, Color::green, "Backflip", CardType::skill, 1, Ca
 }, false}; 
 Card Bane = blank_card; 
 Card Blade_Dance = {CID::Blade_Dance, Color::green, "Blade Dance", CardType::skill, 1, CardRarity::common, "Add 3 Shivs to your hand.",{
-    Effect(EID::addCard, 3, TID::self, CID::Shiv)
+    Effect(EID::addCard, 3, CID::Shiv, PileID::hand)
 }, false}; 
 Card Cloak_and_Dagger = blank_card; 
 Card Dagger_Spray = {CID::Dagger_Spray, Color::green, "Dagger Spray", CardType::attack, 1, CardRarity::common, "Deal 4 damage to ALL enemies twice.",{
@@ -387,7 +387,7 @@ Card Go_for_the_Eyes = blank_card;
 Card Hologram = {CID::Hologram, Color:: blue, "Hologram", CardType::skill, 1, CardRarity::common, "Gain 3 block. Put 1 card from your discard pile into your hand.",
     {
         Effect(EID::block, 3, TID::self),
-        Effect(EID::hologram, 1, TID::self)
+        Effect(EID::cards_bottom, 1, PileID::discard, PileID::hand)
     }, true}; 
 Card Leap = {CID::Leap, Color::blue, "Leap", CardType::skill, 1, CardRarity::common, "Gain 9 block.",
     {
@@ -474,9 +474,9 @@ Card Meteor_Strike = blank_card;
 Card Multi_Cast = blank_card; 
 Card Rainbow = blank_card; 
 Card Reboot = blank_card; 
-Card Seek = {CID::Seek, Color::blue, "Seek", CardType::skill, 0, CardRarity::rare, "Put 2 cards from your draw pile into your hand.", 
+Card Seek = {CID::Seek, Color::blue, "Seek", CardType::skill, 0, CardRarity::rare, "Put 1 card from your draw pile into your hand.", 
     {
-        Effect(EID::seek, 2, TID::self)
+        Effect(EID::cards_bottom, 1, PileID::draw, PileID::hand)
     }, true}; 
 Card Thunder_Strike = blank_card; 
 
@@ -677,26 +677,21 @@ Card Regret = blank_card;
 Card Shame = blank_card; 
 Card Writhe = blank_card; 
 
-
 Pile empty_deck = {};
 
 Pile ICL_STARTER_DECK = createIroncladStarterDeck();
 Pile SLT_STARTER_DECK = createSilentStarterDeck();
 
-
-
 Pile createIroncladStarterDeck(){
     Pile deck;
-    //for(int i =0; i<1;i++){deck.addCardTop(ICL_Strike);}
-    //for(int i =0; i<1;i++){deck.addCardTop(ICL_Defend);}
-    deck.addCardTop(Twin_Strike);
-    deck.addCardTop(Bash);
-    deck.addCardTop(Neutralize);
-    deck.addCardTop(Blade_Dance);
+    // for(int i =0; i<5;i++){deck.addCardTop(ICL_Strike);}
+    // for(int i =0; i<5;i++){deck.addCardTop(ICL_Defend);}
+    deck.addCardTop(Thunderclap);
+    deck.addCardTop(Cleave);
+    deck.addCardTop(Consecrate);
 
     return deck;
 }
-
 
 Pile createSilentStarterDeck(){
     Pile deck;

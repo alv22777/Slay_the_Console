@@ -8,10 +8,10 @@
 #include <memory>
 
 int main() {
-		SetConsoleOutputCP(CP_UTF8); //Allows UTF8 decoding for printing symbols.
+		SetConsoleOutputCP(CP_UTF8);
 		uint64_t time = std::time(nullptr);
 		RNG pregame(time);
-		uint64_t seed = pregame.nextInt(SEED_MIN,SEED_MAX);
+		uint64_t seed = pregame.nextInt(SEED_MIN,SEED_MAX); //This can be removed, but it's here for seed presentation consistency.
 
 		std::deque<std::unique_ptr<Enemy>> enemies;
 		int choice = characterSelect();

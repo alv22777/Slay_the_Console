@@ -2,6 +2,13 @@
 #define PILE_H
 
 class Card; enum class CardType;
+
+//There can be 6 types of piles, although the pile itself does not require knowledge of which type it is. 
+//The player class will have 6 piles, and the pile manipulation methods will be used by the player class to manipulate the piles. 
+//The game class will also use the pile manipulation methods to manipulate the piles during combat.
+
+enum class PileID{deck, combat_deck, hand, draw, discard, exhaust};
+
 #include<deque>
 struct IndexedCard{ Card* c; int index; };
 

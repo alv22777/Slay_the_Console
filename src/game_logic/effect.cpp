@@ -4,7 +4,7 @@
 #include "character/enemy.h"
 #include "character/character.h"
 #include "data/constants.h"
-
+#include <windows.h>
 
 Effect::Effect(EID t, int m, TID tar)
     :type(t), magnitude(m), target_type(tar){}
@@ -12,14 +12,16 @@ Effect::Effect(EID t, int m, TID tar)
 Effect::Effect(EID t, int m, TID tar, PID p)
     :type(t), magnitude(m), target_type(tar), power(p){}
 
-Effect::Effect(EID t, int m, TID tar, CID c)
-    :type(t), magnitude(m), target_type(tar), card(c){}
+Effect::Effect(EID t, int m, CID c, PileID tar_p) //Add cards can only be done to a player
+    :type(t), magnitude(m), target_type(TID::player), card(c), target_pile(tar_p){}
     
+Effect::Effect(EID t, int m, PileID src_p, PileID tar_p)
+    :type(t), magnitude(m), target_type(TID::player), source_pile(src_p), target_pile(tar_p){}
 
 EffectReport Effect::apply(std::deque<Character*> target, Character* source, Game& game){
 
     EffectReport report;
-
+ 
     for(Character* c: target){//For every character in selected targets
 
         //Preventive programming for Player/Enemy specific behavior.
@@ -34,6 +36,7 @@ EffectReport Effect::apply(std::deque<Character*> target, Character* source, Gam
                 damage = source->modOutDamage(damage);
                 damage = c->modIncDamage(damage);
                 report.damage_dealt += c->takeDamage(damage); 
+                c->onHit(source);
                 
                 break;
             }
@@ -61,31 +64,27 @@ EffectReport Effect::apply(std::deque<Character*> target, Character* source, Gam
                 break;}
             case EID::exhaust:{
                 if(p){report.cards_exhausted += p->transferCardsManual(PileID::hand, PileID::exhaust, magnitude, false, game);} 
-                break;}
-            case EID::exhume:{
-                if(p){p->transferCardsManual(PileID::exhaust,PileID::hand, magnitude, true, game);} 
-                break;}
-            case EID::hologram:{
-                if(p){p->transferCardsManual(PileID::discard,PileID::hand, magnitude, true, game);} 
-                break;}
-            case EID::seek:{
-                if(p){p->transferCardsManual(PileID::draw,   PileID::hand, magnitude, true,game);} 
-                break;}
-            case EID::headbutt:{
-                if(p){p->transferCardsManual(PileID::discard,PileID::draw, magnitude, false, game);} 
-                break;}
-            case EID::forethought:{
-                if(p){p->transferCardsManual(PileID::hand,   PileID::draw, magnitude, true, game);} 
-                break;}
-            case EID::setup:{
-                if(p){p->transferCardsManual(PileID::draw,   PileID::hand, magnitude, false, game);} 
-                break;}    
+                break;} 
+            case EID::cards_bottom:{
+                if(p && source_pile && target_pile && card){
+                    p->transferCardsManual(*source_pile, *target_pile, magnitude, true, game);
+                }
+                else{throw std::runtime_error("Invalid Effect configuration: cardsBottom effect requires source and target piles, and a card ID.");}
+                break;
+            }  
+            case EID::cards_top:{
+                if(p && source_pile && target_pile && card){
+                    p->transferCardsManual(*source_pile, *target_pile, magnitude, false, game);
+                }
+                else{throw std::runtime_error("Invalid Effect configuration: cardsTop effect requires source and target piles, and a card ID.");}
+                break;
+            }
             case EID::expertise:{
                 if(p){report.cards_drawn += p->drawCards(magnitude - p->getPlayerPileSize(PileID::hand), game);}
                 break;}
             case EID::gain:{
                 report.power_gained = *power;
-                c->addPower(Power::createPower(*power, magnitude, c));
+                c->addPower(*power, magnitude);
                 break;
             }
             case EID::addCard:{
@@ -93,6 +92,7 @@ EffectReport Effect::apply(std::deque<Character*> target, Character* source, Gam
                     Card add = createCard(*card);
                     for(int i = 0;i<magnitude;i++){ p->addToPile(PileID::hand, add, true); }
                 }
+                break;
             }
             
             default: {std::cout<<"No implementation yet!\n"; break;}
@@ -132,7 +132,7 @@ std::string Effect::log(std::deque<Character*> target, Character* source, Effect
                 how_much = std::to_string(abs(report.damage_dealt));
                 to_who  = color(target[0]->getColor(), target[0]->getName());
             }
-            else{to_who = (target_type == TID::enemy_all)? " all enemies.":" all players.";} 
+            else{to_who = (target_type == TID::enemy_all)? "all enemies.":"all players.";} 
 
             what = " dealt " + how_much + " damage to ";
 
@@ -155,19 +155,18 @@ std::string Effect::log(std::deque<Character*> target, Character* source, Effect
         case EID::draw:{
             if(report.cards_drawn == 0){return "";}
             how_much = std::to_string(abs(report.cards_drawn));
-            what = " drew " + how_much + " card" + ((magnitude>1)? "s.":".");
+            what = " drew " + how_much + " card" + ((report.cards_drawn>1)? "s.":".");
         break;}
-
         case EID::discard:{
             if(report.cards_discarded == 0){return "";}
             how_much = std::to_string(abs(report.cards_discarded));
-            what = " discarded " + how_much + " card" +((magnitude>1)? "s.":".");
+            what = " discarded " + how_much + " card" +((report.cards_discarded>1)? "s.":".");
         break;}
 
         case EID::exhaust:{
             if(report.cards_exhausted == 0){return "";}
             how_much = std::to_string(abs(report.cards_exhausted));
-            what = " exhausted " + how_much + " card" +((magnitude>1)? "s.":".");
+            what = " exhausted " + how_much + " card" +((report.cards_exhausted>1)? "s.":".");
         break;}
         case EID::gain:{
             if(magnitude == 0){return "";}
@@ -177,13 +176,12 @@ std::string Effect::log(std::deque<Character*> target, Character* source, Effect
         case EID::expertise:{
             if(report.cards_drawn==0){return "";}
             how_much = std::to_string(abs(report.cards_drawn));
-            what = " drew " + how_much + " card" + ((magnitude>1)? "s.":".");
+            what = " drew " + how_much + " card" + ((report.cards_drawn>1)? "s.":".");
         break;}
 
         default:{ return ""; break; }
 
     }
-    
         
     log = who + what + to_who;
 

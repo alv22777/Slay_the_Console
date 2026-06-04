@@ -108,6 +108,8 @@ void Player::playCardFromHand(int pos, Game& game){
     setPlayed(tried);
     game.pushLog(color(col, name) + " played " + color(tried.rarityColor(), tried.getName()), 0);
     played.applyEffects(*this,game, pos);
+    
+    game.removeDeadCharacters();
 }
 
 std::unique_ptr<Player> Player::createPlayer(int choice){
@@ -132,6 +134,9 @@ std::unique_ptr<Player> Player::createPlayer(int choice){
 }
 
 void Player::addToPile(PileID type, Card& c, bool bottom){
+
+    if(type==PileID::hand && isHandFull()){ type = PileID::discard; }
+    
     if(bottom){
         switch(type){
             case PileID::deck: deck.addCardBot(c); break;

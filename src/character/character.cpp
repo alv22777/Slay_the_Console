@@ -12,7 +12,6 @@ Character::Character(std::string N, int MHP, Color c)
 
 std::string Character::getName() {return name;}
 
-
 int Character::getAttribute(Attribute a){
     switch(a){
         case Attribute::hp: return HP;
@@ -38,13 +37,12 @@ void Character::setAttribute(Attribute att, int value){
 
 void Character::displayStatus(){
     //STATUS BAR
-    std::cout<<color(col, padRight(getName(),15))<<
-    color(Color::hp, " ♥");
-    std::cout<<color(Color::hp, 
+    std::cout<<color(col, padRight(getName(),15));
+    std::cout<<color(Color::hp, " ♥" +
         padLeft(std::to_string(HP),3) +"/"+
-        padRight(std::to_string(max_HP),3));
-
-    color(Color::block, " 🛡️ "+std::to_string(block)+" ");
+        padRight(std::to_string(max_HP),3)
+    );
+    std::cout<<color(Color::block, " 🛡️ "+std::to_string(block)+" ");
 }
 
 void Character::displayPowers(){
@@ -105,6 +103,8 @@ int32_t Character::takeDamage(int magnitude){
     return unblocked;               
 }
 
+
+
 int32_t Character::gainBlock(int magnitude){
     uint32_t gained = 0;
 
@@ -125,14 +125,15 @@ void Character::hpChange(int magnitude){
     if(HP>max_HP){HP = max_HP;} //Don't go over max HP!
 }
 
-void Character::addPower(std::unique_ptr<Power> p){
+void Character::addPower(PID p, int m){
+    std::unique_ptr<Power> P = Power::createPower(p, m, this);
     auto it = std::find_if(powers.begin(), powers.end(), [&](const std::unique_ptr<Power>& a){
-        return a->getID() == p->getID();
+        return a->getID() == p;
     }); 
     if(it != powers.end()){ //Power already in list
-        (*it)->changeMagnitude(p->getMagnitude());
+        (*it)->changeMagnitude(m);
     }
-    else{powers.push_back(std::move(p));}
+    else{powers.push_back(std::move(P));}
 }
 
 void Character::removePower(int pos){
@@ -146,6 +147,10 @@ void Character::removeInvalidPowers(){
     powers.erase(std::remove_if(powers.begin(), powers.end(), [](const std::unique_ptr<Power>& p){
         return p->isExpired(); 
     }), powers.end());
+}
+
+void Character::onHit(Character* source){
+    for(auto&p: powers){p->onHit(source);}
 }
 
 int32_t Character::modOutDamage(int32_t base){ 

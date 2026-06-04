@@ -6,7 +6,7 @@
 #include<optional>
 
 #include "stdint.h"
-class Game; class Character; enum class PID; class Power; enum class CID;
+class Game; class Character; enum class PID; class Power; enum class CID; enum class PileID;
 
 /*
 exhume: n cards go from exhaust to hand.
@@ -18,7 +18,7 @@ expertise: target player draws cards until hand size is n.
 */
 enum class EID{
     damage, block, energy, hp, 
-    draw, discard, exhaust, exhume, hologram, seek, headbutt, forethought, setup, expertise,
+    draw, discard, exhaust, cards_bottom, cards_top, expertise,
     gain, addCard,
     none
 };
@@ -49,11 +49,16 @@ class Effect{
     int magnitude;
     std::optional<PID> power;
     std::optional<CID> card;
+    std::optional<PileID> source_pile;
+    std::optional<PileID> target_pile;
+
 
     public:
     Effect(EID t, int m, TID tar); //Normal effect
     Effect(EID t, int m, TID tar, PID p);//Gain Power effect
-    Effect(EID t, int m, TID tar, CID c);//add card effect
+    Effect(EID t, int m, CID c, PileID tar_p);//add m cards with CID c to target Pile
+    Effect(EID t, int m, PileID src_p, PileID tar_p);//move m cards from source pile to target pile
+
 
     EffectReport apply(std::deque<Character*> target, Character* source, Game& game); //Applies this effect to the target character. 
     EID getType();

@@ -51,6 +51,8 @@ bool Game::gameOver(){
 
 void Game::fight(){
 	startOfCombat();
+	
+	player->addPower(PID::thorns, 5);
 	char choice;
 	turn = 1;
 
@@ -123,35 +125,35 @@ void Game::initEnemies(){
 		}
 	));
 }
+
 void Game::startOfCombat(){
 	player->StartCombat(*this);
 	initEnemies();
 	pushLog("---------- Start of combat ---------", 0);
 }
+
 void Game::startPlayerTurn(){
 	pushLog("----------- Start of turn ----------", 0);
-	//startOfTurnEffects();
 	
 	if(player){
 		player->setAttribute(Attribute::energy, player->getAttribute(Attribute::max_energy));
 		player->setAttribute(Attribute::block,0);
 		player->drawCards(5,*this);
 		
-		for(auto& pw: player->getPowers()){
-			pw->onTurnStart();
-		}
+		for(auto& pw: player->getPowers()){ pw->onTurnStart(); }
 		
 		player->removeInvalidPowers();
+
+		removeDeadCharacters();
 	}
 }
 
 void Game::endPlayerTurn(){
 	pushLog("----------- End of turn ------------",0);
-
 	for(auto& pw: player->getPowers()){ pw->onTurnEnd(); }
 	player->removeInvalidPowers();
 	player->discardHand();
-
+	removeDeadCharacters();
 }
 
 void Game::enemyTurn(){
@@ -168,13 +170,17 @@ void Game::startEnemyTurn(){
 		}
 		e->removeInvalidPowers();
 	}
+	removeDeadCharacters();
 }
 
 void Game::enemyActions(){
 	for(auto& e: enemies){
-		e->act(*this);
-		if(isCombatOver()){break;}
+		if(e->isAlive()){
+			e->act(*this);
+			if(isCombatOver()){break;}
+		}
 	}
+	removeDeadCharacters(); //Cleanup
 }
 
 void Game::endEnemyTurn(){
@@ -186,6 +192,7 @@ void Game::endEnemyTurn(){
 		}
 		e->removeInvalidPowers();
 	}
+	removeDeadCharacters();
 }
 
 void Game::enemyPlanning(){
@@ -215,36 +222,39 @@ std::deque<Character*> Game::selectTargets(TID target, Character* source){
 	int choice = 0;
     std::deque<Character*> targets;
 	
-
 	switch(target){
 		
 		case TID::player:
-			if(player){targets.push_back(player.get());}
+			if(player->isAlive()){targets.push_back(player.get());}
 			else{std::cout<<"No player to target!\n";}		
 		break;
 
 		case TID::enemy:
 		
-		if(enemies.size()==1){targets.push_back(enemies[0].get());}
-		else if (enemies.size()==0){std::cout<<"No enemies to target!\n"; targets.clear(); break;}
-		else{
-			std::cout<<"Choose an enemy > ";
-			choice = inputInt(0,enemies.size()-1, true);
-			targets.push_back(enemies[choice].get());
+		if(enemies.size()==1){
+			if(enemies[0]->isAlive()){ targets.push_back(enemies[0].get()); break; }
 		}
+		if (enemies.size()==0){std::cout<<"No enemies to target!\n"; targets.clear(); break;}
+
+		std::cout<<"Choose an enemy > ";
+		choice = inputInt(0,enemies.size()-1, true);
+		if(enemies[choice]->isAlive()){ targets.push_back(enemies[choice].get()); }
 		break;
 		
 		case TID::enemy_all:	
-		if(!enemies.empty()){for(auto &e :enemies){targets.push_back(e.get());} }
-		else{std::cout<<"No enemies to target!\n";}
+		if(enemies.empty()){std::cout<<"No enemies to target!\n"; break;}
+		for(auto& e: enemies){
+			if(e->isAlive()){targets.push_back(e.get());}
+		}
 		break;
 		
 		case TID::random_enemy:
-		if(!enemies.empty()){targets.push_back(enemies[rng.nextInt(0,enemies.size()-1)].get());}
-		else{std::cout<<"No enemies to target!\n";}
+		if(enemies.empty()){std::cout<<"No enemies to target!\n"; break;}
+		do{ choice = rng.nextInt(0,enemies.size()-1); }while(!enemies[choice]->isAlive());
+		targets.push_back(enemies[choice].get());
 		break;
 		
-		case TID::self: targets.push_back(source); break;
+		case TID::self: if(source->isAlive()){targets.push_back(source);} break;
 		
 		default: std::cout<<"Invalid target type!\n"; break;
 	}
@@ -259,7 +269,7 @@ bool Game::hasValidTargets(TID t, Character& source){
 			return (player != nullptr);
 		case TID::enemy:
 		case TID::random_enemy:
-			return enemies.empty();
+			return !enemies.empty();
 		case TID::self:
 			return source.isAlive();
 		default: return true;
@@ -277,9 +287,9 @@ int32_t Game::calculateIntentDamage(int32_t base, Enemy* source){
 }
 
 void Game::resolveEffects(Character& source, std::vector<Effect>& effects){
+	if(effects.empty()){NO_EFFECT.apply({}, &source,*this); return;}
 
 	std::deque<Character*> targets;
-	if(effects.empty()){NO_EFFECT.apply({}, &source,*this); return;}
 	std::vector<EffectReport> results;
 
     //Initial conditions
@@ -287,13 +297,14 @@ void Game::resolveEffects(Character& source, std::vector<Effect>& effects){
     bool is_single_target = effects[0].isSingleTarget();
     if(is_single_target){ targets = selectTargets(prev, &source); }
     bool target_died = false;
-	
 	displayGameState();
 
 	for(size_t i = 0; i<effects.size();i++){
-		//Target validation and selection
+	
+		//Target validation
 		TID current = effects[i].getTarget();
 		is_single_target = effects[i].isSingleTarget();
+		
 		// Retarget if needed
 		if(prev != current || !is_single_target){ targets = selectTargets(current, &source); }
 		else if(target_died){continue;}
@@ -306,11 +317,11 @@ void Game::resolveEffects(Character& source, std::vector<Effect>& effects){
 		pushLog(effects[i].log(targets, &source, results[i]), 1);
 
 		// Check whether reused single target died
-		if(!source.isAlive()){removeDeadCharacters(); break;}
+		if(!source.isAlive()){break;}
 		target_died = is_single_target && !targets.empty() && !targets[0]->isAlive();
 		
 		displayGameState( );
-		removeDeadCharacters(); //Cleanup
+		
 	}
 }
 
@@ -366,7 +377,6 @@ bool Game::removeDeadCharacters(){
 		player.reset();
 		death = true;
 	}
-
 	return death;
 }
 

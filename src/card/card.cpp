@@ -72,16 +72,16 @@ std::string Card::getCardRarity(){
 
 void Card::applyEffects(Player& source, Game& game, int pos){
 
-    if(effects[0].isSingleTarget()||game.hasValidTargets(effects[0].getTarget(),  source)){
+    if((!effects[0].isSingleTarget())||game.hasValidTargets(effects[0].getTarget(),  source)){
+
         source.removeFromPlayerPile(PileID::hand, pos); //Card is now "hovering" (not on any player pile).
         source.changeAttribute(Attribute::energy,-source.getPlayed().getEnergyCost()); //Pay energy cost.
+
+        game.resolveEffects(source,effects);
+
+        if(exhaust){source.addToPile(PileID::exhaust, source.getPlayed(), false);}
+        else{source.addToPile(PileID::discard, source.getPlayed(), false);}
     }
-    
-    game.resolveEffects(source,effects);
-
-    if(exhaust){source.addToPile(PileID::exhaust, source.getPlayed(), false);}
-    else{source.addToPile(PileID::discard, source.getPlayed(), false);}
-
 }
 
 //Determines if a card can be played. Defaults to true, overrides

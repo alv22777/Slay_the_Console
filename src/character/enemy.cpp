@@ -23,7 +23,7 @@ void Enemy::act(Game& game){
     std::vector<Effect> &actions = next_intent.getActions();    
     if(actions.empty()){return;}
     game.resolveEffects(*this, actions);
-
+    
 }
 
 void Enemy::displayIntent(Game& game){

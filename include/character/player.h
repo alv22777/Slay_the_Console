@@ -9,8 +9,6 @@
 
 enum class Color;
 
-//The player can have 6 Piles, 
-enum class PileID{deck, combat_deck, hand, draw, discard, exhaust};
 
 class Player: public Character{
     int max_energy;

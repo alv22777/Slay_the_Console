@@ -29,6 +29,8 @@ enum class PID{
     //Card draw mod
     draw_next, machine_learning, 
 
+    //Trigger on hit
+    thorns,
     //Character specific powers
     //The Ironclad
     //The Silent
@@ -60,11 +62,14 @@ class Power{
     //Hooks
     virtual void onTurnStart();
     virtual void onTurnEnd();
+    
     virtual int32_t modOutDamageAdd(int32_t base);
     virtual int32_t modOutDamageMult(int32_t base);
     virtual int32_t modIncDamage(int32_t base);
     virtual int32_t modBlockGain(int32_t base);
     
+    virtual void onHit(Character* source);
+
     protected:
     PID ID;
     int32_t magnitude; //Can be negative
@@ -99,9 +104,21 @@ class Ritual: public Power{
 class Frail: public Power{
     public:
     Frail(int32_t i, Character* own);
-    int32_t modBlockGain(int32_t base);
+    int32_t modBlockGain(int32_t base) override;
 };
 
+class Poison: public Power{
+    public:
+    Poison(int32_t i, Character* own);
+    void onTurnStart() override;
+    void onTurnEnd() override;
+};
+
+class Thorns: public Power{
+    public:
+    Thorns(int32_t i, Character* own);
+    void onHit(Character* source) override;
+};
 
 #endif
 

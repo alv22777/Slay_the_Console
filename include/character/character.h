@@ -43,7 +43,7 @@ class Character{
 	int32_t gainBlock(int magnitude);
 	void hpChange(int magnitude);
 
-	void addPower(std::unique_ptr<Power> p);
+	void addPower(PID p, int m);
 	void removePower(int pos);
 	void removeAllPowers();
 	void removeInvalidPowers();
@@ -52,6 +52,7 @@ class Character{
 	void displayStatus();
 	void displayPowers();
 
+	void onHit(Character* source);
 	int32_t modOutDamage(int32_t base);
 	int32_t modIncDamage(int32_t base);
 	int32_t modBlockGain(int32_t base);
