@@ -11,8 +11,9 @@
 
 
 //Creates a Card and initializes it's values with the given arguments.
-Card::Card(CID i, Color c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<Effect> e, bool ex)//Character, name, type, energy cost, rarity, card text
-    :character(c), name(n), type(t), energy_cost(cost), rarity(r), card_text(text), effects(e), exhaust(ex), id(i){}   
+Card::Card(CID i, Color c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<Effect> e, bool eth, bool ex, bool in, bool ret)//Character, name, type, energy cost, rarity, card text
+    :id(i), character(c), name(n), type(t), energy_cost(cost), rarity(r), card_text(text), effects(e), 
+    exhaust(ex), ethereal(eth), innate(in), retain(ret){}   
     
 //Display this card
 void Card::display(){
@@ -22,16 +23,26 @@ void Card::display(){
         case CardType::attack: card_type = color(character, u8" ▲ "); break;
         case CardType::skill: card_type = color(character, u8" ■ "); break;
         case CardType::power: card_type = color(character, u8" ● "); break;
-        case CardType::status: card_type = color(Color::status,u8"  ꩜ "); break;
-        case CardType::curse: card_type = color(Color::curse,u8"  ⛦ "); break;
+        case CardType::status: card_type = color(Color::status,u8" ꩜ "); break;
+        case CardType::curse: card_type = color(Color::curse,u8" ⛦ "); break;
         default: card_type="none"; break; 
     }
-    std::cout<<cost<<card_type<<color(rarityColor(), name)<<": "<<card_text;
+    std::cout<<cost<<card_type<<color(rarityColor(), name)<<": ";
+    if(innate){std::cout<<color(Color::keyword,"Innate. ");}
+    if(retain){std::cout<<color(Color::keyword,"Retain. ");}
+    if(ethereal){std::cout<<color(Color::keyword,"Ethereal. ");}
+    std::cout<<card_text;
     if(exhaust){std::cout<<color(Color::exhaust," Exhaust.");}
 }
 
 int Card::getEnergyCost(){return energy_cost;}
 CID Card::getID(){return id;}
+
+bool Card::hasExhaust(){return exhaust;}
+bool Card::hasEthereal(){return ethereal;}
+bool Card::hasRetain(){return retain;}
+bool Card::hasInnate(){return innate;}
+
 std::string Card::getName(){return name;}
 
 Color Card::rarityColor(){
@@ -72,6 +83,7 @@ std::string Card::getCardRarity(){
 
 void Card::applyEffects(Player& source, Game& game, int pos){
 
+    
     if((!effects[0].isSingleTarget())||game.hasValidTargets(effects[0].getTarget(),  source)){
 
         source.removeFromPlayerPile(PileID::hand, pos); //Card is now "hovering" (not on any player pile).
@@ -79,8 +91,10 @@ void Card::applyEffects(Player& source, Game& game, int pos){
 
         game.resolveEffects(source,effects);
 
-        if(exhaust){source.addToPile(PileID::exhaust, source.getPlayed(), false);}
-        else{source.addToPile(PileID::discard, source.getPlayed(), false);}
+        if(type != CardType::power){ //Powers don't go anywhere after resolution
+            if(exhaust){source.addToPile(PileID::exhaust, source.getPlayed(), false);}
+            else{source.addToPile(PileID::discard, source.getPlayed(), false);}
+        }
     }
 }
 
@@ -94,6 +108,10 @@ bool Card::canPlay(Player& source, Game& game){
     else if (name == "Grand Finale"){
         able = source.getPlayerPileSize(PileID::draw) == 0;
     }
+    else{
+        able = energy_cost != -1;
+    }
+
     return able;
 }
 

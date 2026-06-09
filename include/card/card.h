@@ -111,12 +111,21 @@ class Card{
 	CardRarity rarity;
 	std::string card_text;
     std::vector<Effect> effects;  
+
+    bool innate;
+    bool retain;
     bool exhaust;
+    bool ethereal;
 public:
-    Card(CID i, Color c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<Effect> e, bool ex);
+    Card(CID i, Color c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<Effect> e, 
+        bool eth, bool ex, bool in, bool ret);
     void display();    
     int getEnergyCost();
     CID getID();
+    bool hasExhaust();
+    bool hasEthereal();
+    bool hasRetain();
+    bool hasInnate();
     std::string getName();
     Color rarityColor();
     CardType getCardType();

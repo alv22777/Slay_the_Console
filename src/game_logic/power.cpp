@@ -1,7 +1,9 @@
 #include "game_logic/power.h"
 #include "character/character.h"
+#include "character/player.h"
 #include "ui/colors.h"
 #include "game_logic/effect.h"
+#include "game_logic/game.h"
 #include "data/constants.h"
 
 Power::Power(PID id, int32_t i, bool in, bool d, Character* own):
@@ -20,17 +22,18 @@ bool Power::isExpired(){
     else{return magnitude == 0;}
 }
 
-void Power::onTurnStart(){}
-void Power::onTurnEnd(){if(stacks_duration){changeMagnitude(-1);}}
+void Power::onTurnStart(Game& game){}
+void Power::onTurnEnd(Game& game){if(stacks_duration){changeMagnitude(-1);}}
 
 
 int32_t Power::modOutDamageAdd(int32_t base){return base;}
 int32_t Power::modOutDamageMult(int32_t base){return base;}
 int32_t Power::modIncDamage(int32_t base){return base;}
-int32_t Power::modBlockGain(int32_t base){return base;}
+int32_t Power::modBlockGainAdd(int32_t base){return base;}
+int32_t Power::modBlockGainMult(int32_t base){return base;}
 int32_t Power::getMagnitude()const{return magnitude;}
 
-void Power::onHit(Character* source){};
+void Power::onHit(Character* source, Game& game){};
 
 PID Power::getID()const{return ID;}
 Character* Power::getOwner(){return owner;}
@@ -43,6 +46,7 @@ std::string Power::IDtoString(PID id, bool plain_text){
             case PID::berserk: return "Berserk";
             case PID::biased: return "Biased";
             case PID::blur: return "Blur";
+            case PID::curl_up: return "Curl Up";
             case PID::demon: return "Demon Form";
             case PID::deva: return "Deva";
             case PID::devotion: return "Devotion";
@@ -50,8 +54,10 @@ std::string Power::IDtoString(PID id, bool plain_text){
             case PID::draw_next: return "Draw next turn";
             case PID::energized: return "Energized";
             case PID::frail: return "Frail";
+            case PID::fasting: return "Fasting";
             case PID::lock_on: return "Lock-on";
             case PID::machine_learning: return "Machine learning";
+            case PID::omega: return "Omega";
             case PID::pen_nib: return "Pen Nib";
             case PID::phantasmal: return "Phantasmal";
             case PID::phantasmal_killer: return "Double Damage";
@@ -74,15 +80,18 @@ std::string Power::IDtoString(PID id, bool plain_text){
             case PID::berserk: return "///";
             case PID::biased: return "🔵🡇";
             case PID::blur: return "🌫";
+            case PID::curl_up: return "⟳ ";
             case PID::demon: return "👹";
             case PID::deva: return "🕉";
             case PID::devotion: return "🙏";
-            case PID::dexterity: return "⛨";
+            case PID::dexterity: return color(Color::green, "⛊ ");
             case PID::draw_next: return "🂡➡";
             case PID::energized: return "🔋";
             case PID::frail: return "🛡️⛓‍💥";
+            case PID::fasting: return "🍽️";
             case PID::lock_on: return "⌖";
             case PID::machine_learning: return "🂡🠝";
+            case PID::omega: return "Ω";
             case PID::pen_nib: return "✒";
             case PID::phantasmal: return "👻";
             case PID::phantasmal_killer: return "DMGx2";
@@ -93,7 +102,7 @@ std::string Power::IDtoString(PID id, bool plain_text){
             case PID::thorns: return "✷ ";
             case PID::vulnerable: return "💔";
             case PID::weak: return "🗡️⛓️‍💥";
-            case PID::wraith: return "⛨🡇";
+            case PID::wraith: return "🛡🡇";
             case PID::wrath: return "💢";
             default: return "none";
         }
@@ -101,59 +110,98 @@ std::string Power::IDtoString(PID id, bool plain_text){
 }
 
 void Power::display(){
-    std::cout<<IDtoString(this->ID, false)<<magnitude;
+    std::cout<<IDtoString(ID, false)<<magnitude;
 }
 
 
-Weak::Weak(int32_t i, Character* own): Power(PID::weak, i, false, true, std::move(own)){}
-int32_t Weak::modOutDamageMult(int32_t base){
+WeakPower::WeakPower(int32_t i, Character* own): Power(PID::weak, i, false, true, own){}
+int32_t WeakPower::modOutDamageMult(int32_t base){
     return base * (100 - WEAK_PCENT)/100;
 }
 
-Strength::Strength(int32_t i, Character* own): Power(PID::strength, i , true, false, std::move(own)){ }
-int32_t Strength::modOutDamageAdd(int32_t base){
+StrengthPower::StrengthPower(int32_t i, Character* own): Power(PID::strength, i , true, false, own){ }
+int32_t StrengthPower::modOutDamageAdd(int32_t base){
     return base +  magnitude;
 }
 
 
-Vulnerable::Vulnerable(int32_t i, Character* own):Power(PID::vulnerable, i, false, true, std::move(own)){}
-int32_t Vulnerable::modIncDamage(int32_t base){
+VulnerablePower::VulnerablePower(int32_t i, Character* own):Power(PID::vulnerable, i, false, true, own){}
+int32_t VulnerablePower::modIncDamage(int32_t base){
     return base * (100 + VULNERABLE_PCENT)/100;
 }
 
-Ritual::Ritual(int32_t i, Character* own): Power(PID::ritual, i, true, false, std::move(own)){}
-void Ritual::onTurnEnd(){
-    owner->addPower(PID::strength, magnitude);
+RitualPower::RitualPower(int32_t i, Character* own): Power(PID::ritual, i, true, false, own){}
+void RitualPower::onTurnEnd(Game& game){
+    std::vector<Effect> e = { Effect(EID::gain, magnitude, TID::self, PID::strength) };
+    game.resolveEffects(*owner, e);
 }
 
-Frail::Frail(int32_t i, Character* own): Power(PID::frail, i, false, true, std::move(own)) {}
-int32_t Frail::modBlockGain(int32_t base){
+FrailPower::FrailPower(int32_t i, Character* own): Power(PID::frail, i, false, true, own) {}
+int32_t FrailPower::modBlockGainMult(int32_t base){
     return base * (100 - FRAIL_PCENT)/100; 
 }
 
-Poison::Poison(int32_t i, Character* own): Power(PID::poison, i, true, true, std::move(own)){}
-void Poison::onTurnEnd(){} //does nothing on turn end
-void Poison::onTurnStart(){
-    owner->takeDamage(magnitude);
+PoisonPower::PoisonPower(int32_t i, Character* own): Power(PID::poison, i, true, true, own){}
+void PoisonPower::onTurnEnd(Game& game){} //does nothing on turn end
+void PoisonPower::onTurnStart(Game& game){
+    
+    std::vector<Effect> e  = {Effect(EID::hp, -magnitude, TID::self)};
+    game.resolveEffects(*owner, e);
     changeMagnitude(-1);
 }
 
-Thorns::Thorns(int32_t i, Character* own): Power(PID::thorns, i, true, false, std::move(own)){}
-void Thorns::onHit(Character* source){
-    source->takeDamage(magnitude);
+ThornsPower::ThornsPower(int32_t i, Character* own): Power(PID::thorns, i, true, false, own){}
+void ThornsPower::onHit(Character* source, Game& game){ source->takeDamage(magnitude); }
+
+AccuracyPower::AccuracyPower(int32_t i, Character* own): Power(PID::accuracy, i, true, false, own){}
+int32_t AccuracyPower::modOutDamageAdd(int32_t base){
+    Player* p = dynamic_cast<Player*>(owner);
+    if(p){
+        if(p->getPlayed().getID() == CID::Shiv){
+                return base + magnitude; 
+        }
+    }
+    return base;
 }
 
+DexterityPower::DexterityPower(int32_t i, Character* own): Power(PID::dexterity, i, true, false, own){}
+int32_t DexterityPower::modBlockGainAdd(int32_t base){
+    return base + magnitude;
+}
 
+OmegaPower::OmegaPower(int32_t i, Character* own): Power(PID::omega, i, true, false, own){}
+void OmegaPower::onTurnEnd(Game& game){
+    std::vector<Effect> e = {Effect(EID::damage, magnitude, TID::enemy_all)};
+    game.resolveEffects(*owner, e);
+}
+
+FastingPower::FastingPower(int32_t i, Character* own): Power(PID::fasting, i, true, false, own){}
+void FastingPower::onTurnStart(Game& game){
+    std::vector<Effect> e = {Effect(EID::energy, -magnitude, TID::self)};
+    game.resolveEffects(*owner, e);
+}
+
+CurlUpPower::CurlUpPower(int32_t i, Character* own): Power(PID::curl_up, i, true, false, own){}
+void CurlUpPower::onHit(Character* source, Game& game){
+    std::vector<Effect> e = {Effect(EID::block, magnitude, TID::self)};
+    game.resolveEffects(*owner, e);
+    eliminate();
+}
 
 std::unique_ptr<Power> Power::createPower(PID id, int32_t magnitude, Character* owner){
     switch(id){
-        case PID::weak: return std::make_unique<Weak>(magnitude, owner);
-        case PID::vulnerable: return std::make_unique<Vulnerable>(magnitude,owner);
-        case PID::ritual: return std::make_unique<Ritual>(magnitude, owner);
-        case PID::frail: return std::make_unique<Frail>(magnitude,owner);
-        case PID::strength: return std::make_unique<Strength>(magnitude, owner);
-        case PID::poison: return std::make_unique<Poison>(magnitude, owner);
-        case PID::thorns: return std::make_unique<Thorns>(magnitude, owner);
+        case PID::accuracy: return std::make_unique<AccuracyPower>(magnitude,owner);
+        case PID::curl_up: return std::make_unique<CurlUpPower>(magnitude, owner);
+        case PID::dexterity: return std::make_unique<DexterityPower>(magnitude,owner);
+        case PID::frail: return std::make_unique<FrailPower>(magnitude,owner);
+        case PID::fasting: return std::make_unique<FastingPower>(magnitude,owner);
+        case PID::omega: return std::make_unique<OmegaPower>(magnitude, owner);
+        case PID::poison: return std::make_unique<PoisonPower>(magnitude, owner);
+        case PID::ritual: return std::make_unique<RitualPower>(magnitude, owner);
+        case PID::strength: return std::make_unique<StrengthPower>(magnitude, owner);
+        case PID::thorns: return std::make_unique<ThornsPower>(magnitude, owner);
+        case PID::vulnerable: return std::make_unique<VulnerablePower>(magnitude,owner);
+        case PID::weak: return std::make_unique<WeakPower>(magnitude, owner);
         default:
             throw std::runtime_error("Invalid PID");
     }

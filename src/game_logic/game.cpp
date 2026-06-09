@@ -35,9 +35,9 @@ bool Game::gameOver(){
 	
 	char replay;
 	do{replay = inputChar();}
-	while(!(replay== 'y' || replay == 'n'));
+	while(!(replay== 'Y' || replay == 'N'));
 	
-	if(replay=='y'){
+	if(replay=='Y'){
 		rng.setSeed(rng.nextInt(SEED_MIN,SEED_MAX));
 		int choice = characterSelect();
 		player = Player::createPlayer(choice);
@@ -52,17 +52,16 @@ bool Game::gameOver(){
 void Game::fight(){
 	startOfCombat();
 	
-	player->addPower(PID::thorns, 5);
 	char choice;
 	turn = 1;
 
 	while(!isCombatOver()){
 		choice = ' ';
 
-		while(choice != 'e'){
+		while(choice != 'E'){
 
 
-			if(isCombatOver()){choice = 'e'; continue;}
+			if(isCombatOver()){choice = 'E'; continue;}
 
 			displayGameState();
 							
@@ -78,11 +77,11 @@ void Game::fight(){
 
 			//Player wishes to do other actions, such as viewing the draw or discard pile, or ending the turn.
 			switch(choice){
-				case 'a': player->displayPlayerPile(PileID::draw, false, 0, true); break;
-				case 'k': player->displayPlayerPile(PileID::deck, false, 0, false); break;
-				case 'd': player->displayPlayerPile(PileID::discard, false, 0, false); break;
-				case 'x': player->displayPlayerPile(PileID::exhaust, false, 0,false); break;
-				case 'e': continue; //End turn 
+				case 'A': player->displayPlayerPile(PileID::draw, false, 0, true); break;
+				case 'K': player->displayPlayerPile(PileID::deck, false, 0, false); break;
+				case 'D': player->displayPlayerPile(PileID::discard, false, 0, false); break;
+				case 'X': player->displayPlayerPile(PileID::exhaust, false, 0,false); break;
+				case 'E': continue; //End turn 
 				default: continue;
 					
 			}
@@ -114,7 +113,8 @@ void Game::initEnemies(){
 	enemies.push_back(std::make_unique<Enemy>(
 		"Red Louse", 9, Color::red, 
 		std::deque<Intent>{
-			Intent({ Effect(EID::damage, 2, TID::player)})
+			Intent({ Effect(EID::damage, 2, TID::player)}),
+			Intent({ Effect(EID::gain, 2, TID::player, PID::frail)}),
 		}
 	));
 	enemies.push_back(std::make_unique<Enemy>(
@@ -124,6 +124,12 @@ void Game::initEnemies(){
 			Intent({ Effect(EID::damage, 2, TID::player)})
 		}
 	));
+	enemies[0]->addPower(PID::curl_up, rng.nextInt(3,7));
+	enemies[1]->addPower(PID::curl_up, rng.nextInt(3,7));
+
+	for(auto& e: enemies){
+		e->chooseIntent(*this);
+	}
 }
 
 void Game::startOfCombat(){
@@ -140,7 +146,7 @@ void Game::startPlayerTurn(){
 		player->setAttribute(Attribute::block,0);
 		player->drawCards(5,*this);
 		
-		for(auto& pw: player->getPowers()){ pw->onTurnStart(); }
+		for(auto& pw: player->getPowers()){ pw->onTurnStart(*this); }
 		
 		player->removeInvalidPowers();
 
@@ -150,7 +156,7 @@ void Game::startPlayerTurn(){
 
 void Game::endPlayerTurn(){
 	pushLog("----------- End of turn ------------",0);
-	for(auto& pw: player->getPowers()){ pw->onTurnEnd(); }
+	for(auto& pw: player->getPowers()){ pw->onTurnEnd(*this); }
 	player->removeInvalidPowers();
 	player->discardHand();
 	removeDeadCharacters();
@@ -166,7 +172,7 @@ void Game::enemyTurn(){
 void Game::startEnemyTurn(){
 	for(auto& e: enemies){
 		for(auto& pw: e->getPowers()){
-			pw->onTurnStart();
+			pw->onTurnStart(*this);
 		}
 		e->removeInvalidPowers();
 	}
@@ -188,7 +194,7 @@ void Game::endEnemyTurn(){
 
 	for(auto& e: enemies){
 		for(auto& pw: e->getPowers()){
-			pw->onTurnEnd();
+			pw->onTurnEnd(*this);
 		}
 		e->removeInvalidPowers();
 	}
@@ -248,12 +254,18 @@ std::deque<Character*> Game::selectTargets(TID target, Character* source){
 		}
 		break;
 		
-		case TID::random_enemy:
-		if(enemies.empty()){std::cout<<"No enemies to target!\n"; break;}
+		case TID::random_enemy:{
+		
+		//Valid if there is at least one single enemy alive
+		bool valid = std::find_if(enemies.begin(), enemies.end(), 
+		[&](std::unique_ptr<Enemy>& e){ return e->isAlive();}) != enemies.end();
+		if(!valid){std::cout<<"No enemies to target!\n"; break;}
+
 		do{ choice = rng.nextInt(0,enemies.size()-1); }while(!enemies[choice]->isAlive());
 		targets.push_back(enemies[choice].get());
 		break;
-		
+		}
+
 		case TID::self: if(source->isAlive()){targets.push_back(source);} break;
 		
 		default: std::cout<<"Invalid target type!\n"; break;
@@ -372,10 +384,12 @@ bool Game::removeDeadCharacters(){
 				else{return false;}
 			}
 		),enemies.end());
-	
-	if(!player->isAlive()){
-		player.reset();
-		death = true;
+		
+	if(player){		
+		if(!player->isAlive()){
+			player.reset();
+			death = true;
+		}
 	}
 	return death;
 }

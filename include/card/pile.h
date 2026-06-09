@@ -25,7 +25,7 @@ class Pile{
 
 	void addCardTop(Card& card);
 	void addCardBot(Card& card);
-	
+	void addCard(Card& card, int pos);
 	void remove(int position);
 	
 	void addPileToSelf(Pile &p);

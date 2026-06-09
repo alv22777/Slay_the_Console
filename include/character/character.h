@@ -6,9 +6,9 @@
 #include "stdint.h"
 #include "game_logic/power.h"
 #include <memory>
-#include <vector>
+#include <deque>
 
-enum class Color;
+enum class Color; class Game;
 enum class Attribute{hp, max_hp, block, energy, max_energy};
 
 
@@ -22,7 +22,7 @@ class Character{
 	int HP; 
 	int block;
 	
-	std::vector<std::unique_ptr<Power>> powers;
+	std::deque<std::unique_ptr<Power>> powers;
 	
 	public:
 	Character(std::string N, int MHP, Color c);
@@ -36,7 +36,7 @@ class Character{
 	int32_t changeAttribute(Attribute att, int Delta);
     Color getColor();
 	
-	const std::vector<std::unique_ptr<Power>>& getPowers();
+	const std::deque<std::unique_ptr<Power>>& getPowers();
 
 	bool isAlive();	
 	int32_t takeDamage(int magnitude);
@@ -52,7 +52,7 @@ class Character{
 	void displayStatus();
 	void displayPowers();
 
-	void onHit(Character* source);
+	void onHit(Character* source, Game& game);
 	int32_t modOutDamage(int32_t base);
 	int32_t modIncDamage(int32_t base);
 	int32_t modBlockGain(int32_t base);

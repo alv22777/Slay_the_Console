@@ -18,8 +18,9 @@ expertise: target player draws cards until hand size is n.
 */
 enum class EID{
     damage, block, energy, hp, 
-    draw, discard, exhaust, cards_bottom, cards_top, expertise,
-    gain, addCard,
+    draw, discard, exhaust, random_card_transfer, cards_bottom, cards_top, expertise,
+    gain, addCard, shuffleCard,
+    
     none
 };
 
@@ -32,8 +33,7 @@ struct EffectReport{
 
     int32_t energy_gained = 0;
     int32_t cards_drawn = 0;
-    int32_t cards_exhausted = 0;
-    int32_t cards_discarded = 0;
+    int32_t cards_transferred = 0;
 
     CID card_added;
     int32_t cards_added = 0;
@@ -54,10 +54,17 @@ class Effect{
 
 
     public:
-    Effect(EID t, int m, TID tar); //Normal effect
-    Effect(EID t, int m, TID tar, PID p);//Gain Power effect
-    Effect(EID t, int m, CID c, PileID tar_p);//add m cards with CID c to target Pile
-    Effect(EID t, int m, PileID src_p, PileID tar_p);//move m cards from source pile to target pile
+    //Normal effect
+    Effect(EID t, int m, TID tar);
+
+    //Gain Power effect
+    Effect(EID t, int m, TID tar, PID p);
+    
+    //add m cards with CID c to target Pile
+    Effect(EID t, int m, CID c, PileID tar_p);
+
+    //move m cards from source pile to target pile
+    Effect(EID t, int m, PileID src_p, PileID tar_p);
 
 
     EffectReport apply(std::deque<Character*> target, Character* source, Game& game); //Applies this effect to the target character. 

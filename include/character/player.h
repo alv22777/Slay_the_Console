@@ -40,6 +40,7 @@ class Player: public Character{
 
     //Add Card c to player Pile type (deck, hand, discard...). 
     void addToPile(PileID type, Card &c, bool bottom);
+    void shuffleIntoDraw(Card& c, Game& game);
 
     int getPlayerPileSize(PileID type);
 	//Removes Card with position pos from the player's Pile type (deck, hand, discard...).
@@ -77,6 +78,7 @@ class Player: public Character{
     uint32_t transferCardsAuto(PileID source, PileID target, std::deque<int> selected, bool bottom);
 
     std::deque<int> chooseCards(PileID source, int amount, Game& game);
+    std::deque<int> randomCards(PileID source, int amount, Game& game);
     std::deque<int> findIndexes(PileID p, CardType c, bool matching); 
     
     Player(const Player&) = delete;

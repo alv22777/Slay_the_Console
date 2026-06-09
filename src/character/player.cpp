@@ -97,7 +97,22 @@ uint32_t Player::drawCards(int amount, Game& game){
 
 bool Player::isHandFull(){return hand.getSize()==MAX_HAND_SIZE;}
 
-void Player::discardHand(){hand.movePileTo(discard);}
+void Player::discardHand(){
+    for(int i = hand.getSize()-1; i>=0;i--){
+        Card c = hand.getCard(i);
+        
+        if(c.hasEthereal()){
+            exhaust.addCardTop(c); 
+            hand.remove(i);
+            continue;
+        }
+        
+        if(!c.hasRetain()){
+            discard.addCardTop(c);
+            hand.remove(i);
+        }
+    }
+}
 
 void Player::playCardFromHand(int pos, Game& game){
     Card& tried = getCardFromPile(PileID::hand,pos);
@@ -110,6 +125,7 @@ void Player::playCardFromHand(int pos, Game& game){
     played.applyEffects(*this,game, pos);
     
     game.removeDeadCharacters();
+    game.removeInvalidPowers();
 }
 
 std::unique_ptr<Player> Player::createPlayer(int choice){
@@ -156,6 +172,11 @@ void Player::addToPile(PileID type, Card& c, bool bottom){
             case PileID::exhaust: exhaust.addCardTop(c); break;
         }
     }
+}
+
+void Player::shuffleIntoDraw(Card&c, Game& game){
+    if(isHandFull()){ discard.addCardTop(c); return;}
+    draw.addCard(c, game.rng.nextInt(0, draw.getSize()));    
 }
 
 void Player::removeFromPlayerPile(PileID type, int position){
@@ -344,6 +365,31 @@ std::deque<int> Player::chooseCards(PileID source, int amount, Game& game){
             selected[i] = IndexedCards[selected[i]].index;
         }
     }
+
+    return selected;
+}
+std::deque<int> Player::randomCards(PileID source, int amount, Game& game){
+    std::deque<int> selected;
+    int pile_size = getPlayerPileSize(source);
+    int max = pile_size-1;
+
+
+    if(amount>=pile_size){ //We can't get more cards if source's pile size is smaller, so just default to the whole pile
+        for(int i = 0; i<pile_size;i++){ selected.push_back(i); }
+        return selected;
+    }
+
+    while(selected.size()<amount){
+
+        int i = game.rng.nextInt(0, max);
+        
+        bool found = std::find(selected.begin(), selected.end(), i) != selected.end();
+
+        if(!found){
+            selected.push_back(i);
+        }
+    }
+    
 
     return selected;
 }

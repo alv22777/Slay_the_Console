@@ -36,7 +36,7 @@ EffectReport Effect::apply(std::deque<Character*> target, Character* source, Gam
                 damage = source->modOutDamage(damage);
                 damage = c->modIncDamage(damage);
                 report.damage_dealt += c->takeDamage(damage); 
-                c->onHit(source);
+                c->onHit(source, game);
                 
                 break;
             }
@@ -60,11 +60,20 @@ EffectReport Effect::apply(std::deque<Character*> target, Character* source, Gam
                 if(p){report.cards_drawn += p->drawCards(magnitude,game);}
                 break; }
             case EID::discard:{
-                if(p){report.cards_discarded += p->transferCardsManual(PileID::hand, PileID::discard, magnitude, false, game);}
+                if(p){report.cards_transferred += p->transferCardsManual(PileID::hand, PileID::discard, magnitude, false, game);}
                 break;}
             case EID::exhaust:{
-                if(p){report.cards_exhausted += p->transferCardsManual(PileID::hand, PileID::exhaust, magnitude, false, game);} 
+                if(p){report.cards_transferred += p->transferCardsManual(PileID::hand, PileID::exhaust, magnitude, false, game);} 
                 break;} 
+
+            case EID::random_card_transfer:{
+                if(p){
+                    std::deque<int> choices = p->randomCards(*source_pile, magnitude, game);
+                    report.cards_transferred += p->transferCardsAuto(*source_pile, *target_pile, choices, true);
+                }
+                break;
+            }
+            
             case EID::cards_bottom:{
                 if(p && source_pile && target_pile && card){
                     p->transferCardsManual(*source_pile, *target_pile, magnitude, true, game);
@@ -90,11 +99,16 @@ EffectReport Effect::apply(std::deque<Character*> target, Character* source, Gam
             case EID::addCard:{
                 if(p){
                     Card add = createCard(*card);
-                    for(int i = 0;i<magnitude;i++){ p->addToPile(PileID::hand, add, true); }
+                    for(int i = 0;i<magnitude;i++){ p->addToPile(*target_pile, add, true); }
                 }
                 break;
             }
-            
+            case EID::shuffleCard:{
+                if(p){
+                    Card add = createCard(*card);
+                    for(int i = 0; i<magnitude;i++){p->shuffleIntoDraw(add, game);}
+                }
+            }
             default: {std::cout<<"No implementation yet!\n"; break;}
         }
     }
@@ -115,6 +129,9 @@ std::string Effect::log(std::deque<Character*> target, Character* source, Effect
 
     if(target.empty()){return "";}
     
+
+    
+
     std::string log; std::string who; std::string what; std::string to_who; std::string how_much = std::to_string(abs(magnitude));
     bool single_target = target_type == TID::player   || target_type == TID::random_enemy || 
                          target_type == TID::enemy    || target_type == TID::self;
@@ -158,16 +175,32 @@ std::string Effect::log(std::deque<Character*> target, Character* source, Effect
             what = " drew " + how_much + " card" + ((report.cards_drawn>1)? "s.":".");
         break;}
         case EID::discard:{
-            if(report.cards_discarded == 0){return "";}
-            how_much = std::to_string(abs(report.cards_discarded));
-            what = " discarded " + how_much + " card" +((report.cards_discarded>1)? "s.":".");
+            if(report.cards_transferred == 0){return "";}
+            how_much = std::to_string(abs(report.cards_transferred));
+            what = " discarded " + how_much + " card" +((report.cards_transferred>1)? "s.":".");
         break;}
 
         case EID::exhaust:{
-            if(report.cards_exhausted == 0){return "";}
-            how_much = std::to_string(abs(report.cards_exhausted));
-            what = " exhausted " + how_much + " card" +((report.cards_exhausted>1)? "s.":".");
+            if(report.cards_transferred == 0){return "";}
+            how_much = std::to_string(abs(report.cards_transferred));
+            what = " exhausted " + how_much + " card" +((report.cards_transferred>1)? "s.":".");
         break;}
+
+        case EID::random_card_transfer:{
+            std::string where;
+            if(target_pile.has_value()){
+                switch(*target_pile){
+                    case PileID::exhaust: where = " exhausted "; break;
+                    case PileID::discard: where = " discarded "; break;
+                    default: break;
+                }
+            }
+            
+            if(report.cards_transferred == 0){return "";}
+            how_much = std::to_string(abs(report.cards_transferred));
+            what = where + how_much + " card" + ((report.cards_transferred>1)? "s.":".");
+            break;
+        }   
         case EID::gain:{
             if(magnitude == 0){return "";}
             what = ((magnitude>0)? " gained ":" lost " ) + how_much +" "+Power::IDtoString(*power, true)+".";

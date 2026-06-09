@@ -57,7 +57,12 @@ void Enemy::displayIntent(Game& game){
                 break;
             }
 
-            case EID::gain: std::cout<<"( "<<color(Color::buff, "🠉")<<" )"; break;
+            case EID::gain: {
+                if(e.getTarget()==TID::player){ std::cout<<"( "<<color(Color::debuff, "🠋")<<" )"; }
+                else{ std::cout<<"( "<<color(Color::buff  , "🠉")<<" )"; }
+                break;
+            }
+
             default: std::cout<<"( "<<color(Color::unknown, "???")<<" )"; break;
         }
     }

@@ -23,7 +23,7 @@ int Character::getAttribute(Attribute a){
 
 Color Character::getColor(){return col;}
 
-const std::vector<std::unique_ptr<Power>>& Character::getPowers(){return powers;}
+const std::deque<std::unique_ptr<Power>>& Character::getPowers(){return powers;}
 
 void Character::setName(std::string n){name = n;}
 
@@ -149,8 +149,8 @@ void Character::removeInvalidPowers(){
     }), powers.end());
 }
 
-void Character::onHit(Character* source){
-    for(auto&p: powers){p->onHit(source);}
+void Character::onHit(Character* source, Game& game){
+    for(auto&p: powers){p->onHit(source, game);}
 }
 
 int32_t Character::modOutDamage(int32_t base){ 
@@ -161,4 +161,8 @@ int32_t Character::modOutDamage(int32_t base){
 
 int32_t Character::modIncDamage(int32_t base){ for(auto& p: powers){ base = p->modIncDamage(base); } return base;}
 
-int32_t Character::modBlockGain(int32_t base){ for(auto& p: powers){ base = p->modBlockGain(base); } return base;}
+int32_t Character::modBlockGain(int32_t base){ 
+    for(auto& p: powers){ base = p->modBlockGainAdd(base); }
+    for(auto& p: powers){ base = p->modBlockGainMult(base); }
+    return base;
+}
