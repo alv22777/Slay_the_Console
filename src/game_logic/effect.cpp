@@ -192,7 +192,7 @@ std::string Effect::log(std::deque<Character*> target, Character* source, Effect
                 switch(*target_pile){
                     case PileID::exhaust: where = " exhausted "; break;
                     case PileID::discard: where = " discarded "; break;
-                    default: break;
+                    default: where = " transferred "; break;
                 }
             }
             

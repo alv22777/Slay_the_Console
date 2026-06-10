@@ -25,7 +25,7 @@ const uint64_t SEED_MAX = UINT64_MAX;
 Effect NO_EFFECT(EID::none, 0, TID::self);
 
 
-Card blank_card = {CID::blank_card,Color::colorless,"None",CardType::status,0,CardRarity::status,"None",{}, false, false, false, false };
+Card blank_card = {CID::blank_card,Color::colorless,"None",CardType::status,-1,CardRarity::status,"None",{}, false, false, false, false };
 
 //THE IRONCLAD
 Card ICL_Strike = {CID::ICL_Strike,Color::red, "Strike", CardType::attack, 1, CardRarity::starter,"Deal 6 damage.", {Effect(EID::damage, 6,TID::enemy)}, false, false, false, false };
@@ -137,7 +137,10 @@ Card Inflame = {CID::Inflame, Color::red, "Inflame", CardType::power, 1, CardRar
 Card Intimidate = {CID::Intimidate, Color::red, "Intimidate", CardType::skill, 0, CardRarity::uncommon, "Apply 1 weak to ALL enemies.",{
     Effect(EID::gain, 1, TID::enemy_all, PID::weak)
 }, false, true, false, false}; 
-Card Metallicize = blank_card; 
+Card Metallicize = {CID::Metallicize, Color::red, "Metallicize", CardType::power, 1, CardRarity::uncommon, "At the end of your turn, gain 3 block.",
+{
+    Effect(EID::gain, 3, TID::self, PID::metallicize)
+}, false, false, false, false }; 
 Card Power_Through = blank_card; 
 Card Pummel = {CID::Pummel, Color::red, "Pummel", CardType::attack, 1, CardRarity::uncommon, "Deal 2 damage 4 times.",{
     Effect(EID::damage, 2, TID::enemy),
@@ -171,11 +174,16 @@ Card Uppercut = {CID::Uppercut, Color::red, "Uppercut", CardType::attack, 2, Car
 Card Whirlwind = blank_card; 
 
 //RARE
-Card Barricade = {CID::Barricade, Color::red, "Barricade", CardType::power, 1, CardRarity::rare, "Block is not removed at the start of your turn.",{
-    Effect(EID::gain, 0, TID::self, PID::barricade)
+Card Barricade = {CID::Barricade, Color::red, "Barricade", CardType::power, 3, CardRarity::rare, "Block is not removed at the start of your turn.",{
+    Effect(EID::gain, 1, TID::self, PID::barricade)
 }, false, false, false, false }; 
-Card Berserk = blank_card; 
-Card Bludgeon = blank_card; 
+Card Berserk = {CID::Berserk, Color::red, "Berserk", CardType::power, 0, CardRarity::rare, "Gain 2 vulnerable. At the start of your turn, gain 1 energy.",{
+    Effect(EID::gain, 2, TID::self, PID::vulnerable),
+    Effect(EID::gain, 1, TID::self, PID::berserk),
+}, false, false, false, false};
+Card Bludgeon = {CID::Bludgeon, Color::red, "Bludgeon", CardType::attack, 3, CardRarity::rare, "Deal 32 damage.", {
+    Effect(EID::damage, 32, TID::enemy),
+},false, false, false, false};
 Card Brutality = blank_card; 
 Card Corruption = blank_card; 
 Card Demon_Form = {CID::Demon_Form, Color::red, "Demon Form", CardType::power, 3, CardRarity::rare, "At the start of your turn, gain 2 strength.",{
@@ -188,7 +196,10 @@ Card Exhume = {CID::Exhume, Color::red, "Exhume", CardType::skill, 1, CardRarity
     }, false, true, false, false};
 Card Feed = blank_card; 
 Card Fiend_Fire = blank_card; 
-Card Immolate = blank_card; 
+Card Immolate = {CID::Immolate, Color::red, "Immolate", CardType::attack, 2, CardRarity::rare, "Deal 21 damage to ALL enemies. Add a Burn into your discard pile.",{
+    Effect(EID::damage, 21, TID::enemy_all),
+    Effect(EID::addCard, 1, CID::Burn, PileID::discard)
+},false, false, false, false};
 Card Impervious = {CID::Impervious, Color::red, "Impervious", CardType::skill, 2, CardRarity::rare, "Gain 30 block.",{
     Effect(EID::block, 30, TID::self)
 }, false, true, false, false}; 
@@ -719,7 +730,7 @@ Card Through_Violence = {CID::Through_Violence, Color::colorless, "Through Viole
 //STATUS
 Card Burn = blank_card; 
 Card Dazed = {CID::Dazed, Color::status, "Dazed", CardType::status, -1, CardRarity::status, "Unplayable.", {}, true, false, false, false};
-Card Slimed = blank_card; 
+Card Slimed = {CID::Slimed, Color::status, "Slimed", CardType::status, 1, CardRarity::status, "", {}, false, true, false, false};
 Card Void = blank_card; 
 Card Wound={CID::Wound, Color::status, "Wound", CardType::status, -1, CardRarity::status, "Unplayable.",{}, false, false, false, false };
 
@@ -744,28 +755,136 @@ Pile empty_deck = {};
 Pile ICL_STARTER_DECK = createIroncladStarterDeck();
 Pile SLT_STARTER_DECK = createSilentStarterDeck();
 
+std::vector<CID> ICL_COMMON {
+    CID::Anger,         CID::Armaments,     CID::Body_Slam,         CID::Clash,       CID::Cleave,    CID::Clothesline,
+    CID::Flex,          CID::Havoc,         CID::Headbutt,          CID::Heavy_Blade, CID::Iron_Wave, CID::Perfected_Strike,
+    CID::Pommel_Strike, CID::Shrug_It_Off,  CID::Sword_Boomerang,   CID::Thunderclap, CID::True_Grit, 
+    CID::Twin_Strike,   CID::Warcry,        CID::Wild_Strike,
+};
+
+std::vector<CID> ICL_UNCOMMON{
+    CID::Battle_Trance,   CID::Blood_For_Blood, CID::Bloodletting,   CID::Burning_Pact,   CID::Carnage,
+    CID::Combust,         CID::Dark_Embrace,    CID::Disarm,         CID::Dropkick,       CID::Dual_Wield,
+    CID::Entrench,        CID::Evolve,          CID::Feel_No_Pain,   CID::Fire_Breathing, CID::Flame_Barrier,
+    CID::Ghostly_Armor,   CID::Hemokinesis,     CID::Infernal_Blade, CID::Inflame,        CID::Intimidate,
+    CID::Metallicize,     CID::Power_Through,   CID::Pummel,         CID::Rage,           CID::Rampage,
+    CID::Reckless_Charge, CID::Rupture,         CID::Searing_Blow,   CID::Second_Wind,    CID::Seeing_Red,
+    CID::Sentinel,        CID::Sever_Soul,      CID::Shockwave,      CID::Spot_Weakness,  CID::Uppercut,
+    CID::Whirlwind,
+};
+
+std::vector<CID> ICL_RARE{
+    CID::Barricade,  CID::Berserk,    CID::Bludgeon,   CID::Brutality,   CID::Corruption,
+    CID::Demon_Form, CID::Double_Tap, CID::Exhume,     CID::Feed,        CID::Fiend_Fire,
+    CID::Immolate,   CID::Impervious, CID::Juggernaut, CID::Limit_Break, CID::Offering,
+    CID::Reaper,
+};
+
+std::vector<CID> SLT_COMMON{
+    CID::Acrobatics,   CID::Backflip,      CID::Bane,          CID::Blade_Dance,    CID::Cloak_and_Dagger,
+    CID::Dagger_Spray, CID::Dagger_Throw,  CID::Deadly_Poison, CID::Dodge_and_Roll, CID::Flying_Knee,
+    CID::Outmaneuver,  CID::Piercing_Wail, CID::Poisoned_Stab, CID::Prepared,       CID::Quick_Slash,
+    CID::Slice,        CID::Sneaky_Strike, CID::Sucker_Punch,
+};
+std::vector<CID> SLT_UNCOMMON{
+    CID::Accuracy,          CID::All_Out_Attack,  CID::Backstab,          CID::Blur,           CID::Bouncing_Flask,
+    CID::Calculated_Gamble, CID::Caltrops,        CID::Catalyst,          CID::Choke,          CID::Concentrate,
+    CID::Crippling_Cloud,   CID::Dash,            CID::Distraction,       CID::Endless_Agony,  CID::Escape_Plan,
+    CID::Eviscerate,        CID::Expertise,       CID::Finisher,          CID::Flechettes,     CID::Footwork,
+    CID::Heel_Hook,         CID::Infinite_Blades, CID::Leg_Sweep,         CID::Masterful_Stab, CID::Noxious_Fumes,
+    CID::Predator,          CID::Reflex,          CID::Riddle_with_Holes, CID::Setup,          CID::Skewer,
+    CID::Tactician,         CID::Terror,          CID::Well_Laid_PLans,
+};
+
+std::vector<CID> SLT_RARE{
+    CID::A_Thousand_Cuts, CID::Adrenaline,         CID::After_Image, CID::Alchemize,    CID::Bullet_Time,
+    CID::Burst,           CID::Corpse_Explosion,   CID::Die_Die_Die, CID::Doppelganger, CID::Envenom,
+    CID::Glass_Knife,     CID::Grand_Finale,       CID::Malaise,     CID::Nightmare,    CID::Phantasmal_Killer,
+    CID::Storm_of_Steel,  CID::Tools_of_the_Trade, CID::Unload,      CID::Wraith_Form,
+};
+
+std::vector<CID> DEF_COMMON{
+    CID::Ball_Lightning, CID::Barrage,        CID::Beam_Cell,  CID::Charge_Battery,  CID::Claw, 
+    CID::Cold_Snap,      CID::Compile_Driver, CID::Coolheaded, CID::Go_for_the_Eyes, CID::Hologram, 
+    CID::Leap,           CID::Rebound,        CID::Recursion,  CID::Stack,           CID::Steam_Barrier, 
+    CID::Streamline,     CID::Sweeping_Beam,  CID::Turbo, 
+};
+std::vector<CID> DEF_UNCOMMON{
+    CID::Aggregate,       CID::Auto_Shields,     CID::Blizzard,          CID::Boot_Sequence, CID::Bullseye, 
+    CID::Capacitor,       CID::Chaos,            CID::Chill,             CID::Consume,       CID::Darkness, 
+    CID::Defragment,      CID::Doom_and_Gloom,   CID::Double_Energy,     CID::Equilibrium,   CID::FTL, 
+    CID::Force_Field,     CID::Fusion,           CID::Genetic_Algorithm, CID::Glacier,       CID::Heatsinks, 
+    CID::Hello_World,     CID::Loop,             CID::Melter,            CID::Overclock,     CID::Recycle, 
+    CID::Reinforced_Body, CID::Reprogram,        CID::Rip_and_Tear,      CID::Scrape,        CID::Self_Repair, 
+    CID::Skim,            CID::Static_Discharge, CID::Storm,             CID::Sunder,        CID::Tempest, 
+    CID::White_Noise,     
+};
+std::vector<CID> DEF_RARE{
+    CID::All_for_One,      CID::Amplify,        CID::Biased_Cognition, CID::Buffer,  CID::Core_Surge, 
+    CID::Creative_AI,      CID::Echo_Form,      CID::Electrodynamics,  CID::Fission, CID::Hyperbeam, 
+    CID::Machine_Learning, CID::Meteor_Strike,  CID::Multi_Cast,       CID::Rainbow, CID::Reboot, 
+    CID::Seek,             CID::Thunder_Strike,  
+};
+
+std::vector<CID> WAT_COMMON{
+    CID::Bowling_Bash, CID::Consecrate, CID::Crescendo,  CID::Crush_Joints,    CID::Cut_Through_Fate, 
+    CID::Empty_Body,   CID::Empty_Fist, CID::Evaluate,   CID::Flurry_Of_Blows, CID::Flying_Sleeves, 
+    CID::Follow_Up,    CID::Halt,       CID::Just_Lucky, CID::Pressure_Points, CID::Prostrate, 
+    CID::Protect,      CID::Sash_Whip,  CID::Third_Eye,  CID::Tranquility, 
+};
+std::vector<CID> WAT_UNCOMMON{
+    CID::Battle_Hymn, CID::Carve_Reality,    CID::Collect,         CID::Conclude,          CID::Deceive_Reality, 
+    CID::Empty_Mind,  CID::Fasting,          CID::Fear_No_Evil,    CID::Foreign_Influence, CID::Foresight, 
+    CID::Indignation, CID::Inner_Peace,      CID::Like_Water,      CID::Meditate,          CID::Mental_Fortress, 
+    CID::Nirvana,     CID::Perseverance,     CID::Pray,            CID::Reach_Heaven,      CID::Rushdown, 
+    CID::Sanctity,    CID::Sands_of_Time,    CID::Signature_Move,  CID::Simmering_Fury,    CID::Study, 
+    CID::Swivel,      CID::Talk_to_the_Hand, CID::Tantrum,         CID::Wallop,            CID::Wave_of_the_Hand, 
+    CID::Weave,       CID::Wheel_Kick,       CID::Windmill_Strike, CID::Worship,           CID::Wreath_of_Flame, 
+};
+std::vector<CID> WAT_RARE{
+    CID::Alpha,          CID::Blasphemy,   CID::Brilliance,    CID::Conjure_Blade, CID::Deus_Ex_Machina, 
+    CID::Deva_Form,      CID::Devotion,    CID::Establishment, CID::Judgment,      CID::Lesson_Learned, 
+    CID::Master_Reality, CID::Omniscience, CID::Ragnarok,      CID::Scrawl,        CID::Spirit_Shield, 
+    CID::Vault,          CID::Wish, 
+};
+std::vector<CID> CLS_UNCOMMON{
+    CID::Bandage_Up,        CID::Blind,         CID::Dark_Shackles,       CID::Deep_Breath,    CID::Discovery, 
+    CID::Dramatic_Entrance, CID::Enlightenment, CID::Finesse,             CID::Flash_of_Steel, CID::Forethought, 
+    CID::Good_Instincts,    CID::Impatience,    CID::Jack_of_All_Trades,  CID::Madness,        CID::Mind_Blast, 
+    CID::Panacea,           CID::Panic_Button,  CID::Purity,              CID::Swift_Strike,   CID::Trip, 
+};
+std::vector<CID> CLS_RARE{
+    CID::Apotheosis,    CID::Chrysalis,     CID::Hand_of_Greed,  CID::Magnetism,       CID::Master_of_Strategy, 
+    CID::Mayhem,        CID::Metamorphosis, CID::Panache,        CID::Sadistic_Nature, CID::Secret_Technique, 
+    CID::Secret_Weapon, CID::The_Bomb,      CID::Thinking_Ahead, CID::Transmutation,   CID::Violence, 
+};
+std::vector<CID> SPECIAL_CARDS{
+    CID::Apparition, CID::Beta,             CID::Bite,          CID::Expunger, CID::Insight,
+    CID::JAX,        CID::Omega,            CID::Ritual_Dagger, CID::Safety,   CID::Shiv, 
+    CID::Smite,      CID::Through_Violence, 
+
+};
+std::vector<CID> STATUS_CARDS{
+    CID::Burn, CID::Dazed, CID::Slimed, CID::Void, CID::Wound, 
+};
+std::vector<CID> CURSE_CARDS{
+    CID::Ascenders_Bane, CID::Clumsy,         CID::Curse_of_the_Bell, CID::Decay,  CID::Doubt, 
+    CID::Injury,         CID::Necronomicurse, CID::Normality,         CID::Pain,   CID::Parasite, 
+    CID::Pride,          CID::Regret,         CID::Shame,             CID::Writhe,
+};
+
+
+
 Pile createIroncladStarterDeck(){
-    Pile deck;
-    for(int i = 0; i<2;i++){deck.addCardTop(ICL_Strike);}
-    for(int i =0; i<2;i++){deck.addCardTop(ICL_Defend);}
-    deck.addCardTop(Alpha);
-    deck.addCardTop(Fasting);
-    deck.addCardTop(Deceive_Reality);
-    deck.addCardTop(True_Grit);
-    deck.addCardTop(All_Out_Attack);
-    deck.addCardTop(Burning_Pact);
-    deck.addCardTop(Acrobatics);
-    deck.addCardTop(Blade_Dance);
-    deck.addCardTop(Thunderclap);
-    deck.addCardTop(Sword_Boomerang);
-    deck.addCardTop(Deadly_Poison);
-    deck.addCardTop(Clothesline);
-    deck.addCardTop(Protect);
+    Pile deck ({});
+    // for(int i = 0; i<2;i++){deck.addCardTop(ICL_Strike);}
+    // for(int i =0; i<2;i++){deck.addCardTop(ICL_Defend);}
+    deck.addCardTop(Bludgeon);
     return deck;
 }
 
 Pile createSilentStarterDeck(){
-    Pile deck;
+    Pile deck ({});
     for(int i = 0; i<5; i++){deck.addCardTop(SLT_Strike);}
     for(int i = 0;i<5;i++){deck.addCardTop(SLT_Defend);}
     deck.addCardTop(Neutralize);

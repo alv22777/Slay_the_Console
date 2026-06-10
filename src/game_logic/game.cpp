@@ -24,6 +24,7 @@ void Game::run(){
 	while(player){
 		floor++;
 		fight(); //This will be dependent on the floor type, for now, it's always a fight.	
+		if(player){cardReward();};
 	}
 	
 }
@@ -31,7 +32,7 @@ void Game::run(){
 
 bool Game::gameOver(){
 	enemies.clear();	
-	std::cout<<"You lost! go again?(y/n)\n";
+	std::cout<<center("You lost! go again?(y/n)", 100)<<'\n'<<padLeft("",50);
 	
 	char replay;
 	do{replay = inputChar();}
@@ -44,7 +45,7 @@ bool Game::gameOver(){
 		event_log.clear();
 		return true;
 	}
-	else{std::cout<<"Thanks for playing!\n"; return false;}
+	else{std::cout<<'\n'<<center("Thanks for playing!",100); return false;}
 }
 
 //COMBAT FLOW
@@ -175,6 +176,7 @@ void Game::startEnemyTurn(){
 			pw->onTurnStart(*this);
 		}
 		e->removeInvalidPowers();
+		e->setAttribute(Attribute::block, 0);
 	}
 	removeDeadCharacters();
 }
@@ -240,7 +242,7 @@ std::deque<Character*> Game::selectTargets(TID target, Character* source){
 		if(enemies.size()==1){
 			if(enemies[0]->isAlive()){ targets.push_back(enemies[0].get()); break; }
 		}
-		if (enemies.size()==0){std::cout<<"No enemies to target!\n"; targets.clear(); break;}
+		if (enemies.size()==0){std::cout<<"No enemies to target!\n"; break;}
 
 		std::cout<<"Choose an enemy > ";
 		choice = inputInt(0,enemies.size()-1, true);
@@ -290,8 +292,7 @@ bool Game::hasValidTargets(TID t, Character& source){
 
 int32_t Game::calculateIntentDamage(int32_t base, Enemy* source){
 	int32_t damage = base;
-
-	damage = player->modIncDamage(damage);
+	if(player){ damage = player->modIncDamage(damage); }	
 	damage = source->modOutDamage(damage);
 	
 	return damage;
@@ -328,8 +329,9 @@ void Game::resolveEffects(Character& source, std::vector<Effect>& effects){
 
 		pushLog(effects[i].log(targets, &source, results[i]), 1);
 
-		// Check whether reused single target died
-		if(!source.isAlive()){break;}
+		
+		if(!source.isAlive()){break;} //Source dies -> remaining effects fizzle
+		
 		target_died = is_single_target && !targets.empty() && !targets[0]->isAlive();
 		
 		displayGameState( );
@@ -337,33 +339,89 @@ void Game::resolveEffects(Character& source, std::vector<Effect>& effects){
 	}
 }
 
+//REWARDS
+Pile Game::generateCards(std::vector<CID>* common, std::vector<CID>* uncommon, std::vector<CID>* rare, int amount){
+	std::vector<CID>* pool;	  std::vector<CID> reward_ids;
+	Pile rewards;
+
+	while(rewards.getSize()<amount){
+		float rarity = rng.nextFloat(0,1);
+		if	   (rarity <= 0.60){pool = common;}
+		else if(rarity <= 0.97){pool = uncommon;}
+		else if(rarity <= 1.00){pool = rare;}
+		
+		bool already_selected;
+		do{
+			CID id = (*pool)[rng.nextInt(0,(*pool).size()-1)];
+			already_selected = std::find(reward_ids.begin(), reward_ids.end(), id) != reward_ids.end();
+			if(!already_selected){
+				reward_ids.push_back(id);
+				Card c = createCard(id);
+				rewards.addCardTop(c);
+			}
+		}while(already_selected);
+	}
+	return rewards;
+}
+
+void Game::cardReward(){
+	clearScreen();
+	int amount = 3;
+	std::vector<CID>* common; std::vector<CID>* uncommon; std::vector<CID>* rare; 
+	std::vector<CID>* pool;	  std::vector<CID> reward_id;
+	switch(player->getColor()){
+		case Color::red:   {common = &ICL_COMMON; uncommon = &ICL_UNCOMMON; rare = &ICL_RARE; break;}
+		case Color::green: {common = &SLT_COMMON; uncommon = &SLT_UNCOMMON; rare = &SLT_RARE; break;}
+		case Color::blue:  {common = &DEF_COMMON; uncommon = &DEF_UNCOMMON; rare = &DEF_RARE; break;}
+		case Color::purple:{common = &WAT_COMMON; uncommon = &WAT_UNCOMMON; rare = &WAT_RARE; break;}
+	}
+
+	Pile rewards = generateCards(common, uncommon, rare, amount);
+	
+	std::cout<<"Choose a card...\n";
+	rewards.displayPile();
+	std::cout<<"Choice > ";
+	int choice = inputInt(0, rewards.getSize()-1, false); //Not mandatory, player is allowed to skip
+	
+	if(0<=choice&&choice<=rewards.getSize()-1){ player->addToPile(PileID::deck, rewards.getCard(choice), false); }
+	else{std::cout<<"Skipped...\n";}
+}
+
+
 //UI
 
 void Game::displayGameState(){
 	clearScreen();
+	if(player){
 
-	std::cout<<"========================================\n";
-	std::cout<<"FLOOR "<<floor<<" - TURN "<<turn<<"  seed: "<<rng.base36()<<"\n";
 
-	//Show game and player status.
-	player->displayStatus();
-	std::cout<<"Enemies:\n";
-	for(size_t i = 0; i<enemies.size();i++){std::cout<<i<<") "; enemies[i]->displayStatus(*this);}
+
+		std::cout<<"========================================\n";
+		std::cout<<"FLOOR "<<floor<<" - TURN "<<turn<<"  seed: "<<rng.base36()<<"\n";
 	
-	std::cout<<"----------------------------------------\n";
-
-	player->displayPlayerPile(PileID::hand, true, 10, false);	
-	std::cout<<    "Draw [A]: "<<player->getPlayerPileSize(PileID::draw);
-	std::cout<<" Discard [D]: "<<player->getPlayerPileSize(PileID::discard);
-	std::cout<<" Exhaust [X]: "<<player->getPlayerPileSize(PileID::exhaust);
-	std::cout<<" End Turn [E]\n";
-	std::cout<<"========================================\n";
-	event_log.broadcast();
-
-	std::cout<<"Last Played: ";
-	if(player->getPlayed().getName() != blank_card.getName()){player->getPlayed().display();}
-
-	std::cout<<"\nChoice > ";
+		//Show game and player status.
+		player->displayStatus();
+		std::cout<<"Enemies:\n";
+		for(size_t i = 0; i<enemies.size();i++){std::cout<<i<<") "; enemies[i]->displayStatus(*this);}
+		
+		std::cout<<"----------------------------------------\n";
+	
+		player->displayPlayerPile(PileID::hand, true, 10, false);	
+		std::cout<<    "Draw [A]: "<<player->getPlayerPileSize(PileID::draw);
+		std::cout<<" Discard [D]: "<<player->getPlayerPileSize(PileID::discard);
+		std::cout<<" Exhaust [X]: "<<player->getPlayerPileSize(PileID::exhaust);
+		std::cout<<" End Turn [E]\n";
+		
+		std::cout<<"========================================\n";
+		event_log.broadcast();
+	
+		std::cout<<"Last Played: ";
+		
+		if(player->getPlayed().getName() != blank_card.getName()){player->getPlayed().display();}
+	
+		std::cout<<"\nChoice > ";
+	}
+	else{std::cout<<center("D E F E A T", 100)<<'\n'<<center("Death is whimsical today.", 100)<<'\n';}
 }
 
 void Game::pushLog(std::string s, uint8_t level){

@@ -1,5 +1,6 @@
 #include "ui/input.h"
 #include "ui/colors.h"
+#include "ui/formatting.h"
 #include<cctype>
 #include<conio.h>
 
@@ -33,6 +34,7 @@ char inputChar(){
 }
 
 int characterSelect(){
+    clearScreen();
     std::cout << "Please select your character:\n";
     std::cout<<color(Color::red, "1. The Ironclad\n")<<color(Color::green, "2. The Silent\n")<<
     color(Color::blue, "3. The Defect\n")<<color(Color::purple, "4. The Watcher\n");

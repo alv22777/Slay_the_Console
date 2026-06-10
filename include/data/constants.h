@@ -1,10 +1,11 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 #include"stdint.h"
-
+#include<vector>
 class Card;
 class Pile;
 class Effect;
+enum class CID;
 
 /*
 	Glossary:
@@ -44,6 +45,30 @@ extern Pile ICL_STARTER_DECK;
 extern Pile SLT_STARTER_DECK;
 extern Pile DEF_STARTER_DECK;
 extern Pile WAT_STARTER_DECK;
+
+
+//Card rewards
+extern std::vector<CID> ICL_COMMON;
+extern std::vector<CID> ICL_UNCOMMON;
+extern std::vector<CID> ICL_RARE;
+
+extern std::vector<CID> SLT_COMMON;
+extern std::vector<CID> SLT_UNCOMMON;
+extern std::vector<CID> SLT_RARE;
+
+extern std::vector<CID> DEF_COMMON;
+extern std::vector<CID> DEF_UNCOMMON;
+extern std::vector<CID> DEF_RARE;
+
+extern std::vector<CID> WAT_COMMON;
+extern std::vector<CID> WAT_UNCOMMON;
+extern std::vector<CID> WAT_RARE;
+
+extern std::vector<CID> CLS_UNCOMMON;
+extern std::vector<CID> CLS_RARE;
+
+extern std::vector<CID> CURSES;
+
 
 // Predefined Cards (Declared here, defined in `constants.cpp`)
 

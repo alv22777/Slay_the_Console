@@ -1,7 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
-class Player; class Enemy; class Character; enum class TID;
+class Player; class Enemy; class Character; enum class TID; class Pile; enum class CID;
 
 #include<deque>
 #include"game_logic/rng.h"
@@ -50,6 +50,9 @@ class Game{
     bool hasValidTargets(TID t, Character& source);
     void resolveEffects(Character& source, std::vector<Effect>& effects);
 
+	//REWARDS
+	Pile generateCards(std::vector<CID>* common, std::vector<CID>* uncommon, std::vector<CID>* rare, int amount);
+	void cardReward();
 	//UI
 
 	void displayGameState();

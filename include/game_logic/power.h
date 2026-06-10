@@ -18,7 +18,7 @@ enum class PID{
     vulnerable, lock_on, surrounded, buffer, intangible,
 
     //Modify block (from self)
-    frail, barricade, blur, dexterity,
+    frail, barricade, blur, dexterity, metallicize,
     
     //Modify energy
     deva, berserk, energized, fasting,
@@ -81,34 +81,52 @@ class Power{
     Character* owner;
 };
 
-class WeakPower: public Power{    
+class AccuracyPower: public Power{
     public:
-    int32_t modOutDamageMult(int32_t base) override;
-    WeakPower(int32_t i, Character* own);
-};
-
-class StrengthPower: public Power{
-    public:
+    AccuracyPower(int32_t i, Character* own);
     int32_t modOutDamageAdd(int32_t base) override;
-    StrengthPower(int32_t i, Character* own);
 };
 
-class VulnerablePower: public Power{
+class BerserkPower: public Power{
     public:
-    int32_t modIncDamage(int32_t base) override;
-    VulnerablePower(int32_t i, Character* own);
+    BerserkPower(int32_t i, Character* own);
+    void onTurnStart(Game& Game) override;
 };
 
-class RitualPower: public Power{
+class CurlUpPower: public Power{
     public:
-    RitualPower(int32_t i, Character* own);
-    void onTurnEnd(Game& game) override;
+    CurlUpPower(int32_t i, Character* own);
+    void onHit(Character* source, Game& game) override;
+};
+
+class DexterityPower: public Power{
+    public:
+    DexterityPower(int32_t i, Character* own);
+    int32_t modBlockGainAdd(int32_t base) override;
+};
+
+class FastingPower: public Power{
+    public:
+    FastingPower(int32_t i, Character* own);
+    void onTurnStart(Game& game) override;
 };
 
 class FrailPower: public Power{
     public:
     FrailPower(int32_t i, Character* own);
     int32_t modBlockGainMult(int32_t base) override;
+};
+
+class MetallicizePower: public Power{
+    public:
+    MetallicizePower(int32_t i, Character* own);
+    void onTurnEnd(Game& game) override;
+};
+
+class OmegaPower: public Power{
+    public:
+    OmegaPower(int32_t i, Character* own);
+    void onTurnEnd(Game& game) override;
 };
 
 class PoisonPower: public Power{
@@ -118,41 +136,47 @@ class PoisonPower: public Power{
     void onTurnEnd(Game& game) override;
 };
 
+class RitualPower: public Power{
+    public:
+    RitualPower(int32_t i, Character* own);
+    void onTurnEnd(Game& game) override;
+};
+
+class StrengthPower: public Power{
+    public:
+    StrengthPower(int32_t i, Character* own);
+    int32_t modOutDamageAdd(int32_t base) override;
+};
+
 class ThornsPower: public Power{
     public:
     ThornsPower(int32_t i, Character* own);
     void onHit(Character* source, Game& game) override;
 };
 
-class AccuracyPower: public Power{
+class VulnerablePower: public Power{
     public:
-    AccuracyPower(int32_t i, Character* own);
-    int32_t modOutDamageAdd(int32_t base) override;
+    VulnerablePower(int32_t i, Character* own);
+    int32_t modIncDamage(int32_t base) override;
 };
 
-class DexterityPower: public Power{
+class WeakPower: public Power{    
     public:
-    DexterityPower(int32_t i, Character* own);
-    int32_t modBlockGainAdd(int32_t base);
+    WeakPower(int32_t i, Character* own);
+    int32_t modOutDamageMult(int32_t base) override;
 };
 
-class OmegaPower: public Power{
-    public:
-    OmegaPower(int32_t i, Character* own);
-    void onTurnEnd(Game& game);
-};
 
-class FastingPower: public Power{
-    public:
-    FastingPower(int32_t i, Character* own);
-    void onTurnStart(Game& game);
-};
 
-class CurlUpPower: public Power{
-    public:
-    CurlUpPower(int32_t i, Character* own);
-    void onHit(Character* source, Game& game);
-};
+
+
+
+
+
+
+
+
+
 
 #endif
 

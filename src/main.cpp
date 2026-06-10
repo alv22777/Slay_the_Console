@@ -24,6 +24,6 @@ int main() {
 			run.run(); // This is funny.
 			replay = run.gameOver();
 		}
-
+		Sleep(1000);
 		return 0;
 }

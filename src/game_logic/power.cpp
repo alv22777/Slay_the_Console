@@ -57,6 +57,7 @@ std::string Power::IDtoString(PID id, bool plain_text){
             case PID::fasting: return "Fasting";
             case PID::lock_on: return "Lock-on";
             case PID::machine_learning: return "Machine learning";
+            case PID::metallicize: return "Metallicize";
             case PID::omega: return "Omega";
             case PID::pen_nib: return "Pen Nib";
             case PID::phantasmal: return "Phantasmal";
@@ -77,7 +78,7 @@ std::string Power::IDtoString(PID id, bool plain_text){
         switch(id){
             case PID::accuracy: return "🎯";
             case PID::barricade: return "🚧";
-            case PID::berserk: return "///";
+            case PID::berserk: return "𒉭";
             case PID::biased: return "🔵🡇";
             case PID::blur: return "🌫";
             case PID::curl_up: return "⟳ ";
@@ -91,6 +92,7 @@ std::string Power::IDtoString(PID id, bool plain_text){
             case PID::fasting: return "🍽️";
             case PID::lock_on: return "⌖";
             case PID::machine_learning: return "🂡🠝";
+            case PID::metallicize: return color(Color::keyword, "◈");
             case PID::omega: return "Ω";
             case PID::pen_nib: return "✒";
             case PID::phantasmal: return "👻";
@@ -111,6 +113,18 @@ std::string Power::IDtoString(PID id, bool plain_text){
 
 void Power::display(){
     std::cout<<IDtoString(ID, false)<<magnitude;
+}
+
+BerserkPower::BerserkPower(int32_t i, Character* own): Power(PID::berserk, i, true, false, own){}
+void BerserkPower::onTurnStart(Game& game){
+    std::vector<Effect> e = {Effect(EID::energy, magnitude, TID::self)};
+    game.resolveEffects(*owner, e);
+}
+
+MetallicizePower::MetallicizePower(int32_t i, Character* own): Power(PID::metallicize, i, true, false, own){}
+void MetallicizePower::onTurnEnd(Game& game){
+    std::vector<Effect> e = {Effect(EID::block, magnitude, TID::self)};
+    game.resolveEffects(*owner, e);
 }
 
 
@@ -144,7 +158,6 @@ int32_t FrailPower::modBlockGainMult(int32_t base){
 PoisonPower::PoisonPower(int32_t i, Character* own): Power(PID::poison, i, true, true, own){}
 void PoisonPower::onTurnEnd(Game& game){} //does nothing on turn end
 void PoisonPower::onTurnStart(Game& game){
-    
     std::vector<Effect> e  = {Effect(EID::hp, -magnitude, TID::self)};
     game.resolveEffects(*owner, e);
     changeMagnitude(-1);
@@ -191,10 +204,12 @@ void CurlUpPower::onHit(Character* source, Game& game){
 std::unique_ptr<Power> Power::createPower(PID id, int32_t magnitude, Character* owner){
     switch(id){
         case PID::accuracy: return std::make_unique<AccuracyPower>(magnitude,owner);
+        case PID::berserk: return std::make_unique<BerserkPower>(magnitude, owner);
         case PID::curl_up: return std::make_unique<CurlUpPower>(magnitude, owner);
         case PID::dexterity: return std::make_unique<DexterityPower>(magnitude,owner);
         case PID::frail: return std::make_unique<FrailPower>(magnitude,owner);
         case PID::fasting: return std::make_unique<FastingPower>(magnitude,owner);
+        case PID::metallicize: return std::make_unique<MetallicizePower>(magnitude, owner);
         case PID::omega: return std::make_unique<OmegaPower>(magnitude, owner);
         case PID::poison: return std::make_unique<PoisonPower>(magnitude, owner);
         case PID::ritual: return std::make_unique<RitualPower>(magnitude, owner);

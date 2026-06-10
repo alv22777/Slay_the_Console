@@ -83,6 +83,8 @@ std::string Card::getCardRarity(){
 
 void Card::applyEffects(Player& source, Game& game, int pos){
 
+
+    
     
     if((!effects[0].isSingleTarget())||game.hasValidTargets(effects[0].getTarget(),  source)){
 

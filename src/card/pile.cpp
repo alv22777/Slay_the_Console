@@ -3,6 +3,7 @@
 #include <iostream>
 #include <algorithm>
 
+
 //Returns a card in the pile in the given position.
 Card& Pile::getCard(int position){
     if(position<0||position>=getSize()){
