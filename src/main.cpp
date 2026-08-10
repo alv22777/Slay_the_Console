@@ -20,8 +20,8 @@ int main() {
 		Game run(player, enemies, seed, EVENT_LOG_SIZE);
 		
 		bool replay = 1;
-		while(replay){
-			run.run(); // This is funny.
+		while(replay){ //Avoids recursion
+			run.run();
 			replay = run.gameOver();
 		}
 		Sleep(1000);

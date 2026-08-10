@@ -6,7 +6,9 @@ class Player; class Enemy; class Character; enum class TID; class Pile; enum cla
 #include<deque>
 #include"game_logic/rng.h"
 #include"character/enemy.h"
+#include"game_logic/eventhandler.h"
 #include"ui/eventlog.h"
+
 #include<memory>
 
 class Game{
@@ -14,6 +16,8 @@ class Game{
 	std::deque<std::unique_ptr<Enemy>>& enemies;
 	int turn; int floor;
 	EventLog event_log;
+	EventHandler event_handler;
+
 	public:
 	RNG rng;
 

@@ -75,7 +75,11 @@ bool Player::drawCard(Game& game){
 
     if(draw.empty()){return false;}
 
+    //Draw card and trigger its on draw effects.
     hand.drawFrom(draw,1);
+
+    CardContext ctx = {0}; //No energy is spent here
+    hand.getCard(hand.getSize()-1).trigger(*this,game,TriggerID::on_draw, ctx);
     return true;
 }
 
@@ -83,6 +87,7 @@ uint32_t Player::drawCards(int amount, Game& game){
     
     int drawn = 0;
 
+    
     for(int i = 0; i<amount; i++){
        
         if(isHandFull()){game.pushLog("My hand is full!",2); return drawn;}
@@ -115,15 +120,38 @@ void Player::discardHand(){
 }
 
 void Player::playCardFromHand(int pos, Game& game){
+
     Card& tried = getCardFromPile(PileID::hand,pos);
+
+    //Check for specific restriction, unplayable cost, not enough energy and valid targetting in that order.   
     if(!tried.canPlay(*this, game)){std::cout<<"You can not play this card!\n"; return;}
-    if(getAttribute(Attribute::energy) < tried.getEnergyCost()){std::cout<<"Not enough energy!\n"; return;}
-     
-    tried.display(); std::cout<<'\n';
-    setPlayed(tried);
-    game.pushLog(color(col, name) + " played " + color(tried.rarityColor(), tried.getName()), 0);
-    played.applyEffects(*this,game, pos);
+   
+
     
+    //Able to play card -> Hover card -> set as last played -> UI Layer -> trigger on play -> post resolution destination.
+    
+    setPlayed(tried);
+    
+    CardContext ctx;
+    if(played.getXFactor() != XFactor::none){ctx.energy_spent =  energy;}
+    else{ctx.energy_spent = played.getEnergyCost();}
+
+    removeFromPlayerPile(PileID::hand, pos); //Card is now "hovering" (not on any player pile).
+
+    if(played.getEnergyCost() == -2){setAttribute(Attribute::energy, 0);}
+    else{changeAttribute(Attribute::energy,-getPlayed().getEnergyCost());}
+    
+    played.display(); std::cout<<'\n';
+    game.pushLog(color(col, name) + " played " + color(played.rarityColor(), played.getName()), 0);
+
+
+    played.trigger(*this, game, TriggerID::on_play, ctx);
+
+    if(played.getCardType() != CardType::power){ //Powers don't go anywhere after resolution
+        if(played.hasExhaust()){addToPile(PileID::exhaust, played, false);}
+        else{addToPile(PileID::discard, played, false);}
+    }
+
     game.removeDeadCharacters();
     game.removeInvalidPowers();
 }
@@ -144,7 +172,24 @@ std::unique_ptr<Player> Player::createPlayer(int choice){
                 p->deck.addPileToSelf(SLT_STARTER_DECK);
                 return p;
             }
-            
+        case 3:{
+                std::unique_ptr<Player> p = std::make_unique<Player>(
+                    color(Color::blue,"The defect"), 
+                    DEF_STARTING_MAX_HP, 
+                    STARTING_ENERGY, 
+                    Color::blue); 
+                p->deck.addPileToSelf(DEF_STARTER_DECK);
+                return p;
+            }
+        case 4:{
+                std::unique_ptr<Player> p = std::make_unique<Player>(
+                    color(Color::purple,"The Watcher"), 
+                    WAT_STARTING_MAX_HP, 
+                    STARTING_ENERGY, 
+                    Color::purple); 
+                p->deck.addPileToSelf(WAT_STARTER_DECK);
+                return p;
+            }    
         default:{return std::make_unique<Player>("NOPLAYER",0,0,Color::colorless);}
     }
 }
@@ -278,13 +323,37 @@ uint32_t Player::transferCardsManual(PileID source, PileID target, int amount, b
 
     //Go from latest index to earliest, this prevents index invalidation due to container mutation
     std::sort(selected.begin(),selected.end(), std::greater<int>()); 
-    for(int pos: selected){ removeFromPlayerPile(source,pos); }
+    
+    Pile triggered_cards;
+    for(int pos: selected){
+        triggered_cards.addCardBot(getCardFromPile(source, pos));
+        removeFromPlayerPile(source,pos); 
+    }
+
+    //Energy is not spent to transfer cards.
+    CardContext ctx = {0};
+    switch(target){
+        case PileID::discard:
+        
+            if(source == PileID::hand){
+                for(Card c: triggered_cards.cards){
+                    c.trigger(*this, game, TriggerID::on_discard, ctx);
+                }
+            }
+        break;
+        case PileID::exhaust:
+            for(Card c: triggered_cards.cards){
+                    c.trigger(*this, game, TriggerID::on_exhaust, ctx);
+                }
+        break;
+    }
 
     return selected.size();
+    
 }
 
 //Transfer the selected cards (choices) from source Pile to target Pile
-uint32_t Player::transferCardsAuto(PileID source, PileID target, std::deque<int> selected, bool bottom){
+uint32_t Player::transferCardsAuto(PileID source, PileID target, std::deque<int> selected, bool bottom, Game& game){
   
   if(target == PileID::hand){ //If cards go into hand, order matters
         bool over_hand_size = (hand.getSize()+selected.size())> MAX_HAND_SIZE;
@@ -304,9 +373,29 @@ uint32_t Player::transferCardsAuto(PileID source, PileID target, std::deque<int>
     }
     
     //Go from latest index to earliest, this prevents index invalidation due to container mutation
-    std::sort(selected.begin(),selected.end(), std::greater<int>()); 
+    std::sort(selected.begin(),selected.end(), std::greater<int>());
+    Pile triggered_cards; 
     for(int pos: selected)  {
+        triggered_cards.addCardBot(getCardFromPile(source, pos));
         removeFromPlayerPile(source, pos);
+    }
+
+    //Energy is not spent to transfer cards.
+    CardContext ctx = {0};
+    switch(target){
+        case PileID::discard:
+        
+            if(source == PileID::hand){
+                for(Card c: triggered_cards.cards){
+                    c.trigger(*this, game, TriggerID::on_discard, ctx);
+                }
+            }
+        break;
+        case PileID::exhaust:
+            for(Card c: triggered_cards.cards){
+                    c.trigger(*this, game, TriggerID::on_exhaust, ctx);
+                }
+        break;
     }
 
     return selected.size();

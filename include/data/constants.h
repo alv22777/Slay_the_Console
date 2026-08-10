@@ -454,13 +454,13 @@ extern Card Bite;
 extern Card Expunger; 
 extern Card Insight; 
 extern Card JAX; 
+extern Card Miracle;
 extern Card Omega; 
 extern Card Ritual_Dagger; 
 extern Card Safety; 
 extern Card Shiv; 
 extern Card Smite; 
 extern Card Through_Violence; 
-
 
 //STATUS
 extern Card Burn; 
@@ -492,4 +492,7 @@ extern Effect NO_EFFECT;
 
 Pile createIroncladStarterDeck();
 Pile createSilentStarterDeck();
+Pile createDefectStarterDeck();
+Pile createWatcherStarterDeck();
+
 #endif

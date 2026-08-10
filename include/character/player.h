@@ -75,7 +75,7 @@ class Player: public Character{
 
     uint32_t transferCardsManual(PileID source, PileID target, int amount, bool bottom, Game& game);
 
-    uint32_t transferCardsAuto(PileID source, PileID target, std::deque<int> selected, bool bottom);
+    uint32_t transferCardsAuto(PileID source, PileID target, std::deque<int> selected, bool bottom, Game& game);
 
     std::deque<int> chooseCards(PileID source, int amount, Game& game);
     std::deque<int> randomCards(PileID source, int amount, Game& game);

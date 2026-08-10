@@ -37,79 +37,93 @@ EffectReport Effect::apply(std::deque<Character*> target, Character* source, Gam
                 damage = c->modIncDamage(damage);
                 report.damage_dealt += c->takeDamage(damage); 
                 c->onHit(source, game);
-                
-                break;
             }
+            break;
+
             case EID::hp: 
             {
                 report.hp_delta += c->changeAttribute(Attribute::hp,magnitude);
-                break;
             }
+            break;
             case EID::block:  
             {
                 int32_t block = magnitude;
                 block = c->modBlockGain(block);
                 report.block_gained += c->gainBlock(block);  
-                break;
-            }    
+            }
+            break;    
             //Player specific behavior
             case EID::energy:{
                 if(p){p->changeAttribute(Attribute::energy,magnitude);} 
-                break;}
+            }
+            break;
             case EID::draw:{
                 if(p){report.cards_drawn += p->drawCards(magnitude,game);}
-                break; }
+            }
+            break; 
             case EID::discard:{
                 if(p){report.cards_transferred += p->transferCardsManual(PileID::hand, PileID::discard, magnitude, false, game);}
-                break;}
+            }
+            break;
             case EID::exhaust:{
                 if(p){report.cards_transferred += p->transferCardsManual(PileID::hand, PileID::exhaust, magnitude, false, game);} 
-                break;} 
+            }
+            break;
 
             case EID::random_card_transfer:{
                 if(p){
                     std::deque<int> choices = p->randomCards(*source_pile, magnitude, game);
-                    report.cards_transferred += p->transferCardsAuto(*source_pile, *target_pile, choices, true);
+                    report.cards_transferred += p->transferCardsAuto(*source_pile, *target_pile, choices, true, game);
                 }
-                break;
             }
+            break;
             
             case EID::cards_bottom:{
-                if(p && source_pile && target_pile && card){
+                if(p && source_pile && target_pile){
                     p->transferCardsManual(*source_pile, *target_pile, magnitude, true, game);
                 }
-                else{throw std::runtime_error("Invalid Effect configuration: cardsBottom effect requires source and target piles, and a card ID.");}
-                break;
-            }  
+                else{throw std::runtime_error("Invalid Effect configuration: cardsBottom effect requires source and target piles");}
+                }  
+            break;
             case EID::cards_top:{
-                if(p && source_pile && target_pile && card){
+                if(p && source_pile && target_pile){
                     p->transferCardsManual(*source_pile, *target_pile, magnitude, false, game);
                 }
-                else{throw std::runtime_error("Invalid Effect configuration: cardsTop effect requires source and target piles, and a card ID.");}
-                break;
+                else{throw std::runtime_error("Invalid Effect configuration: cardsTop effect requires source and target piles");}
             }
+            break;
             case EID::expertise:{
                 if(p){report.cards_drawn += p->drawCards(magnitude - p->getPlayerPileSize(PileID::hand), game);}
-                break;}
+            }
+            break;
             case EID::gain:{
                 report.power_gained = *power;
                 c->addPower(*power, magnitude);
-                break;
             }
+            break;
+            case EID::lose:{
+                report.power_gained = *power;
+                c->addPower(*power, -magnitude);
+            }
+            break;
             case EID::addCard:{
                 if(p){
                     Card add = createCard(*card);
                     for(int i = 0;i<magnitude;i++){ p->addToPile(*target_pile, add, true); }
                 }
-                break;
             }
+            break;
             case EID::shuffleCard:{
                 if(p){
                     Card add = createCard(*card);
                     for(int i = 0; i<magnitude;i++){p->shuffleIntoDraw(add, game);}
                 }
             }
-            default: {std::cout<<"No implementation yet!\n"; break;}
+            break;
+
+            default: {std::cout<<"No implementation yet!\n"; 
+            }
+            break;
         }
     }
 
@@ -124,6 +138,8 @@ bool Effect::isSingleTarget(){
     if(target_type == TID::self || target_type == TID::enemy || target_type == TID::player){return true;}
     else{return false;}
 }
+
+void Effect::setMagnitude(int n){magnitude = n;}
 
 std::string Effect::log(std::deque<Character*> target, Character* source, EffectReport report){
 

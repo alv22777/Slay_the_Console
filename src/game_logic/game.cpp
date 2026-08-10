@@ -15,7 +15,7 @@
 
 //Takes in a deque of Player objects, an RNG uint32_t seed and an integer size for the game's event log.
 Game::Game(std::unique_ptr<Player>& p, std::deque<std::unique_ptr<Enemy>>& e, uint64_t s, int l):
-player(p), enemies(e), rng(s), event_log(EventLog(l)), floor(0), turn(0){}
+player(p), enemies(e), rng(s), event_log(EventLog(l)), event_handler(EventHandler()),floor(0), turn(0){}
 
 
 //RUN FLOW
@@ -32,6 +32,7 @@ void Game::run(){
 
 bool Game::gameOver(){
 	enemies.clear();	
+	clearScreen();
 	std::cout<<center("You lost! go again?(y/n)", 100)<<'\n'<<padLeft("",50);
 	
 	char replay;
@@ -87,7 +88,7 @@ void Game::fight(){
 					
 			}
 			std::cout<<"Press any key to return...\n";
-			system("pause>nul"); 
+			inputChar();
 		}
 
 		//If combat's over, end the combat, otherwise end the turn.
@@ -118,13 +119,14 @@ void Game::initEnemies(){
 			Intent({ Effect(EID::gain, 2, TID::player, PID::frail)}),
 		}
 	));
-	enemies.push_back(std::make_unique<Enemy>(
-		"Cultist", 30 ,Color::blue,
-		std::deque<Intent>{
-			Intent({ Effect(EID::gain,   1, TID::self, PID::ritual)}),
-			Intent({ Effect(EID::damage, 2, TID::player)})
-		}
-	));
+	// enemies.push_back(std::make_unique<Enemy>(
+	// 	"Cultist", 30 ,Color::blue,
+	// 	std::deque<Intent>{
+	// 		Intent({ Effect(EID::gain,   1, TID::self, PID::ritual)}),
+	// 		Intent({ Effect(EID::damage, 2, TID::player)})
+	// 	}
+	// ));
+	
 	enemies[0]->addPower(PID::curl_up, rng.nextInt(3,7));
 	enemies[1]->addPower(PID::curl_up, rng.nextInt(3,7));
 
@@ -294,9 +296,7 @@ int32_t Game::calculateIntentDamage(int32_t base, Enemy* source){
 	int32_t damage = base;
 	if(player){ damage = player->modIncDamage(damage); }	
 	damage = source->modOutDamage(damage);
-	
 	return damage;
-
 }
 
 void Game::resolveEffects(Character& source, std::vector<Effect>& effects){
@@ -368,7 +368,8 @@ void Game::cardReward(){
 	clearScreen();
 	int amount = 3;
 	std::vector<CID>* common; std::vector<CID>* uncommon; std::vector<CID>* rare; 
-	std::vector<CID>* pool;	  std::vector<CID> reward_id;
+	std::vector<CID> reward_id;
+	
 	switch(player->getColor()){
 		case Color::red:   {common = &ICL_COMMON; uncommon = &ICL_UNCOMMON; rare = &ICL_RARE; break;}
 		case Color::green: {common = &SLT_COMMON; uncommon = &SLT_UNCOMMON; rare = &SLT_RARE; break;}
@@ -380,6 +381,7 @@ void Game::cardReward(){
 	
 	std::cout<<"Choose a card...\n";
 	rewards.displayPile();
+	std::cout<<"[0-"<<rewards.getSize()-1<<"] Add card to deck. [S] Skip.\n";
 	std::cout<<"Choice > ";
 	int choice = inputInt(0, rewards.getSize()-1, false); //Not mandatory, player is allowed to skip
 	
@@ -393,9 +395,7 @@ void Game::cardReward(){
 void Game::displayGameState(){
 	clearScreen();
 	if(player){
-
-
-
+		
 		std::cout<<"========================================\n";
 		std::cout<<"FLOOR "<<floor<<" - TURN "<<turn<<"  seed: "<<rng.base36()<<"\n";
 	

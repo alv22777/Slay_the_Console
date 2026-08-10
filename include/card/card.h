@@ -100,6 +100,17 @@ enum class CID{
 };
 enum class CardType {attack, skill, power, status, curse};
 enum class CardRarity {starter, common, uncommon, rare, status, curse};
+enum class XFactor {none, repetition, magnitude};
+enum class TriggerID {on_play, on_discard, on_exhaust, on_draw, on_end_of_turn, on_fatal, on_upgrade, none};
+struct TriggeredEffect{
+    TriggerID trigger;
+    std::vector<Effect> effects;
+};
+struct CardContext{
+    int energy_spent;
+    //int current_player_energy;
+    //EffectReport;
+};
 
 //This class defines a Card object. It is the unit that forms piles.
 class Card{
@@ -110,15 +121,18 @@ class Card{
 	int energy_cost; // -2: X cost, -1: unplayable
 	CardRarity rarity;
 	std::string card_text;
-    std::vector<Effect> effects;  
+    std::vector<TriggeredEffect> triggered_effects; //On play, on discard, on exhaust, on draw, on end of turn, on fatal.
 
+    XFactor x_factor;
     bool innate;
     bool retain;
     bool exhaust;
     bool ethereal;
 public:
-    Card(CID i, Color c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<Effect> e, 
-        bool eth, bool ex, bool in, bool ret);
+    Card(CID i, Color c, std::string n, CardType t, int cost, CardRarity r, 
+         std::string text, std::vector<TriggeredEffect> trig, 
+         XFactor x, bool eth, bool ex, bool in, bool ret);
+
     void display();    
     int getEnergyCost();
     CID getID();
@@ -129,9 +143,10 @@ public:
     std::string getName();
     Color rarityColor();
     CardType getCardType();
+    XFactor getXFactor();
     std::string getCardTypeText();
     std::string getCardRarity();
-    void applyEffects(Player& source, Game& game, int pos);
+    void trigger(Player& source, Game& game, TriggerID trigger, CardContext context);
     bool canPlay(Player& source, Game& game);
 };
 

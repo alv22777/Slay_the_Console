@@ -18,8 +18,9 @@ expertise: target player draws cards until hand size is n.
 */
 enum class EID{
     damage, block, energy, hp, 
-    draw, discard, exhaust, random_card_transfer, cards_bottom, cards_top, expertise,
-    gain, addCard, shuffleCard,
+    draw, discard, exhaust, exhaust_self, random_card_transfer, cards_bottom, cards_top, expertise,
+    gain, lose,
+    addCard, shuffleCard,
     
     none
 };
@@ -72,6 +73,9 @@ class Effect{
     TID getTarget();
     bool isSingleTarget();
     int getMagnitude();
+
+    void setMagnitude(int n);
+
     std::string log(std::deque<Character*> target, Character* source, EffectReport report);
 };
 

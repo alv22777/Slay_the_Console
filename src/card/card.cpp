@@ -7,13 +7,13 @@
 #include "data/constants.h"
 #include<iostream>
 #include<vector>
-
+#include<algorithm>
 
 
 //Creates a Card and initializes it's values with the given arguments.
-Card::Card(CID i, Color c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<Effect> e, bool eth, bool ex, bool in, bool ret)//Character, name, type, energy cost, rarity, card text
-    :id(i), character(c), name(n), type(t), energy_cost(cost), rarity(r), card_text(text), effects(e), 
-    exhaust(ex), ethereal(eth), innate(in), retain(ret){}   
+Card::Card(CID i, Color c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<TriggeredEffect> trig, XFactor x, bool eth, bool ex, bool in, bool ret)//Character, name, type, energy cost, rarity, card text
+    :id(i), character(c), name(n), type(t), energy_cost(cost), rarity(r), card_text(text), triggered_effects(trig), 
+    x_factor(x),exhaust(ex), ethereal(eth), innate(in), retain(ret){}   
     
 //Display this card
 void Card::display(){
@@ -69,6 +69,7 @@ std::string Card::getCardTypeText(){
 }
 
 CardType Card::getCardType(){return type;}
+XFactor Card::getXFactor(){return x_factor;}
 std::string Card::getCardRarity(){
         switch(rarity){
         case CardRarity::starter: return "Starter"; break;
@@ -81,24 +82,30 @@ std::string Card::getCardRarity(){
     }
 }
 
-void Card::applyEffects(Player& source, Game& game, int pos){
-
-
+void Card::trigger(Player& source, Game& game, TriggerID trigger, CardContext context){
     
-    
-    if((!effects[0].isSingleTarget())||game.hasValidTargets(effects[0].getTarget(),  source)){
+    int index;
 
-        source.removeFromPlayerPile(PileID::hand, pos); //Card is now "hovering" (not on any player pile).
-        source.changeAttribute(Attribute::energy,-source.getPlayed().getEnergyCost()); //Pay energy cost.
-
-        game.resolveEffects(source,effects);
-
-        if(type != CardType::power){ //Powers don't go anywhere after resolution
-            if(exhaust){source.addToPile(PileID::exhaust, source.getPlayed(), false);}
-            else{source.addToPile(PileID::discard, source.getPlayed(), false);}
-        }
+    bool found = false;
+    for(int i = 0; i<triggered_effects.size();i++){
+        if(triggered_effects[i].trigger == trigger){found = true; index = i;}
     }
+    if(!found){return;} //card has no triggered effects for this event.
+    
+
+    std::vector<Effect> effects = triggered_effects[index].effects;
+    int x = context.energy_spent;
+
+    if(x_factor == XFactor::repetition){
+        for(int i = 0; i<x; i++){game.resolveEffects(source,effects);}
+    }
+    else if (x_factor == XFactor::magnitude){
+        for(Effect &e: effects){e.setMagnitude(x);}
+        game.resolveEffects(source,effects);
+    }
+    else{game.resolveEffects(source,effects);}
 }
+
 
 //Determines if a card can be played. Defaults to true, overrides
 //for special cases depending on player/gamestate parameters.
@@ -106,14 +113,22 @@ bool Card::canPlay(Player& source, Game& game){
     bool able = true;
     if(name == "Clash"){ 
         able = source.findIndexes(PileID::hand, CardType::attack, false).size() == 0;
+        if(able==false){return able;}
     }
     else if (name == "Grand Finale"){
         able = source.getPlayerPileSize(PileID::draw) == 0;
+        if(able==false){return able;}
     }
     else{
         able = energy_cost != -1;
+        if(able==false){return able;}
     }
-
+    
+    if(source.getAttribute(Attribute::energy) < getEnergyCost()){std::cout<<"Not enough energy!\n"; able = false; return able;}
+    
+    std::vector<Effect> effects = triggered_effects[static_cast<int>(TriggerID::on_play)].effects;    
+    able = !effects[0].isSingleTarget()||game.hasValidTargets(effects[0].getTarget(), source);
+    
     return able;
 }
 
