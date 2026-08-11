@@ -127,7 +127,7 @@ void Player::playCardFromHand(int pos, Game& game){
     if(!tried.canPlay(*this, game)){std::cout<<"You can not play this card!\n"; return;}
    
 
-    
+    //play card from hand now enqueyes effects, 
     //Able to play card -> Hover card -> set as last played -> UI Layer -> trigger on play -> post resolution destination.
     
     setPlayed(tried);
@@ -146,14 +146,14 @@ void Player::playCardFromHand(int pos, Game& game){
 
 
     played.trigger(*this, game, TriggerID::on_play, ctx);
-
+    game.resolveQueue();
+    
     if(played.getCardType() != CardType::power){ //Powers don't go anywhere after resolution
         if(played.hasExhaust()){addToPile(PileID::exhaust, played, false);}
         else{addToPile(PileID::discard, played, false);}
     }
 
-    game.removeDeadCharacters();
-    game.removeInvalidPowers();
+    
 }
 
 std::unique_ptr<Player> Player::createPlayer(int choice){

@@ -38,10 +38,13 @@ void Character::setAttribute(Attribute att, int value){
 void Character::displayStatus(){
     //STATUS BAR
     std::cout<<color(col, padRight(getName(),15));
-    std::cout<<color(Color::hp, " ♥" +
-        padLeft(std::to_string(HP),3) +"/"+
-        padRight(std::to_string(max_HP),3)
-    );
+    if(!isAlive()){std::cout<<color(Color::hp, " ♥ D E A D");}
+    else{
+        std::cout<<color(Color::hp, " ♥" +
+            padLeft(std::to_string(HP),3) +"/"+
+            padRight(std::to_string(max_HP),3)
+        );
+    }
     std::cout<<color(Color::block, " 🛡️ "+std::to_string(block)+" ");
 }
 

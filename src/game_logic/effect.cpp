@@ -23,7 +23,7 @@ EffectReport Effect::apply(std::deque<Character*> target, Character* source, Gam
     EffectReport report;
  
     for(Character* c: target){//For every character in selected targets
-
+        if(!c->isAlive()){continue;}
         //Preventive programming for Player/Enemy specific behavior.
         Player* p = dynamic_cast<Player*>(c); 
         Enemy*  e = dynamic_cast<Enemy*>(c);
@@ -144,7 +144,6 @@ void Effect::setMagnitude(int n){magnitude = n;}
 std::string Effect::log(std::deque<Character*> target, Character* source, EffectReport report){
 
     if(target.empty()){return "";}
-    
 
     
 
@@ -154,11 +153,12 @@ std::string Effect::log(std::deque<Character*> target, Character* source, Effect
 
     //Default conditions
     if(single_target){who = color(target[0]->getColor(), target[0]->getName());}
-    else{who = (target_type == TID::enemy_all)? "All enemies ":"All players ";}
+    else{who = (target_type == TID::enemy_all)? "All enemies":"All players";}
     to_who = "";
 
     switch(type){
         case EID::damage:{
+            if(report.damage_dealt == 0){return "";}
             who = color(source->getColor(),source->getName());
             
             if(single_target){

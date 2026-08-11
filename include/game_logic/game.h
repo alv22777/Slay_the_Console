@@ -17,7 +17,7 @@ class Game{
 	int turn; int floor;
 	EventLog event_log;
 	EventHandler event_handler;
-
+	
 	public:
 	RNG rng;
 
@@ -52,7 +52,10 @@ class Game{
 
 	std::deque<Character*> selectTargets(TID target, Character* source);
     bool hasValidTargets(TID t, Character& source);
-    void resolveEffects(Character& source, std::vector<Effect>& effects);
+    void resolveEffect(Character& source, Effect& effect, std::deque<Character*> targets);
+	//EVENT HANDLER INTERACTION
+	void enqueueEvent(Event e);
+	void resolveQueue();
 
 	//REWARDS
 	Pile generateCards(std::vector<CID>* common, std::vector<CID>* uncommon, std::vector<CID>* rare, int amount);
@@ -64,8 +67,9 @@ class Game{
     void pushLog(std::string s, uint8_t level);
 
 	//CLEANUP
-
+	void cleanup();
 	bool removeDeadCharacters();
 	void removeInvalidPowers();
+	
 };
 #endif

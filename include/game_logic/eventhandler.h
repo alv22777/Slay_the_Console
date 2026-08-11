@@ -3,15 +3,23 @@
 
 #include<deque>
 #include<vector>
+class Character; class Game;
 
-class Effect; class Character; class Game;
+#include "game_logic/effect.h"
+
+struct Event{
+    Effect event_effect;
+    Character* source;
+    std::deque<Character*> targets;
+};
+
 class EventHandler{
     private:
-    std::deque<Effect> pending;
+    std::deque<Event> pending;
 
     public:
     EventHandler();
-    void enqueue(Effect e);
+    void enqueue(Event e);
     void resolveNext(Game& game); //resolves next effect in the queue.
     bool empty();
     /*

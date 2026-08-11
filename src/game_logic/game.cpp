@@ -72,17 +72,19 @@ void Game::fight(){
 			//Player tries to play a card from hand. 
 			if('0'<=choice&&choice<='9'){//if input is a number, check if it's a valid card choice. If it is, play the card.
 				choice-=48;//Convert char to int
-				if(choice<player->getPlayerPileSize(PileID::hand)){ player->playCardFromHand(choice, *this); }
+				if(choice<player->getPlayerPileSize(PileID::hand)){ 
+					player->playCardFromHand(choice, *this);
+				}
 				else{std::cout<<"You don't have at least this many cards in hand! Try again.\n";}
 				continue;
 			}
 
 			//Player wishes to do other actions, such as viewing the draw or discard pile, or ending the turn.
 			switch(choice){
-				case 'A': player->displayPlayerPile(PileID::draw, false, 0, true); break;
-				case 'K': player->displayPlayerPile(PileID::deck, false, 0, false); break;
+				case 'A': player->displayPlayerPile(PileID::draw,    false, 0, true ); break;
+				case 'K': player->displayPlayerPile(PileID::deck,    false, 0, false); break;
 				case 'D': player->displayPlayerPile(PileID::discard, false, 0, false); break;
-				case 'X': player->displayPlayerPile(PileID::exhaust, false, 0,false); break;
+				case 'X': player->displayPlayerPile(PileID::exhaust, false, 0, false); break;
 				case 'E': continue; //End turn 
 				default: continue;
 					
@@ -187,10 +189,9 @@ void Game::enemyActions(){
 	for(auto& e: enemies){
 		if(e->isAlive()){
 			e->act(*this);
-			if(isCombatOver()){break;}
 		}
 	}
-	removeDeadCharacters(); //Cleanup
+	resolveQueue();
 }
 
 void Game::endEnemyTurn(){
@@ -299,46 +300,26 @@ int32_t Game::calculateIntentDamage(int32_t base, Enemy* source){
 	return damage;
 }
 
-void Game::resolveEffects(Character& source, std::vector<Effect>& effects){
-	if(effects.empty()){NO_EFFECT.apply({}, &source,*this); return;}
+void Game::resolveEffect(Character& source, Effect& effect, std::deque<Character*> targets){
+	if(&(effect) == nullptr){NO_EFFECT.apply({}, &source,*this); return;}
+	if(targets.empty()){return;}
 
-	std::deque<Character*> targets;
-	std::vector<EffectReport> results;
-
-    //Initial conditions
-    TID prev = effects[0].getTarget();
-    bool is_single_target = effects[0].isSingleTarget();
-    if(is_single_target){ targets = selectTargets(prev, &source); }
-    bool target_died = false;
 	displayGameState();
+	EffectReport result = effect.apply(targets, &source, *this);
 
-	for(size_t i = 0; i<effects.size();i++){
+	pushLog(effect.log(targets, &source, result), 1);
 	
-		//Target validation
-		TID current = effects[i].getTarget();
-		is_single_target = effects[i].isSingleTarget();
-		
-		// Retarget if needed
-		if(prev != current || !is_single_target){ targets = selectTargets(current, &source); }
-		else if(target_died){continue;}
-		prev = current;
-
-		if(targets.empty()){continue;}
-
-		results.push_back(effects[i].apply(targets, &source,*this));
-
-		pushLog(effects[i].log(targets, &source, results[i]), 1);
-
-		
-		if(!source.isAlive()){break;} //Source dies -> remaining effects fizzle
-		
-		target_died = is_single_target && !targets.empty() && !targets[0]->isAlive();
-		
-		displayGameState( );
-		
-	}
+	displayGameState( );
 }
 
+void Game::enqueueEvent(Event e){event_handler.enqueue(e);}
+void Game::resolveQueue(){
+	while(!event_handler.empty()){
+		event_handler.resolveNext(*this);
+		displayGameState();
+	} 
+	cleanup();
+}
 //REWARDS
 Pile Game::generateCards(std::vector<CID>* common, std::vector<CID>* uncommon, std::vector<CID>* rare, int amount){
 	std::vector<CID>* pool;	  std::vector<CID> reward_ids;
@@ -432,6 +413,10 @@ void Game::pushLog(std::string s, uint8_t level){
 
 
 //CLEANUP
+void Game::cleanup(){
+	removeDeadCharacters();
+    removeInvalidPowers();
+}
 
 bool Game::removeDeadCharacters(){
 	bool death = false;

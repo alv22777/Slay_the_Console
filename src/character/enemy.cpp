@@ -19,11 +19,12 @@ void Enemy::displayStatus(Game& game){
 }
 
 void Enemy::act(Game& game){
-
     std::vector<Effect> &actions = next_intent.getActions();    
-    if(actions.empty()){return;}
-    game.resolveEffects(*this, actions);
-    
+    for(Effect e: actions){
+        std::deque<Character*> targets = game.selectTargets(e.getTarget(),this);
+        Event ev = {e, this, targets};
+        game.enqueueEvent(ev);
+    }
 }
 
 void Enemy::displayIntent(Game& game){

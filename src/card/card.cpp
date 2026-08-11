@@ -91,19 +91,39 @@ void Card::trigger(Player& source, Game& game, TriggerID trigger, CardContext co
         if(triggered_effects[i].trigger == trigger){found = true; index = i;}
     }
     if(!found){return;} //card has no triggered effects for this event.
-    
 
     std::vector<Effect> effects = triggered_effects[index].effects;
-    int x = context.energy_spent;
 
-    if(x_factor == XFactor::repetition){
-        for(int i = 0; i<x; i++){game.resolveEffects(source,effects);}
+    
+    bool single_target_already_selected = false;
+    
+    std::deque<Character*> single_target;
+    std::deque<Character*> other_target;
+    
+    int x = 1; 
+    int times = 1;
+    
+    if(x_factor == XFactor::repetition){times = context.energy_spent;}
+    else if(x_factor == XFactor::magnitude){
+        x = context.energy_spent;
+        for(Effect &e: effects){
+            e.setMagnitude(x);
+        }
+    }  
+
+    for(Effect e: effects){        
+        if(e.getTarget() == TID::enemy){
+            if(!single_target_already_selected){
+                single_target = game.selectTargets(e.getTarget(), &source);
+                single_target_already_selected = true;
+            }
+            for(int i = 0; i<times;i++){game.enqueueEvent({e, &source, single_target});}
+        }
+        else{
+            other_target = game.selectTargets(e.getTarget(), &source);
+            for(int i = 0; i<times;i++){game.enqueueEvent({e, &source, other_target});}
+        } 
     }
-    else if (x_factor == XFactor::magnitude){
-        for(Effect &e: effects){e.setMagnitude(x);}
-        game.resolveEffects(source,effects);
-    }
-    else{game.resolveEffects(source,effects);}
 }
 
 
@@ -126,7 +146,9 @@ bool Card::canPlay(Player& source, Game& game){
     
     if(source.getAttribute(Attribute::energy) < getEnergyCost()){std::cout<<"Not enough energy!\n"; able = false; return able;}
     
+    
     std::vector<Effect> effects = triggered_effects[static_cast<int>(TriggerID::on_play)].effects;    
+    
     able = !effects[0].isSingleTarget()||game.hasValidTargets(effects[0].getTarget(), source);
     
     return able;

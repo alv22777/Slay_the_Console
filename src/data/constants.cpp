@@ -629,12 +629,12 @@ Card Concentrate = {CID::Concentrate, Color::green, "Concentrate", CardType::ski
         }
     }    
 }, XFactor::none, false, false, false, false }; 
-Card Crippling_Cloud = {CID::Crippling_Cloud, Color::green, "Crippling Cloud", CardType::skill, 2, CardRarity::uncommon, "Apply 4 poison and 2 weak to ALL enemies",
+Card Crippling_Cloud = {CID::Crippling_Cloud, Color::green, "Crippling Cloud", CardType::skill, 2, CardRarity::uncommon, "Apply 4 poison and 2 weak to ALL enemies.",
 {
     {TriggerID::on_play,
         {            
             Effect(EID::gain, 4, TID::enemy_all, PID::poison),
-            Effect(EID::gain, 2, TID::enemy_all, PID::weak)
+            Effect(EID::gain, 2, TID::enemy_all, PID::weak),
         }
     }
 }, XFactor::none, false, true, false, false};
@@ -784,7 +784,7 @@ Card Grand_Finale ={CID::Grand_Finale, Color::green, "Grand Finale", CardType::a
         }
     }
 }, XFactor::none, false, false, false, false };
-Card Malaise = {CID::Malaise, Color::red, "Malaise", CardType::attack, -2, CardRarity::uncommon, "Enemy loses X Strength. Apply X Weak.", 
+Card Malaise = {CID::Malaise, Color::red, "Malaise", CardType::skill, -2, CardRarity::uncommon, "Enemy loses X Strength. Apply X Weak.", 
 {
     {TriggerID::on_play,
         {
@@ -1513,10 +1513,14 @@ Pile createIroncladStarterDeck(){
     Pile deck ({});
     // for(int i = 0; i<5;i++){deck.addCardTop(ICL_Strike);}
     // for(int i =0; i<4;i++){deck.addCardTop(ICL_Defend);}
-    deck.addCardTop(Whirlwind);
     deck.addCardTop(Reinforced_Body);
     deck.addCardTop(Malaise);
     deck.addCardTop(Skewer);
+    deck.addCardTop(Clash);
+    deck.addCardTop(Acrobatics);
+    deck.addCardTop(Tactician);
+    deck.addCardTop(Reflex);
+
     return deck;
 }
 
