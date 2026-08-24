@@ -9,127 +9,9 @@
 Effect::Effect(EID t, int m, TID tar)
     :type(t), magnitude(m), target_type(tar){}
 
-Effect::Effect(EID t, int m, TID tar, PID p)
-    :type(t), magnitude(m), target_type(tar), power(p){}
-
-Effect::Effect(EID t, int m, CID c, PileID tar_p) //Add cards can only be done to a player
-    :type(t), magnitude(m), target_type(TID::player), card(c), target_pile(tar_p){}
-    
-Effect::Effect(EID t, int m, PileID src_p, PileID tar_p)
-    :type(t), magnitude(m), target_type(TID::player), source_pile(src_p), target_pile(tar_p){}
-
 EffectReport Effect::apply(std::deque<Character*> target, Character* source, Game& game){
-
-    EffectReport report;
- 
-    for(Character* c: target){//For every character in selected targets
-        if(!c->isAlive()){continue;}
-        //Preventive programming for Player/Enemy specific behavior.
-        Player* p = dynamic_cast<Player*>(c); 
-        Enemy*  e = dynamic_cast<Enemy*>(c);
-        
-        switch(type){
-            //General behavior
-            case EID::damage: 
-            {
-                int32_t damage = magnitude;
-                damage = source->modOutDamage(damage);
-                damage = c->modIncDamage(damage);
-                report.damage_dealt += c->takeDamage(damage); 
-                c->onHit(source, game);
-            }
-            break;
-
-            case EID::hp: 
-            {
-                report.hp_delta += c->changeAttribute(Attribute::hp,magnitude);
-            }
-            break;
-            case EID::block:  
-            {
-                int32_t block = magnitude;
-                block = c->modBlockGain(block);
-                report.block_gained += c->gainBlock(block);  
-            }
-            break;    
-            //Player specific behavior
-            case EID::energy:{
-                if(p){p->changeAttribute(Attribute::energy,magnitude);} 
-            }
-            break;
-            case EID::draw:{
-                if(p){report.cards_drawn += p->drawCards(magnitude,game);}
-            }
-            break; 
-            case EID::discard:{
-                if(p){report.cards_transferred += p->transferCardsManual(PileID::hand, PileID::discard, magnitude, false, game);}
-            }
-            break;
-            case EID::exhaust:{
-                if(p){report.cards_transferred += p->transferCardsManual(PileID::hand, PileID::exhaust, magnitude, false, game);} 
-            }
-            break;
-
-            case EID::random_card_transfer:{
-                if(p){
-                    std::deque<int> choices = p->randomCards(*source_pile, magnitude, game);
-                    report.cards_transferred += p->transferCardsAuto(*source_pile, *target_pile, choices, true, game);
-                }
-            }
-            break;
-            
-            case EID::cards_bottom:{
-                if(p && source_pile && target_pile){
-                    p->transferCardsManual(*source_pile, *target_pile, magnitude, true, game);
-                }
-                else{throw std::runtime_error("Invalid Effect configuration: cardsBottom effect requires source and target piles");}
-                }  
-            break;
-            case EID::cards_top:{
-                if(p && source_pile && target_pile){
-                    p->transferCardsManual(*source_pile, *target_pile, magnitude, false, game);
-                }
-                else{throw std::runtime_error("Invalid Effect configuration: cardsTop effect requires source and target piles");}
-            }
-            break;
-            case EID::expertise:{
-                if(p){report.cards_drawn += p->drawCards(magnitude - p->getPlayerPileSize(PileID::hand), game);}
-            }
-            break;
-            case EID::gain:{
-                report.power_gained = *power;
-                c->addPower(*power, magnitude);
-            }
-            break;
-            case EID::lose:{
-                report.power_gained = *power;
-                c->addPower(*power, -magnitude);
-            }
-            break;
-            case EID::addCard:{
-                if(p){
-                    Card add = createCard(*card);
-                    for(int i = 0;i<magnitude;i++){ p->addToPile(*target_pile, add, true); }
-                }
-            }
-            break;
-            case EID::shuffleCard:{
-                if(p){
-                    Card add = createCard(*card);
-                    for(int i = 0; i<magnitude;i++){p->shuffleIntoDraw(add, game);}
-                }
-            }
-            break;
-
-            default: {std::cout<<"No implementation yet!\n"; 
-            }
-            break;
-        }
-    }
-
-    return report;
+    EffectReport results; return results;
 }
-
 
 EID Effect::getType(){return type;}
 int Effect::getMagnitude(){return magnitude;}
@@ -142,11 +24,7 @@ bool Effect::isSingleTarget(){
 void Effect::setMagnitude(int n){magnitude = n;}
 
 std::string Effect::log(std::deque<Character*> target, Character* source, EffectReport report){
-
     if(target.empty()){return "";}
-
-    
-
     std::string log; std::string who; std::string what; std::string to_who; std::string how_much = std::to_string(abs(magnitude));
     bool single_target = target_type == TID::player   || target_type == TID::random_enemy || 
                          target_type == TID::enemy    || target_type == TID::self;
@@ -204,8 +82,9 @@ std::string Effect::log(std::deque<Character*> target, Character* source, Effect
 
         case EID::random_card_transfer:{
             std::string where;
-            if(target_pile.has_value()){
-                switch(*target_pile){
+            CardTransfer* e = dynamic_cast<CardTransfer*>(this);
+            if(e){
+                switch(e->getTargetPile()){
                     case PileID::exhaust: where = " exhausted "; break;
                     case PileID::discard: where = " discarded "; break;
                     default: where = " transferred "; break;
@@ -219,7 +98,11 @@ std::string Effect::log(std::deque<Character*> target, Character* source, Effect
         }   
         case EID::gain:{
             if(magnitude == 0){return "";}
-            what = ((magnitude>0)? " gained ":" lost " ) + how_much +" "+Power::IDtoString(*power, true)+".";
+
+            PowerManip* e = dynamic_cast<PowerManip*>(this);
+            if(e){
+                what = ((magnitude>0)? " gained ":" lost " ) + how_much +" "+Power::IDtoString(e->getPID(), true)+".";
+            }
         break;}
 
         case EID::expertise:{
@@ -228,6 +111,17 @@ std::string Effect::log(std::deque<Character*> target, Character* source, Effect
             what = " drew " + how_much + " card" + ((report.cards_drawn>1)? "s.":".");
         break;}
 
+        case EID::add_card_top:
+        case EID::add_card_bot:
+        case EID::shuffleCard:{
+            CreateCard* e = dynamic_cast<CreateCard*>(this);
+            if(e){
+                if(report.cards_added == 0){return "";}
+                how_much = std::to_string(abs(report.cards_added));
+                what = " created " + how_much + " card" + ((report.cards_added>1)? "s.":".");
+            }
+            break;
+        }
         default:{ return ""; break; }
 
     }
@@ -235,4 +129,208 @@ std::string Effect::log(std::deque<Character*> target, Character* source, Effect
     log = who + what + to_who;
 
     return log;
+}
+
+
+CombatAction::CombatAction(EID t, int m, TID tar):
+    Effect(t,m,tar) {}
+
+EffectReport CombatAction::apply(std::deque<Character*> target, Character* source, Game& game){
+    EffectReport report;
+
+    for(Character* c: target){
+        if(!c->isAlive()){continue;}
+        Player* p = dynamic_cast<Player*>(c); 
+        Enemy*  e = dynamic_cast<Enemy*>(c);
+
+        switch(type){
+            case EID::damage: 
+            {
+                int32_t damage = magnitude;
+                damage = source->modOutDamage(damage);
+                damage = c->modIncDamage(damage);
+                report.damage_dealt += c->takeDamage(damage); 
+                c->onHit(source, game);
+            }
+            break;
+
+            case EID::hp: 
+            {
+                report.hp_delta += c->changeAttribute(Attribute::hp,magnitude);
+            }
+            break;
+            case EID::block:  
+            {
+                int32_t block = magnitude;
+                block = c->modBlockGain(block);
+                report.block_gained += c->gainBlock(block);  
+            }
+            break;    
+            //Player specific behavior
+            case EID::energy:{
+                if(p){p->changeAttribute(Attribute::energy,magnitude);} 
+            }
+
+            case EID::draw:{
+                if(p){report.cards_drawn += p->drawCards(magnitude,game);}
+            }
+
+            case EID::expertise:{
+                if(p){report.cards_drawn += p->drawCards(magnitude - p->getPlayerPileSize(PileID::hand), game);}
+            }
+            break;
+            default: break;            
+        }
+    }
+    return report;
+}
+
+RunAction::RunAction(EID t, int m):
+    Effect(t,m, TID::player){}
+EffectReport RunAction::apply(std::deque<Character*> target, Character* source, Game& game){
+
+    EffectReport report;
+ 
+    for(Character* c: target){//For every character in selected targets
+        if(!c->isAlive()){continue;}
+        //Preventive programming for Player/Enemy specific behavior.
+        Player* p = dynamic_cast<Player*>(c); 
+        switch(type){ 
+            case EID::max_hp: 
+                c->changeAttribute(Attribute::max_hp, magnitude);
+            break;
+        }
+    }
+
+    return report;
+}
+
+CreateCard::CreateCard(int m, CID c, PileID tar_p, Position pos):
+    Effect(EID::none, m, TID::player), target_pile(tar_p), position(pos), card(c){
+        switch(position){
+            case Position::top:
+                type = EID::add_card_top;
+            break;
+            case Position::bottom:
+                type = EID::add_card_bot;
+            break;
+            case Position::random:
+                type = EID::shuffleCard;
+            break;     
+        }
+    }
+
+CID CreateCard::getCID(){return card;}
+PileID CreateCard::getTargetPile(){return target_pile;}
+
+EffectReport CreateCard::apply(std::deque<Character*> target, Character* source, Game& game){
+    EffectReport report;
+
+    for(Character* c: target){
+        if(!c->isAlive()){continue;}
+        Player* p = dynamic_cast<Player*>(c); 
+        if(!p){return report;}
+        
+        switch(type){
+            case EID::add_card_top:{
+                Card add = createCard(card);
+                for(int i = 0;i<magnitude;i++){ p->addToPile(target_pile, add, false); }
+            }
+            break;
+            case EID::add_card_bot:{
+                Card add = createCard(card);
+                for(int i = 0;i<magnitude;i++){ p->addToPile(target_pile, add, true); }
+            }
+            break;
+            case EID::shuffleCard:{
+                Card add = createCard(card);
+                for(int i = 0; i<magnitude;i++){p->shuffleIntoDraw(add, game);}
+            }
+            break;
+            default: break;       
+        }
+    }
+    report.cards_added = magnitude;
+    return report;
+}
+
+CardTransfer::CardTransfer(EID t, int m, PileID src_p, PileID tar_p):
+    Effect(t,m, TID::player), source_pile(src_p), target_pile(tar_p){}
+
+PileID CardTransfer::getSourcePile(){return source_pile;}
+PileID CardTransfer::getTargetPile(){return target_pile;}
+
+EffectReport CardTransfer::apply(std::deque<Character*> target, Character* source, Game& game){
+    EffectReport report;
+
+    for(Character* c: target){
+        if(!c->isAlive()){continue;}
+        Player* p = dynamic_cast<Player*>(c); 
+        if(!p){return report;}
+        
+        switch(type){
+            case EID::discard:{
+                report.cards_transferred += p->transferCardsManual(PileID::hand, PileID::discard, magnitude, false, game);
+            }
+            break;
+            case EID::exhaust:{
+                report.cards_transferred += p->transferCardsManual(PileID::hand, PileID::exhaust, magnitude, false, game); 
+            }
+            break;
+            case EID::random_card_transfer:{
+                std::deque<int> choices = p->randomCards(source_pile, magnitude, game);
+                report.cards_transferred += p->transferCardsAuto(source_pile, target_pile, choices, true, game);
+            }
+            break;
+            
+            case EID::cards_bottom:{
+                p->transferCardsManual(source_pile, target_pile, magnitude, true, game);
+            }  
+            break;
+            case EID::cards_top:{
+                p->transferCardsManual(source_pile, target_pile, magnitude, false, game);               
+            }
+            break;    
+
+            default: break;       
+        }
+    }
+    return report;
+}
+
+
+
+PowerManip::PowerManip(EID t, int m, TID tar, PID p):
+    Effect(t,m, tar), power(p){}
+
+
+PID PowerManip::getPID(){return power;}
+
+EffectReport PowerManip::apply(std::deque<Character*> target, Character* source, Game& game){
+
+    EffectReport report;
+ 
+    for(Character* c: target){//For every character in selected targets
+        if(!c->isAlive()){continue;}
+        //Preventive programming for Player/Enemy specific behavior.
+        Player* p = dynamic_cast<Player*>(c); 
+        Enemy*  e = dynamic_cast<Enemy*>(c);
+        
+        switch(type){ 
+            
+            
+            case EID::gain:{
+                report.power_gained = power;
+                c->addPower(power, magnitude);
+            }
+            break;
+            case EID::lose:{
+                report.power_gained = power;
+                c->addPower(power, -magnitude);
+            }
+            break;
+        }
+    }
+
+    return report;
 }

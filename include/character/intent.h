@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <ui/colors.h>
+#include <memory>
 
 class Effect; class Enemy; enum class EID; enum class TID; class Game;
 enum class IntentType{attack, block, buff, debuff, create_card, die, summon, unknown};
@@ -12,13 +13,13 @@ enum class IntentType{attack, block, buff, debuff, create_card, die, summon, unk
 
 class Intent{
 
-    std::vector<Effect> actions; //Everything the enemy will do
+    std::vector<std::shared_ptr<Effect>> actions; //Everything the enemy will do
     
     public:
 
-    Intent(std::vector<Effect> a);
+    Intent(std::vector<std::shared_ptr<Effect>> a);
     
-    std::vector<Effect>& getActions();
+    std::vector<std::shared_ptr<Effect>> getActions();
     
 };
 

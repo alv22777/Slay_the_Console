@@ -107,31 +107,15 @@ void Game::fight(){
 }
 
 void Game::initEnemies(){
-	enemies.push_back(std::make_unique<Enemy>(
-		"Green Louse",9,Color::green,
-		std::deque<Intent>{
-			Intent({ Effect(EID::damage,3,TID::player), Effect(EID::damage,3,TID::player) }), 
-			Intent({ Effect(EID::damage,2,TID::player) })
-		}
-	));
-	enemies.push_back(std::make_unique<Enemy>(
-		"Red Louse", 9, Color::red, 
-		std::deque<Intent>{
-			Intent({ Effect(EID::damage, 2, TID::player)}),
-			Intent({ Effect(EID::gain, 2, TID::player, PID::frail)}),
-		}
-	));
-	// enemies.push_back(std::make_unique<Enemy>(
-	// 	"Cultist", 30 ,Color::blue,
-	// 	std::deque<Intent>{
-	// 		Intent({ Effect(EID::gain,   1, TID::self, PID::ritual)}),
-	// 		Intent({ Effect(EID::damage, 2, TID::player)})
-	// 	}
-	// ));
+
+	enemies.push_back(std::move(Enemy::createEnemy(EnemyID::green_louse)));
+	enemies.push_back(std::move(Enemy::createEnemy(EnemyID::red_louse)));
+	enemies.push_back(std::move(Enemy::createEnemy(EnemyID::green_louse)));
+
 	
 	enemies[0]->addPower(PID::curl_up, rng.nextInt(3,7));
-	enemies[1]->addPower(PID::curl_up, rng.nextInt(3,7));
-
+	enemies[0]->addPower(PID::thorns, 2);
+	
 	for(auto& e: enemies){
 		e->chooseIntent(*this);
 	}
@@ -300,19 +284,17 @@ int32_t Game::calculateIntentDamage(int32_t base, Enemy* source){
 	return damage;
 }
 
-void Game::resolveEffect(Character& source, Effect& effect, std::deque<Character*> targets){
+void Game::resolveEffect(Character& source, std::shared_ptr<Effect> effect, std::deque<Character*> targets){
 	if(&(effect) == nullptr){NO_EFFECT.apply({}, &source,*this); return;}
 	if(targets.empty()){return;}
 
-	displayGameState();
-	EffectReport result = effect.apply(targets, &source, *this);
+	EffectReport result = effect->apply(targets, &source, *this);
 
-	pushLog(effect.log(targets, &source, result), 1);
-	
-	displayGameState( );
+	pushLog(effect->log(targets, &source, result), 1);
 }
 
 void Game::enqueueEvent(Event e){event_handler.enqueue(e);}
+void Game::stackEvent(Event e){event_handler.stack(e);}
 void Game::resolveQueue(){
 	while(!event_handler.empty()){
 		event_handler.resolveNext(*this);

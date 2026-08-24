@@ -9,8 +9,14 @@ EventHandler::EventHandler():
 void EventHandler::enqueue(Event e){
     pending.push_back(e);
 }
+void EventHandler::stack(Event e){
+    pending.push_front(e);
+}
+
 void EventHandler::resolveNext(Game& game){
-    Event ev = pending.front(); pending.pop_front();
+    Event ev = pending.front(); 
+    pending.pop_front();
+    
     game.resolveEffect(*(ev.source), ev.event_effect, ev.targets);
 }
 bool EventHandler::empty(){

@@ -8,6 +8,7 @@ class Card; enum class CardType;
 //The game class will also use the pile manipulation methods to manipulate the piles during combat.
 
 enum class PileID{deck, combat_deck, hand, draw, discard, exhaust};
+enum class Position{top, bottom, random};
 
 #include<deque>
 struct IndexedCard{ Card* c; int index; };

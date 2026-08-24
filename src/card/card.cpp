@@ -11,7 +11,7 @@
 
 
 //Creates a Card and initializes it's values with the given arguments.
-Card::Card(CID i, Color c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::vector<TriggeredEffect> trig, XFactor x, bool eth, bool ex, bool in, bool ret)//Character, name, type, energy cost, rarity, card text
+Card::Card(CID i, Color c, std::string n, CardType t, int cost, CardRarity r, std::string text, std::initializer_list<TriggeredEffect> trig, XFactor x, bool eth, bool ex, bool in, bool ret)//Character, name, type, energy cost, rarity, card text
     :id(i), character(c), name(n), type(t), energy_cost(cost), rarity(r), card_text(text), triggered_effects(trig), 
     x_factor(x),exhaust(ex), ethereal(eth), innate(in), retain(ret){}   
     
@@ -85,14 +85,13 @@ std::string Card::getCardRarity(){
 void Card::trigger(Player& source, Game& game, TriggerID trigger, CardContext context){
     
     int index;
-
     bool found = false;
     for(int i = 0; i<triggered_effects.size();i++){
         if(triggered_effects[i].trigger == trigger){found = true; index = i;}
     }
     if(!found){return;} //card has no triggered effects for this event.
 
-    std::vector<Effect> effects = triggered_effects[index].effects;
+    std::vector<std::shared_ptr<Effect>> effects = (triggered_effects[index].effects);
 
     
     bool single_target_already_selected = false;
@@ -106,21 +105,21 @@ void Card::trigger(Player& source, Game& game, TriggerID trigger, CardContext co
     if(x_factor == XFactor::repetition){times = context.energy_spent;}
     else if(x_factor == XFactor::magnitude){
         x = context.energy_spent;
-        for(Effect &e: effects){
-            e.setMagnitude(x);
+        for(const std::shared_ptr<Effect>& e: effects){
+            e->setMagnitude(x);
         }
     }  
 
-    for(Effect e: effects){        
-        if(e.getTarget() == TID::enemy){
+    for(const std::shared_ptr<Effect>& e: effects){        
+        if(e->getTarget() == TID::enemy){
             if(!single_target_already_selected){
-                single_target = game.selectTargets(e.getTarget(), &source);
+                single_target = game.selectTargets(e->getTarget(), &source);
                 single_target_already_selected = true;
             }
             for(int i = 0; i<times;i++){game.enqueueEvent({e, &source, single_target});}
         }
         else{
-            other_target = game.selectTargets(e.getTarget(), &source);
+            other_target = game.selectTargets(e->getTarget(), &source);
             for(int i = 0; i<times;i++){game.enqueueEvent({e, &source, other_target});}
         } 
     }
@@ -146,13 +145,19 @@ bool Card::canPlay(Player& source, Game& game){
     
     if(source.getAttribute(Attribute::energy) < getEnergyCost()){std::cout<<"Not enough energy!\n"; able = false; return able;}
     
+    int index;
+    bool found = false;
+    for(int i = 0; i<triggered_effects.size();i++){
+        if(triggered_effects[i].trigger == TriggerID::on_play){found = true; index = i;}
+    }
+    if(!found){return true;} //card has no triggered effects for this event.
     
-    std::vector<Effect> effects = triggered_effects[static_cast<int>(TriggerID::on_play)].effects;    
-    
-    able = !effects[0].isSingleTarget()||game.hasValidTargets(effects[0].getTarget(), source);
+    std::vector<std::shared_ptr<Effect>> effects = triggered_effects[index].effects;
+    able = !effects[0]->isSingleTarget()||game.hasValidTargets(effects[0]->getTarget(), source);
     
     return able;
 }
+
 
 Card createCard(CID id){
     Card c = blank_card; 

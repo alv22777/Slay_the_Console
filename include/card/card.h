@@ -2,6 +2,8 @@
 #define CARD_H
 
 #include<iostream>
+#include<initializer_list>
+#include<memory>
 #include<vector>
 #include"game_logic/effect.h"
 #include "ui/colors.h"
@@ -104,7 +106,10 @@ enum class XFactor {none, repetition, magnitude};
 enum class TriggerID {on_play, on_discard, on_exhaust, on_draw, on_end_of_turn, on_fatal, on_upgrade, none};
 struct TriggeredEffect{
     TriggerID trigger;
-    std::vector<Effect> effects;
+    std::vector<std::shared_ptr<Effect>> effects;
+
+    TriggeredEffect(TriggerID trigger_id, std::initializer_list<std::shared_ptr<Effect>> effect_list)
+        : trigger(trigger_id), effects(effect_list) {}
 };
 struct CardContext{
     int energy_spent;
@@ -130,7 +135,7 @@ class Card{
     bool ethereal;
 public:
     Card(CID i, Color c, std::string n, CardType t, int cost, CardRarity r, 
-         std::string text, std::vector<TriggeredEffect> trig, 
+            std::string text, std::initializer_list<TriggeredEffect> trig, 
          XFactor x, bool eth, bool ex, bool in, bool ret);
 
     void display();    

@@ -118,15 +118,15 @@ void Power::display(){
 
 BerserkPower::BerserkPower(int32_t i, Character* own): Power(PID::berserk, i, true, false, own){}
 void BerserkPower::onTurnStart(Game& game){
-    
-    Event ev = { Effect(EID::energy, magnitude, TID::self), owner, {owner}};
+    std::shared_ptr<Effect> a = std::make_shared<CombatAction>(CombatAction(EID::energy, magnitude, TID::self));
+    Event ev = {a, owner, {owner}};
     game.enqueueEvent(ev);
 }
 
 MetallicizePower::MetallicizePower(int32_t i, Character* own): Power(PID::metallicize, i, true, false, own){}
 void MetallicizePower::onTurnEnd(Game& game){
-
-    Event ev = { Effect(EID::block, magnitude, TID::self), owner, {owner}};   
+    std::shared_ptr<Effect> a = std::make_shared<CombatAction>(CombatAction(EID::block, magnitude, TID::self));
+    Event ev = {a, owner, {owner}};   
     game.enqueueEvent(ev);
 }
 
@@ -149,7 +149,8 @@ int32_t VulnerablePower::modIncDamage(int32_t base){
 
 RitualPower::RitualPower(int32_t i, Character* own): Power(PID::ritual, i, true, false, own){}
 void RitualPower::onTurnEnd(Game& game){
-    Event ev = { Effect(EID::gain, magnitude, TID::self, PID::strength), owner, {owner}};
+    std::shared_ptr<Effect> a = std::make_shared<PowerManip>(PowerManip(EID::gain, magnitude, TID::self, PID::strength));
+    Event ev = {a, owner, {owner}};
     game.enqueueEvent(ev);
 }
 
@@ -161,14 +162,17 @@ int32_t FrailPower::modBlockGainMult(int32_t base){
 PoisonPower::PoisonPower(int32_t i, Character* own): Power(PID::poison, i, true, true, own){}
 void PoisonPower::onTurnEnd(Game& game){} //does nothing on turn end
 void PoisonPower::onTurnStart(Game& game){
-    Event ev = { Effect(EID::hp, -magnitude, TID::self), owner, {owner} };
+    std::shared_ptr<Effect> a = std::make_shared<CombatAction>(CombatAction(EID::hp, -magnitude, TID::self));
+    Event ev = {a, owner, {owner} };
     game.enqueueEvent(ev);
     changeMagnitude(-1);
 }
 
 ThornsPower::ThornsPower(int32_t i, Character* own): Power(PID::thorns, i, true, false, own){}
-void ThornsPower::onHit(Character* source, Game& game){ 
-    source->takeDamage(magnitude); 
+void ThornsPower::onHit(Character* source, Game& game){
+    std::shared_ptr<Effect> a = std::make_shared<CombatAction>(CombatAction(EID::damage, magnitude, TID::enemy));
+    Event ev = {a, owner, {source}};
+    game.stackEvent(ev);
 }
 
 AccuracyPower::AccuracyPower(int32_t i, Character* own): Power(PID::accuracy, i, true, false, own){}
@@ -189,20 +193,26 @@ int32_t DexterityPower::modBlockGainAdd(int32_t base){
 
 OmegaPower::OmegaPower(int32_t i, Character* own): Power(PID::omega, i, true, false, own){}
 void OmegaPower::onTurnEnd(Game& game){
+
     std::deque<Character*> targets = game.selectTargets(TID::enemy_all, owner);
-    Event ev = { Effect(EID::damage, magnitude, TID::enemy_all), owner, targets};
+    
+    std::shared_ptr<Effect> a = std::make_shared<CombatAction>(CombatAction(EID::damage, magnitude, TID::enemy_all));
+    
+    Event ev = {a, owner, targets};
     game.enqueueEvent(ev);
 }
 
 FastingPower::FastingPower(int32_t i, Character* own): Power(PID::fasting, i, true, false, own){}
 void FastingPower::onTurnStart(Game& game){
-    Event ev = {Effect(EID::energy, -magnitude, TID::self), owner, {owner}};
+    std::shared_ptr<Effect> a = std::make_shared<CombatAction>(CombatAction(EID::energy, -magnitude, TID::self));
+    Event ev = {a, owner, {owner}};
     game.enqueueEvent(ev);
 }
 
 CurlUpPower::CurlUpPower(int32_t i, Character* own): Power(PID::curl_up, i, true, false, own){}
 void CurlUpPower::onHit(Character* source, Game& game){
-    Event ev = {Effect(EID::block, magnitude, TID::self), owner, {owner}};
+    std::shared_ptr<Effect> a = std::make_shared<CombatAction>(CombatAction(EID::block, magnitude, TID::self));
+    Event ev = {a, owner, {owner}};
     game.enqueueEvent(ev);
     eliminate();
 }

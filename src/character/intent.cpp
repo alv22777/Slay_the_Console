@@ -3,8 +3,7 @@
 #include "game_logic/effect.h"
 #include "ui/colors.h"
 
-std::vector<Effect>& Intent::getActions(){return actions;}
+std::vector<std::shared_ptr<Effect>> Intent::getActions(){return actions;}
 
-
-Intent::Intent(std::vector<Effect> a): actions(a){}
+Intent::Intent(std::vector<std::shared_ptr<Effect>> a): actions(a){}
 

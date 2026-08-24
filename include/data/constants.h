@@ -2,10 +2,12 @@
 #define CONSTANTS_H
 #include"stdint.h"
 #include<vector>
+#include<memory>
 class Card;
 class Pile;
 class Effect;
 enum class CID;
+struct EnemyBlueprint;
 
 /*
 	Glossary:
@@ -494,5 +496,12 @@ Pile createIroncladStarterDeck();
 Pile createSilentStarterDeck();
 Pile createDefectStarterDeck();
 Pile createWatcherStarterDeck();
+
+
+extern EnemyBlueprint green_louse_blueprint;
+extern EnemyBlueprint red_louse_blueprint;
+extern EnemyBlueprint cultist_blueprint;
+extern EnemyBlueprint jaw_worm_blueprint;
+extern EnemyBlueprint gremlin_nob_blueprint;
 
 #endif

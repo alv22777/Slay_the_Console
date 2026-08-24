@@ -52,9 +52,10 @@ class Game{
 
 	std::deque<Character*> selectTargets(TID target, Character* source);
     bool hasValidTargets(TID t, Character& source);
-    void resolveEffect(Character& source, Effect& effect, std::deque<Character*> targets);
+    void resolveEffect(Character& source, std::shared_ptr<Effect> effect, std::deque<Character*> targets);
 	//EVENT HANDLER INTERACTION
 	void enqueueEvent(Event e);
+	void stackEvent(Event e);
 	void resolveQueue();
 
 	//REWARDS

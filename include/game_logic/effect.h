@@ -17,15 +17,17 @@ forethought: n cards go from hand to draw bot.
 expertise: target player draws cards until hand size is n.
 */
 enum class EID{
-    damage, block, energy, hp, 
+    damage, block, energy, hp, max_hp,
     draw, discard, exhaust, exhaust_self, random_card_transfer, cards_bottom, cards_top, expertise,
     gain, lose,
-    addCard, shuffleCard,
+    add_card_bot, add_card_top, shuffleCard,
     
     none
 };
 
 enum class TID{player, enemy, enemy_all, random_enemy, self, none};
+enum class Condition{target_has_power, cards_discarded, fatal, cards_played, target_intents_to_attack, none};
+enum class Position;
 
 struct EffectReport{
     int32_t damage_dealt=0;
@@ -45,30 +47,17 @@ struct EffectReport{
 };
 
 class Effect{
+    protected:
     EID type;
-    TID target_type;
     int magnitude;
-    std::optional<PID> power;
-    std::optional<CID> card;
-    std::optional<PileID> source_pile;
-    std::optional<PileID> target_pile;
-
+    TID target_type;
+    
+//  std::optional<Condition> condition;
 
     public:
-    //Normal effect
     Effect(EID t, int m, TID tar);
 
-    //Gain Power effect
-    Effect(EID t, int m, TID tar, PID p);
-    
-    //add m cards with CID c to target Pile
-    Effect(EID t, int m, CID c, PileID tar_p);
-
-    //move m cards from source pile to target pile
-    Effect(EID t, int m, PileID src_p, PileID tar_p);
-
-
-    EffectReport apply(std::deque<Character*> target, Character* source, Game& game); //Applies this effect to the target character. 
+    virtual EffectReport apply(std::deque<Character*> target, Character* source, Game& game); //Applies this effect to the target character. 
     EID getType();
     TID getTarget();
     bool isSingleTarget();
@@ -77,6 +66,68 @@ class Effect{
     void setMagnitude(int n);
 
     std::string log(std::deque<Character*> target, Character* source, EffectReport report);
+
+	virtual ~Effect() noexcept = default;
+};
+
+class CombatAction: public Effect{
+    private:
+    
+    public:
+    CombatAction(EID t, int m, TID tar);
+    EffectReport apply(std::deque<Character*> target, Character* source, Game& game) override;
+    ~CombatAction() noexcept override = default;
+};
+
+class RunAction: public Effect{
+    private:
+    public:
+    RunAction(EID t, int m);
+    EffectReport apply(std::deque<Character*> target, Character* source, Game& game) override;
+     ~RunAction() noexcept override = default;
+};
+
+class CreateCard: public Effect{
+    CID card;
+    PileID target_pile;
+    Position position;
+    
+    public:
+    //add m cards with CID c to target Pile
+    CreateCard(int m, CID c, PileID tar_p, Position pos); 
+    
+    CID getCID();
+    PileID getTargetPile();
+
+    EffectReport apply(std::deque<Character*> target, Character* source, Game& game) override;
+
+    ~CreateCard() noexcept override = default;
+};
+
+class CardTransfer: public Effect{
+    PileID source_pile;
+    PileID target_pile;
+    public:
+    //move m cards from source pile to target pile
+    CardTransfer(EID t, int m, PileID src_p, PileID tar_p);
+    PileID getSourcePile();
+    PileID getTargetPile();
+
+    EffectReport apply(std::deque<Character*> target, Character* source, Game& game) override;
+
+    ~CardTransfer() noexcept override = default;
+};
+
+class PowerManip: public Effect{
+    PID power;
+
+    public:
+    PowerManip(EID t, int m, TID tar, PID p);
+    PID getPID();
+
+    EffectReport apply(std::deque<Character*> target, Character* source, Game& game) override;
+
+    ~PowerManip() noexcept override = default;
 };
 
 #endif

@@ -1,9 +1,18 @@
 #include "data/constants.h"
 #include "game_logic/effect.h"
 #include "game_logic/power.h"
+#include "character/enemy.h"
+#include "character/intent.h"
 #include "card/card.h"
 #include "card/pile.h"
 #include "ui/colors.h"
+#include <memory>
+#include <deque>
+
+#define CombatAction(...) std::shared_ptr<Effect>(new CombatAction(__VA_ARGS__))
+#define CardTransfer(...) std::shared_ptr<Effect>(new CardTransfer(__VA_ARGS__))
+#define CreateCard(...) std::shared_ptr<Effect>(new CreateCard(__VA_ARGS__))
+#define PowerManip(...) std::shared_ptr<Effect>(new PowerManip(__VA_ARGS__))
 
 
 const int ICL_STARTING_MAX_HP = 80;
@@ -29,23 +38,34 @@ Card blank_card = {CID::blank_card,Color::colorless,"None",CardType::status,-1,C
 // CARD CONSTRUCTOR: CID, COLOR, NAME, CARD TYPE, COST, RARITY, TEXT, {{TriggerID::on_play, {EFFECTs}}}
 //THE IRONCLAD
 
+
+
+
+
 Card ICL_Strike = {CID::ICL_Strike,Color::red, "Strike", CardType::attack, 1, CardRarity::starter,"Deal 6 damage.", 
     {
-        {TriggerID::on_play, {Effect(EID::damage, 6,TID::enemy)}},      
+        {TriggerID::on_play, {
+            CombatAction(EID::damage, 6, TID::enemy)
+        }}      
     }, XFactor::none, 
     false, false, false, false};
 
+
+
+
 Card ICL_Defend = {CID::ICL_Defend, Color::red, "Defend", CardType::skill, 1, CardRarity::starter, "Gain 5 block.", 
     {
-        {TriggerID::on_play, {Effect(EID::block,5,TID::self)}},
+        {TriggerID::on_play, {
+            CombatAction(EID::block,5,TID::self)
+        }},
     }, XFactor::none, 
     false, false, false, false};
 Card Bash = {CID::Bash, Color::red, "Bash", CardType::attack, 2,  CardRarity::starter, "Deal 8 damage. Apply 2 vulnerable.", 
     {
         {TriggerID::on_play, 
             {
-                Effect(EID::damage, 8, TID::enemy), 
-                Effect(EID::gain, 2, TID::enemy, PID::vulnerable),
+                CombatAction(EID::damage, 8, TID::enemy), 
+                PowerManip(EID::gain, 2, TID::enemy, PID::vulnerable),
             }
         }
     }, XFactor::none, false, false, false, false };
@@ -58,7 +78,7 @@ Card Clash = {CID::Clash, Color::red, "Clash", CardType::attack, 0, CardRarity::
     {
         {TriggerID::on_play,
             {
-                Effect(EID::damage, 14, TID::enemy),
+                CombatAction(EID::damage, 14, TID::enemy),
             }
         }
     }, XFactor::none, false, false, false, false };
@@ -67,7 +87,7 @@ Card Cleave = {CID::Cleave, Color::red, "Cleave", CardType::attack, 1, CardRarit
     {
         {TriggerID::on_play,
             {
-                Effect(EID::damage, 8, TID::enemy_all)
+                CombatAction(EID::damage, 8, TID::enemy_all)
             },
         }
     }, XFactor::none, false, false, false, false };
@@ -76,8 +96,8 @@ Card Clothesline = {CID::Clothesline, Color::red, "Clothesline", CardType::attac
     {
         {TriggerID::on_play,
             {
-                Effect(EID::damage, 12, TID::enemy),
-                Effect(EID::gain, 2, TID::enemy, PID::weak),
+                CombatAction(EID::damage, 12, TID::enemy),
+                PowerManip(EID::gain, 2, TID::enemy, PID::weak),
             },
         }
     
@@ -89,8 +109,8 @@ Card Headbutt={CID::Headbutt, Color::red, "Headbutt",CardType::attack, 1, CardRa
     {
         {TriggerID::on_play,
             {
-                Effect(EID::damage, 9, TID::enemy),
-                Effect(EID::cards_top, 1, PileID::discard, PileID::draw),
+                CombatAction(EID::damage, 9, TID::enemy),
+                CardTransfer(EID::cards_top, 1, PileID::discard, PileID::draw),
             }
         }    
     }, XFactor::none, false, false, false, false };
@@ -99,8 +119,8 @@ Card Heavy_Blade = blank_card;
 Card Iron_Wave={CID::Iron_Wave, Color::red, "Iron Wave", CardType::attack, 1, CardRarity::common, "Gain 5 block. Deal 5 damage",{
     {TriggerID::on_play,
         {
-            Effect(EID::block, 5, TID::self),
-            Effect(EID::damage, 5, TID::enemy)
+            CombatAction(EID::block, 5, TID::self),
+            CombatAction(EID::damage, 5, TID::enemy)
         }
     }
 }, XFactor::none, false, false, false, false };
@@ -108,33 +128,33 @@ Card Perfected_Strike = blank_card;
 Card Pommel_Strike={CID::Pommel_Strike, Color::red, "Pommel Strike", CardType::attack, 1, CardRarity::common, "Deal 9 damage. Draw 1 card.",{
     {TriggerID::on_play,
         {
-            Effect(EID::damage, 9, TID::enemy),
-            Effect(EID::draw, 1, TID::self)
+            CombatAction(EID::damage, 9, TID::enemy),
+            CombatAction(EID::draw, 1, TID::self)
         }
     }    
 }, XFactor::none, false, false, false, false }; 
 Card Shrug_It_Off={CID::Shrug_It_Off, Color::red, "Shrug It Off", CardType::skill, 1, CardRarity::common, "Gain 8 block. Draw 1 card.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 8, TID::self),
-            Effect(EID::draw, 1, TID::self)
+            CombatAction(EID::block, 8, TID::self),
+            CombatAction(EID::draw, 1, TID::self)
         }
     }    
 }, XFactor::none, false, false, false, false }; 
 Card Sword_Boomerang = {CID::Sword_Boomerang, Color::red,"Sword Boomerang",CardType::attack, 1, CardRarity::common, "Deal 3 damage to a random enemy 3 times.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 3, TID::random_enemy),
-            Effect(EID::damage, 3, TID::random_enemy),
-            Effect(EID::damage, 3, TID::random_enemy)
+            CombatAction(EID::damage, 3, TID::random_enemy),
+            CombatAction(EID::damage, 3, TID::random_enemy),
+            CombatAction(EID::damage, 3, TID::random_enemy)
         }
     }
 }, XFactor::none, false, false, false, false };
 Card Thunderclap={CID::Thunderclap, Color::red, "Thunderclap", CardType::attack, 1, CardRarity::common, "Deal 4 damage to ALL enemies. Apply 1 vulnerable to ALL enemies.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 4, TID::enemy_all),
-            Effect(EID::gain, 1, TID::enemy_all, PID::vulnerable)
+            CombatAction(EID::damage, 4, TID::enemy_all),
+            PowerManip(EID::gain, 1, TID::enemy_all, PID::vulnerable)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -142,32 +162,32 @@ Card True_Grit = {CID::True_Grit, Color::red, "True Grit", CardType::skill, 1, C
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 7, TID::self),
-            Effect(EID::random_card_transfer, 1, PileID::hand, PileID::exhaust)
+            CombatAction(EID::block, 7, TID::self),
+            CardTransfer(EID::random_card_transfer, 1, PileID::hand, PileID::exhaust)
         }
     }    
 }, XFactor::none, false, false, false, false };
 Card Twin_Strike = {CID::Twin_Strike, Color::red,"Twin Strike", CardType::attack,1,CardRarity::common,"Deal 7 damage 2 times.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 7, TID::enemy),
-            Effect(EID::damage, 7, TID::enemy)
+            CombatAction(EID::damage, 7, TID::enemy),
+            CombatAction(EID::damage, 7, TID::enemy)
         }
     }
 }, XFactor::none, false, false, false, false };
 Card Warcry={CID::Warcry, Color::red, "Warcry", CardType::skill, 0, CardRarity::common, "Draw 1 card. Put 1 card from your hand on top of your draw pile.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::draw, 1, TID::self),
-            Effect(EID::cards_top, 1, PileID::hand, PileID::draw)
+            CombatAction(EID::draw, 1, TID::self),
+            CardTransfer(EID::cards_top, 1, PileID::hand, PileID::draw)
         }
     }
 }, XFactor::none, false, true, false, false }; 
 Card Wild_Strike = {CID::Wild_Strike, Color::red, "Wild Strike", CardType::attack, 1, CardRarity::common, "Deal 12 damage. Shuffle a Wound into your draw pile.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 12, TID::enemy),
-            Effect(EID::shuffleCard, 1, CID::Wound, PileID::draw)
+            CombatAction(EID::damage, 12, TID::enemy),
+            CreateCard(1, CID::Wound, PileID::draw, Position::random)
         }
     }
 }, XFactor::none, false, false, false, false };
@@ -177,23 +197,23 @@ Card Battle_Trance = blank_card;
 Card Blood_For_Blood={CID::Blood_For_Blood, Color::red, "Blood For Blood", CardType::attack, 4, CardRarity::uncommon, "Deal 18 damage. Costs 1 less energy for each time you lost HP this combat.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 18, TID::enemy),
+            CombatAction(EID::damage, 18, TID::enemy),
         }
     }
 }, XFactor::none, false, false, false, false }; 
 Card Bloodletting={CID::Bloodletting, Color::red,"Bloodletting",CardType::skill,0,CardRarity::uncommon,"Lose 3 HP. Gain 2 energy",{
     {TriggerID::on_play,
         {            
-            Effect(EID::hp,-3, TID::self),
-            Effect(EID::energy,2, TID::self)
+            CombatAction(EID::hp,-3, TID::self),
+            CombatAction(EID::energy,2, TID::self)
         }
     }
 }, XFactor::none, false, false, false, false };
 Card Burning_Pact={CID::Burning_Pact, Color::red, "Burning Pact", CardType::skill, 1, CardRarity::uncommon, "Exhaust 1 card from your hand. Draw 2 cards.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::exhaust, 1, TID::self),
-            Effect(EID::draw, 2, TID::self)
+            CombatAction(EID::exhaust, 1, TID::self),
+            CombatAction(EID::draw, 2, TID::self)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -201,7 +221,7 @@ Card Carnage = {CID::Carnage, Color::red, "Carnage", CardType::attack, 2, CardRa
 {
     {TriggerID::on_play,
         {
-            Effect(EID::damage, 20, TID::enemy)            
+            CombatAction(EID::damage, 20, TID::enemy)            
         }
     }
 }, XFactor::none, true, false, false, false};
@@ -210,7 +230,7 @@ Card Dark_Embrace = blank_card;
 Card Disarm = {CID::Disarm, Color::red, "Disarm", CardType::skill, 1, CardRarity::uncommon, "Enemy loses 2 strength.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, -2, TID::enemy, PID::strength)
+            PowerManip(EID::gain, -2, TID::enemy, PID::strength)
         }
     }
 }, XFactor::none, false, true, false, false}; 
@@ -225,15 +245,15 @@ Card Ghostly_Armor = {CID::Ghostly_Armor, Color::red, "Ghostly Armor", CardType:
 {
     {TriggerID::on_play,
         {
-            Effect(EID::block,10,TID::self)            
+            CombatAction(EID::block,10,TID::self)            
         }
     }
 }, XFactor::none, true, false, false, false}; 
 Card Hemokinesis = {CID::Hemokinesis, Color::red, "Hemokinesis", CardType::attack, 1, CardRarity::uncommon, "Lose 2 HP. Deal 14 damage.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::hp, -2, TID::self),
-            Effect(EID::damage, 14, TID::enemy)
+            CombatAction(EID::hp, -2, TID::self),
+            CombatAction(EID::damage, 14, TID::enemy)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -241,14 +261,14 @@ Card Infernal_Blade = blank_card;
 Card Inflame = {CID::Inflame, Color::red, "Inflame", CardType::power, 1, CardRarity::uncommon, "Gain 2 strength.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 2, TID::self, PID::strength)
+            PowerManip(EID::gain, 2, TID::self, PID::strength)
         }
     }
 }, XFactor::none, false, false, false, false }; 
 Card Intimidate = {CID::Intimidate, Color::red, "Intimidate", CardType::skill, 0, CardRarity::uncommon, "Apply 1 weak to ALL enemies.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 1, TID::enemy_all, PID::weak)
+            PowerManip(EID::gain, 1, TID::enemy_all, PID::weak)
         }
     }
 }, XFactor::none, false, true, false, false}; 
@@ -256,7 +276,7 @@ Card Metallicize = {CID::Metallicize, Color::red, "Metallicize", CardType::power
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 3, TID::self, PID::metallicize)
+            PowerManip(EID::gain, 3, TID::self, PID::metallicize)
         }
     }    
 }, XFactor::none, false, false, false, false }; 
@@ -264,18 +284,19 @@ Card Power_Through = {CID::Power_Through, Color::red,"Power Through", CardType::
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 15, TID::self),
-            Effect(EID::addCard, 2, CID::Wound, PileID::hand)
+            CombatAction(EID::block, 15, TID::self),
+            CreateCard(2, CID::Wound, PileID::hand, Position::top)
         }
     }
 }, XFactor::none, false, false, false, false};
+
 Card Pummel = {CID::Pummel, Color::red, "Pummel", CardType::attack, 1, CardRarity::uncommon, "Deal 2 damage 4 times.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 2, TID::enemy),
-            Effect(EID::damage, 2, TID::enemy),
-            Effect(EID::damage, 2, TID::enemy),
-            Effect(EID::damage, 2, TID::enemy),
+            CombatAction(EID::damage, 2, TID::enemy),
+            CombatAction(EID::damage, 2, TID::enemy),
+            CombatAction(EID::damage, 2, TID::enemy),
+            CombatAction(EID::damage, 2, TID::enemy),
         }
     }
 }, XFactor::none, false, true, false, false };
@@ -285,8 +306,8 @@ Card Reckless_Charge = {CID::Reckless_Charge, Color::red, "Reckless Charge", Car
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 7, TID::enemy),
-            Effect(EID::shuffleCard, 1, CID::Dazed, PileID::draw),
+            CombatAction(EID::damage, 7, TID::enemy),
+            CreateCard(1, CID::Dazed, PileID::draw, Position::random),
         }
     }    
 }, XFactor::none, false, false, false, false}; 
@@ -294,7 +315,7 @@ Card Rupture = blank_card;
 Card Searing_Blow = {CID::Searing_Blow, Color::red, "Searing Blow", CardType::attack, 2, CardRarity::uncommon, "Deal 12 damage. Can be upgraded any number of times.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 12, TID::enemy)
+            CombatAction(EID::damage, 12, TID::enemy)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -302,19 +323,19 @@ Card Second_Wind = blank_card;
 Card Seeing_Red = {CID::Seeing_Red, Color::red, "Seeing Red", CardType::skill, 1, CardRarity::uncommon, "Gain 2 energy.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::energy, 2, TID::self)
+            CombatAction(EID::energy, 2, TID::self)
         }
     }
 }, XFactor::none, false, true, false, false }; 
 Card Sentinel = {CID::Sentinel, Color::red, "Sentinel", CardType::skill, 1, CardRarity::uncommon, "Gain 5 block. If this card is exhausted, gain 2 energy.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 5,  TID::self),
+            CombatAction(EID::block, 5,  TID::self),
         }
     },
     {TriggerID::on_exhaust,
         {            
-            Effect(EID::energy, 2, TID::self)
+            CombatAction(EID::energy, 2, TID::self)
         }
     }        
 }, XFactor::none, false, false, false, false};
@@ -322,8 +343,8 @@ Card Sever_Soul = blank_card;
 Card Shockwave = {CID::Shockwave, Color::red, "Shockwave", CardType::attack, 2, CardRarity::uncommon, "Apply 3 vulnerable and 3 weak to ALL enemies.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 3, TID::enemy_all, PID::vulnerable),
-            Effect(EID::gain, 3, TID::enemy_all, PID::weak)
+            PowerManip(EID::gain, 3, TID::enemy_all, PID::vulnerable),
+            PowerManip(EID::gain, 3, TID::enemy_all, PID::weak)
         }
     }
 }, XFactor::none, false, true, false, false }; 
@@ -331,9 +352,9 @@ Card Spot_Weakness = blank_card;
 Card Uppercut = {CID::Uppercut, Color::red, "Uppercut", CardType::attack, 2, CardRarity::uncommon, "Deal 13 damage. Apply 1 weak. Apply 1 vulnerable.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 13, TID::enemy),
-            Effect(EID::gain, 1, TID::enemy, PID::weak),
-            Effect(EID::gain, 1, TID::enemy, PID::vulnerable)
+            CombatAction(EID::damage, 13, TID::enemy),
+            PowerManip(EID::gain, 1, TID::enemy, PID::weak),
+            PowerManip(EID::gain, 1, TID::enemy, PID::vulnerable)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -341,7 +362,7 @@ Card Whirlwind = {CID::Whirlwind, Color::red, "Whirlwind", CardType::attack, -2,
 {
     {TriggerID::on_play,
         {
-            Effect(EID::damage, 5, TID::enemy_all)
+            CombatAction(EID::damage, 5, TID::enemy_all)
         }
     }
 }, XFactor::repetition, false, false, false, false};
@@ -350,22 +371,22 @@ Card Whirlwind = {CID::Whirlwind, Color::red, "Whirlwind", CardType::attack, -2,
 Card Barricade = {CID::Barricade, Color::red, "Barricade", CardType::power, 3, CardRarity::rare, "Block is not removed at the start of your turn.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 1, TID::self, PID::barricade)
+            PowerManip(EID::gain, 1, TID::self, PID::barricade)
         }
     }
 }, XFactor::none, false, false, false, false }; 
 Card Berserk = {CID::Berserk, Color::red, "Berserk", CardType::power, 0, CardRarity::rare, "Gain 2 vulnerable. At the start of your turn, gain 1 energy.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 2, TID::self, PID::vulnerable),
-            Effect(EID::gain, 1, TID::self, PID::berserk),
+            PowerManip(EID::gain, 2, TID::self, PID::vulnerable),
+            PowerManip(EID::gain, 1, TID::self, PID::berserk),
         }
     }
 }, XFactor::none, false, false, false, false};
 Card Bludgeon = {CID::Bludgeon, Color::red, "Bludgeon", CardType::attack, 3, CardRarity::rare, "Deal 32 damage.", {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 32, TID::enemy),
+            CombatAction(EID::damage, 32, TID::enemy),
         }
     }
 }, XFactor::none, false, false, false, false};
@@ -374,7 +395,7 @@ Card Corruption = blank_card;
 Card Demon_Form = {CID::Demon_Form, Color::red, "Demon Form", CardType::power, 3, CardRarity::rare, "At the start of your turn, gain 2 strength.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 2, TID::self, PID::demon)
+            PowerManip(EID::gain, 2, TID::self, PID::demon)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -383,7 +404,7 @@ Card Exhume = {CID::Exhume, Color::red, "Exhume", CardType::skill, 1, CardRarity
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::cards_bottom,1,PileID::exhaust, PileID::hand)
+            CardTransfer(EID::cards_bottom,1,PileID::exhaust, PileID::hand)
         }
     }    
 }, XFactor::none, false, true, false, false};
@@ -392,15 +413,15 @@ Card Fiend_Fire = blank_card;
 Card Immolate = {CID::Immolate, Color::red, "Immolate", CardType::attack, 2, CardRarity::rare, "Deal 21 damage to ALL enemies. Add a Burn into your discard pile.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 21, TID::enemy_all),
-            Effect(EID::addCard, 1, CID::Burn, PileID::discard)
+            CombatAction(EID::damage, 21, TID::enemy_all),
+            CreateCard(1, CID::Burn, PileID::discard, Position::top)
         }
     }
 }, XFactor::none, false, false, false, false};
 Card Impervious = {CID::Impervious, Color::red, "Impervious", CardType::skill, 2, CardRarity::rare, "Gain 30 block.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 30, TID::self)
+            CombatAction(EID::block, 30, TID::self)
         }
     }
 }, XFactor::none, false, true, false, false}; 
@@ -410,9 +431,9 @@ Card Offering = {CID::Offering, Color::red, "Offering", CardType::skill, 0, Card
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::hp, -6, TID::self),
-            Effect(EID::energy, 2, TID::self),
-            Effect(EID::draw, 3, TID::self),
+            CombatAction(EID::hp, -6, TID::self),
+            CombatAction(EID::energy, 2, TID::self),
+            CombatAction(EID::draw, 3, TID::self),
         }
     }
 }, XFactor::none, false, true, false, false }; 
@@ -423,7 +444,7 @@ Card SLT_Strike = {CID::SLT_Strike, Color::green, "Strike", CardType::attack, 1,
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 6,TID::enemy)
+            CombatAction(EID::damage, 6,TID::enemy)
         }
     }    
 }, XFactor::none, false,  false, false, false};
@@ -432,7 +453,7 @@ Card SLT_Defend = {CID::SLT_Defend, Color::green, "Defend", CardType::skill, 1, 
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 5, TID::self)
+            CombatAction(EID::block, 5, TID::self)
         }
     }    
 }, XFactor::none, false, false, false, false };
@@ -441,8 +462,8 @@ Card Neutralize = {CID::Neutralize, Color::green, "Neutralize", CardType::attack
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 3, TID::enemy),
-            Effect(EID::gain, 1, TID::enemy, PID::weak),
+            CombatAction(EID::damage, 3, TID::enemy),
+            PowerManip(EID::gain, 1, TID::enemy, PID::weak),
         }
     }    
 }, XFactor::none, false, false, false, false };
@@ -450,8 +471,8 @@ Card Survivor = {CID::Survivor ,Color::green, "Survivor", CardType::skill, 1, Ca
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::discard,1,TID::self),
-            Effect(EID::block, 8, TID::self)
+            CardTransfer(EID::discard,1, PileID::hand, PileID::discard),
+            CombatAction(EID::block, 8, TID::self)
         }
     }    
 }, XFactor::none, false, false, false, false };
@@ -461,8 +482,8 @@ Card Acrobatics ={CID::Acrobatics, Color::green, "Acrobatics", CardType::skill, 
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::draw,3,TID::self),
-            Effect(EID::discard, 1, TID::self)
+            CombatAction(EID::draw,3,TID::self),
+            CardTransfer(EID::discard, 1, PileID::hand, PileID::discard)
         }
     }    
 }, XFactor::none, false, false, false, false };
@@ -470,8 +491,8 @@ Card Backflip = {CID::Backflip, Color::green, "Backflip", CardType::skill, 1, Ca
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 5, TID::self),
-            Effect(EID::draw, 2, TID::self)
+            CombatAction(EID::block, 5, TID::self),
+            CombatAction(EID::draw, 2, TID::self)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -480,7 +501,7 @@ Card Blade_Dance = {CID::Blade_Dance, Color::green, "Blade Dance", CardType::ski
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::addCard, 3, CID::Shiv, PileID::hand)
+            CreateCard(3, CID::Shiv, PileID::hand, Position::top)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -488,8 +509,8 @@ Card Cloak_and_Dagger = {CID::Cloak_and_Dagger, Color::green, "Cloak and Dagger"
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 6, TID::self),
-            Effect(EID::addCard, 1, CID::Shiv, PileID::hand)
+            CombatAction(EID::block, 6, TID::self),
+            CreateCard(1, CID::Shiv, PileID::hand, Position::top),
         }
     }
 }, XFactor::none, false, false, false, false };
@@ -497,8 +518,8 @@ Card Dagger_Spray = {CID::Dagger_Spray, Color::green, "Dagger Spray", CardType::
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 4, TID::enemy_all),
-            Effect(EID::damage, 4, TID::enemy_all),
+            CombatAction(EID::damage, 4, TID::enemy_all),
+            CombatAction(EID::damage, 4, TID::enemy_all),
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -506,9 +527,9 @@ Card Dagger_Throw = {CID::Dagger_Throw, Color::green, "Dagger Throw", CardType::
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 9, TID::enemy),
-            Effect(EID::draw, 1, TID::self),
-            Effect(EID::discard, 1, TID::self),
+            CombatAction(EID::damage, 9, TID::enemy),
+            CombatAction(EID::draw, 1, TID::self),
+            CardTransfer(EID::discard, 1, PileID::hand, PileID::discard),
         }
     }    
 }, XFactor::none, false, false, false, false }; 
@@ -516,7 +537,7 @@ Card Deadly_Poison = {CID::Deadly_Poison, Color::green, "Deadly Poison", CardTyp
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 5, TID::enemy, PID::poison)
+            PowerManip(EID::gain, 5, TID::enemy, PID::poison)
         }
     }    
 }, XFactor::none, false, false, false, false}; 
@@ -525,15 +546,15 @@ Card Flying_Knee = {CID::Flying_Knee, Color::green, "Flying Knee", CardType::att
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 9, TID::enemy),
-            Effect(EID::gain, 1, TID::self, PID::energized)
+            CombatAction(EID::damage, 9, TID::enemy),
+            PowerManip(EID::gain, 1, TID::self, PID::energized)
         }
     }
 }, XFactor::none, false, false, false, false }; 
 Card Outmaneuver = {CID::Outmaneuver, Color::green, "Outmaneuver", CardType::skill, 1, CardRarity::common, "Next turn, gain 2 energy.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 2, TID::self, PID::energized)
+            PowerManip(EID::gain, 2, TID::self, PID::energized)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -541,8 +562,8 @@ Card Piercing_Wail = blank_card;
 Card Poisoned_Stab = {CID::Poisoned_Stab, Color::green, "Poisoned Stab", CardType::attack, 1, CardRarity::common, "Deal 6 damage. Apply 3 poison.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 6, TID::enemy),
-            Effect(EID::gain, 3, TID::enemy, PID::poison)
+            CombatAction(EID::damage, 6, TID::enemy),
+            PowerManip(EID::gain, 3, TID::enemy, PID::poison)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -550,23 +571,23 @@ Card Prepared = {CID::Prepared, Color::green, "Prepared", CardType::skill, 0, Ca
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::draw, 1, TID::self),
-            Effect(EID::discard, 1, TID::self)
+            CombatAction(EID::draw, 1, TID::self),
+            CardTransfer(EID::discard, 1, PileID::hand, PileID::discard)
         }
     }
 }, XFactor::none, false, false, false, false };
 Card Quick_Slash = {CID::Quick_Slash, Color::green, "Quick Slash", CardType::attack, 1, CardRarity::common, "Deal 5 damage. Draw 1 card.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 5, TID::enemy),
-            Effect(EID::draw, 1, TID::self)
+            CombatAction(EID::damage, 5, TID::enemy),
+            CombatAction(EID::draw, 1, TID::self)
         }
     }
 }, XFactor::none, false, false, false, false }; 
 Card Slice = {CID::Slice, Color::green, "Slice", CardType::attack, 0, CardRarity::common, "Deal 6 damage.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 6, TID::enemy)
+            CombatAction(EID::damage, 6, TID::enemy)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -574,8 +595,8 @@ Card Sneaky_Strike = blank_card;
 Card Sucker_Punch = {CID::Sucker_Punch, Color::green, "Sucker Punch", CardType::attack, 1, CardRarity::common, "Deal 8 damage. Apply 1 weak.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 8, TID::enemy),
-            Effect(EID::gain, 1, TID::enemy, PID::weak)
+            CombatAction(EID::damage, 8, TID::enemy),
+            PowerManip(EID::gain, 1, TID::enemy, PID::weak)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -584,7 +605,7 @@ Card Sucker_Punch = {CID::Sucker_Punch, Color::green, "Sucker Punch", CardType::
 Card Accuracy = {CID::Accuracy, Color::green, "Accuracy", CardType::power, 1, CardRarity::uncommon, "Shivs deal 4 additional damage.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 4, TID::self, PID::accuracy)
+            PowerManip(EID::gain, 4, TID::self, PID::accuracy)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -593,16 +614,15 @@ Card Accuracy = {CID::Accuracy, Color::green, "Accuracy", CardType::power, 1, Ca
 Card All_Out_Attack = {CID::All_Out_Attack, Color::green, "All-Out Attack", CardType::attack, 1, CardRarity::uncommon, "Deal 10 damage to ALL enemies. Discard 1 card at random.", {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 10, TID::enemy_all),
-            Effect(EID::random_card_transfer, 1, PileID::hand, PileID::discard)
+            CombatAction(EID::damage, 10, TID::enemy_all),
+            CardTransfer(EID::random_card_transfer, 1, PileID::hand, PileID::discard)
         }
     }
 }, XFactor::none, false, false, false, false};
 Card Backstab = {CID::Backstab, Color::green, "Backstab", CardType::attack, 0, CardRarity::uncommon, "Deal 11 damage.", {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 11, TID::enemy),
-            Effect(EID::exhaust, 1, TID::self)
+            CombatAction(EID::damage, 11, TID::enemy),
         }
     }
 }, XFactor::none, false, true, true, false}; 
@@ -610,9 +630,9 @@ Card Blur = blank_card;
 Card Bouncing_Flask = {CID::Bouncing_Flask, Color::green, "Bouncing Flask", CardType::skill, 1, CardRarity::uncommon, "Apply 3 poison to a random enemy 3 times.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 3, TID::random_enemy, PID::poison),
-            Effect(EID::gain, 3, TID::random_enemy, PID::poison),
-            Effect(EID::gain, 3, TID::random_enemy, PID::poison)
+            PowerManip(EID::gain, 3, TID::random_enemy, PID::poison),
+            PowerManip(EID::gain, 3, TID::random_enemy, PID::poison),
+            PowerManip(EID::gain, 3, TID::random_enemy, PID::poison),
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -624,8 +644,8 @@ Card Concentrate = {CID::Concentrate, Color::green, "Concentrate", CardType::ski
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::discard, 3, TID::self),
-            Effect(EID::energy, 2, TID::self)
+            CardTransfer(EID::discard, 3, PileID::hand, PileID::discard),
+            CombatAction(EID::energy, 2, TID::self)
         }
     }    
 }, XFactor::none, false, false, false, false }; 
@@ -633,8 +653,8 @@ Card Crippling_Cloud = {CID::Crippling_Cloud, Color::green, "Crippling Cloud", C
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 4, TID::enemy_all, PID::poison),
-            Effect(EID::gain, 2, TID::enemy_all, PID::weak),
+            PowerManip(EID::gain, 4, TID::enemy_all, PID::poison),
+            PowerManip(EID::gain, 2, TID::enemy_all, PID::weak),
         }
     }
 }, XFactor::none, false, true, false, false};
@@ -642,8 +662,8 @@ Card Dash ={CID::Dash, Color::green, "Dash", CardType::attack, 2, CardRarity::un
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 10, TID::self),
-            Effect(EID::damage, 10, TID::enemy)
+            CombatAction(EID::block, 10, TID::self),
+            CombatAction(EID::damage, 10, TID::enemy)
         }
     }    
 }, XFactor::none, false, false, false, false }; 
@@ -653,12 +673,12 @@ Card Endless_Agony = {CID::Endless_Agony, Color::green, "Endless Agony", CardTyp
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 6, TID::enemy),
+            CombatAction(EID::damage, 6, TID::enemy),
         }
     },
     {TriggerID::on_draw,
         {            
-            Effect(EID::addCard, 1, CID::Endless_Agony, PileID::hand)
+            CreateCard(1, CID::Endless_Agony, PileID::hand,  Position::top),
         }
     }    
 }, XFactor::none, false, true, false, false}; 
@@ -668,7 +688,7 @@ Card Expertise = {CID::Expertise, Color::green, "Expertise", CardType::skill, 1,
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::expertise, 6, TID::self)
+            CombatAction(EID::expertise, 6, TID::self)
         }
     }    
 }, XFactor::none, false, false, false, false }; 
@@ -677,7 +697,7 @@ Card Flechettes = blank_card;
 Card Footwork = {CID::Footwork, Color::green, "Footwork", CardType::power, 1, CardRarity::uncommon, "Gain 2 dexterity.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 2, TID::self, PID::dexterity)
+            PowerManip(EID::gain, 2, TID::self, PID::dexterity)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -687,8 +707,8 @@ Card Leg_Sweep = {CID::Leg_Sweep, Color::green, "Leg Sweep", CardType::skill, 2,
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 2, TID::enemy, PID::weak),
-            Effect(EID::block, 11, TID::self)
+            PowerManip(EID::gain, 2, TID::enemy, PID::weak),
+            CombatAction(EID::block, 11, TID::self)
         }
     }
 }, XFactor::none, false, false, false, false };
@@ -699,25 +719,25 @@ Card Reflex = {CID::Reflex, Color::green, "Reflex", CardType::skill, 3, CardRari
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::draw, 2, TID::self),
+            CombatAction(EID::draw, 2, TID::self),
         }
     },
     {TriggerID::on_discard,
         {            
-            Effect(EID::draw, 2, TID::self),
+            CombatAction(EID::draw, 2, TID::self),
         }
     }
 }, XFactor::none, false, false, false, false};
 
-Card Riddle_with_Holes = {CID::Riddle_with_Holes, Color::green, "Riddle with Holes", CardType::attack, 1, CardRarity::uncommon, "Deal 3 damage 5 times.",
+Card Riddle_with_Holes = {CID::Riddle_with_Holes, Color::green, "Riddle with Holes", CardType::attack, 2, CardRarity::uncommon, "Deal 3 damage 5 times.",
 {
     {TriggerID::on_play,
         {
-            Effect(EID::damage, 3, TID::enemy),
-            Effect(EID::damage, 3, TID::enemy),
-            Effect(EID::damage, 3, TID::enemy),
-            Effect(EID::damage, 3, TID::enemy),
-            Effect(EID::damage, 3, TID::enemy)
+            CombatAction(EID::damage, 3, TID::enemy),
+            CombatAction(EID::damage, 3, TID::enemy),
+            CombatAction(EID::damage, 3, TID::enemy),
+            CombatAction(EID::damage, 3, TID::enemy),
+            CombatAction(EID::damage, 3, TID::enemy)
         }
     }
 }, XFactor::none, false, false, false, false};
@@ -728,7 +748,7 @@ Card Skewer = {CID::Skewer, Color::green, "Skewer", CardType::attack, -2, CardRa
 {
     {TriggerID::on_play,
         {
-            Effect(EID::damage, 7, TID::enemy)
+            CombatAction(EID::damage, 7, TID::enemy)
         }
     }
 }, XFactor::repetition, false, false, false, false};
@@ -736,12 +756,12 @@ Card Tactician = {CID::Tactician, Color::green, "Tactician", CardType::skill, 3,
 {    
     {TriggerID::on_play,
         {            
-            Effect(EID::energy, 1, TID::self),
+            CombatAction(EID::energy, 1, TID::self),
         }
     },
     {TriggerID::on_discard,
         {            
-            Effect(EID::energy, 1, TID::self),
+            CombatAction(EID::energy, 1, TID::self),
         }
     }
 }, XFactor::none, false, false, false, false};
@@ -755,8 +775,8 @@ Card Adrenaline = {CID::Adrenaline, Color::green, "Adrenaline", CardType::skill,
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::energy, 1, TID::self),
-            Effect(EID::draw, 2, TID::self)
+            CombatAction(EID::energy, 1, TID::self),
+            CombatAction(EID::draw, 2, TID::self)
         }
     }
 }, XFactor::none, false, true, false, false}; 
@@ -769,7 +789,7 @@ Card Die_Die_Die = {CID::Die_Die_Die, Color::green, "Die Die Die", CardType::att
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 13, TID::enemy_all)
+            CombatAction(EID::damage, 13, TID::enemy_all)
         }
     }
 }, XFactor::none, false, true, false, false }; 
@@ -780,7 +800,7 @@ Card Grand_Finale ={CID::Grand_Finale, Color::green, "Grand Finale", CardType::a
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage,50,TID::enemy_all)
+            CombatAction(EID::damage,50,TID::enemy_all)
         }
     }
 }, XFactor::none, false, false, false, false };
@@ -788,8 +808,8 @@ Card Malaise = {CID::Malaise, Color::red, "Malaise", CardType::skill, -2, CardRa
 {
     {TriggerID::on_play,
         {
-            Effect(EID::lose, 0, TID::enemy, PID::strength), 
-            Effect(EID::gain, 0, TID::enemy, PID::weak)
+            PowerManip(EID::lose, 0, TID::enemy, PID::strength), 
+            PowerManip(EID::gain, 0, TID::enemy, PID::weak)
         }
     }
 }, XFactor::magnitude, false, true, false, false};
@@ -806,7 +826,7 @@ Card DEF_Strike = {CID::DEF_Strike, Color::blue, "Strike", CardType::attack, 1, 
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 6,TID::enemy)
+            CombatAction(EID::damage, 6,TID::enemy)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -815,7 +835,7 @@ Card DEF_Defend = {CID::DEF_Defend, Color::blue, "Defend", CardType::skill, 1, C
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 5,TID::self)
+            CombatAction(EID::block, 5,TID::self)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -829,16 +849,16 @@ Card Beam_Cell = {CID::Beam_Cell, Color::blue, "Beam Cell", CardType::attack, 0,
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 3, TID::self),
-            Effect(EID::gain, 1, TID::enemy, PID::vulnerable)
+            CombatAction(EID::damage, 3, TID::enemy),
+            PowerManip(EID::gain, 1, TID::enemy, PID::vulnerable)
         }
     }
 }, XFactor::none, false, false, false, false }; 
 Card Charge_Battery = {CID::Charge_Battery, Color::blue, "Charge Battery", CardType::skill, 1, CardRarity::common, "Gain 8 block. Next turn, gain 1 energy.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 8, TID::self),
-            Effect(EID::gain, 1, TID::self, PID::energized)
+            CombatAction(EID::block, 8, TID::self),
+            PowerManip(EID::gain, 1, TID::self, PID::energized)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -851,8 +871,8 @@ Card Hologram = {CID::Hologram, Color:: blue, "Hologram", CardType::skill, 1, Ca
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 3, TID::self),
-            Effect(EID::cards_bottom, 1, PileID::discard, PileID::hand)
+            CombatAction(EID::block, 3, TID::self),
+            CardTransfer(EID::cards_bottom, 1, PileID::discard, PileID::hand)
         }
     }
 }, XFactor::none, false, true, false, false}; 
@@ -860,7 +880,7 @@ Card Leap = {CID::Leap, Color::blue, "Leap", CardType::skill, 1, CardRarity::com
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 9, TID::self)
+            CombatAction(EID::block, 9, TID::self)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -873,8 +893,8 @@ Card Sweeping_Beam = {CID::Sweeping_Beam, Color::blue, "Sweeping Beam",CardType:
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 5, TID::enemy_all),
-            Effect(EID::draw, 1, TID::self)
+            CombatAction(EID::damage, 5, TID::enemy_all),
+            CombatAction(EID::draw, 1, TID::self)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -910,24 +930,24 @@ Card Recycle = blank_card;
 Card Reinforced_Body = {CID::Reinforced_Body, Color::blue, "Reinforced Body", CardType::skill, -2, CardRarity::uncommon, "Gain 7 block X times.",{
     {TriggerID::on_play,
         {
-            Effect(EID::block, 7, TID::self)
+            CombatAction(EID::block, 7, TID::self)
         }
     }
 }, XFactor::repetition, false, false, false, false};
 Card Reprogram = {CID::Reprogram, Color::blue, "Reprogram", CardType::skill, 1, CardRarity::uncommon, "Lose 1 focus. Gain 1 strength. Gain 1 dexterity.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, -1, TID::self, PID::focus),
-            Effect(EID::gain, 1, TID::self, PID::strength),
-            Effect(EID::gain, 1, TID::self, PID::dexterity),
+            PowerManip(EID::gain, -1, TID::self, PID::focus),
+            PowerManip(EID::gain, 1, TID::self, PID::strength),
+            PowerManip(EID::gain, 1, TID::self, PID::dexterity),
         }
     }
 }, XFactor::none, false, false, false, false}; 
 Card Rip_and_Tear = {CID::Rip_and_Tear, Color::blue, "Rip and Tear", CardType::attack, 1, CardRarity::uncommon, "Deal 7 damage to a random enemy twice.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 7, TID::enemy),
-            Effect(EID::damage, 7, TID::enemy)
+            CombatAction(EID::damage, 7, TID::random_enemy),
+            CombatAction(EID::damage, 7, TID::random_enemy)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -937,7 +957,7 @@ Card Skim = {CID::Skim, Color::blue, "Skim", CardType::skill, 1, CardRarity::unc
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::draw, 3, TID::self)
+            CombatAction(EID::draw, 3, TID::self)
         }
     }
 }, XFactor::none, false, false, false, false };
@@ -954,7 +974,7 @@ Card Biased_Cognition = blank_card;
 Card Buffer = {CID::Buffer, Color::blue, "Buffer", CardType::power, 1, CardRarity::rare, "Negate the next time you would lose HP.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 1, TID::self, PID::buffer)
+            PowerManip(EID::gain, 1, TID::self, PID::buffer)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -966,8 +986,8 @@ Card Fission = blank_card;
 Card Hyperbeam = {CID::Hyperbeam, Color::blue, "Hyperbeam", CardType::attack, 3, CardRarity::rare, "Deal 26 damage to all enemies. Lose 3 focus.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 26, TID::enemy_all),
-            Effect(EID::gain, -3, TID::self, PID::focus)
+            CombatAction(EID::damage, 26, TID::enemy_all),
+            PowerManip(EID::gain, -3, TID::self, PID::focus)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -980,7 +1000,7 @@ Card Seek = {CID::Seek, Color::blue, "Seek", CardType::skill, 0, CardRarity::rar
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::cards_bottom, 1, PileID::draw, PileID::hand)
+            CardTransfer(EID::cards_top, 1, PileID::draw, PileID::hand)
         }
     }
 }, XFactor::none, false, true, false, false}; 
@@ -991,7 +1011,7 @@ Card WAT_Strike = {CID::WAT_Strike,Color::purple, "Strike", CardType::attack, 1,
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 6,TID::enemy)
+            CombatAction(EID::damage, 6,TID::enemy)
         }
     }    
 }, XFactor::none, false, false, false, false };
@@ -999,7 +1019,7 @@ Card WAT_Defend = {CID::WAT_Defend,Color::purple, "Defend", CardType::attack, 1,
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 5,TID::self)
+            CombatAction(EID::block, 5,TID::self)
         }
     }
 }, XFactor::none, false, false, false, false };
@@ -1011,7 +1031,7 @@ Card Bowling_Bash = blank_card;
 Card Consecrate = {CID::Consecrate, Color::purple, "Consecrate", CardType::attack, 0, CardRarity::common, "Deal 5 damage to ALL enemies.", {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 5, TID::enemy_all)
+            CombatAction(EID::damage, 5, TID::enemy_all)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -1023,8 +1043,8 @@ Card Empty_Fist = blank_card;
 Card Evaluate = {CID::Evaluate, Color::purple, "Evaluate", CardType::skill, 1, CardRarity::common, "Gain 6 block. Shuffle a Study into your draw pile.", {
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 6, TID::self),
-            Effect(EID::shuffleCard, 1, CID::Study, PileID::draw)
+            CombatAction(EID::block, 6, TID::self),
+            CreateCard(1, CID::Study, PileID::draw, Position::random)
         }
     }
 }, XFactor::none, false, false, false, false };
@@ -1032,8 +1052,8 @@ Card Flurry_Of_Blows = blank_card;
 Card Flying_Sleeves = {CID::Flying_Sleeves, Color::purple, "Flying Sleeves", CardType::attack, 0, CardRarity::common, "Deal 7 damage twice.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 7, TID::enemy),
-            Effect(EID::damage, 7, TID::enemy),
+            CombatAction(EID::damage, 7, TID::enemy),
+            CombatAction(EID::damage, 7, TID::enemy),
         }
     }
 }, XFactor::none, false, false, false, true}; 
@@ -1045,7 +1065,7 @@ Card Prostrate = blank_card;
 Card Protect = {CID::Protect, Color::purple, "Protect", CardType::skill, 2, CardRarity::common, "Gain 12 block.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 12, TID::self),
+            CombatAction(EID::block, 12, TID::self),
         }
     }
 }, XFactor::none, false, false, false, true };
@@ -1058,8 +1078,8 @@ Card Battle_Hymn = blank_card;
 Card Carve_Reality = {CID::Carve_Reality, Color::purple, "Carve Reality", CardType::attack, 1, CardRarity::uncommon, "Deal 6 damage. Add a Smite into your hand.", {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 6, TID::enemy),
-            Effect(EID::addCard, 1, CID::Smite, PileID::hand),
+            CombatAction(EID::damage, 6, TID::enemy),
+            CreateCard(1, CID::Smite, PileID::hand, Position::top),
         }
     }
 }, XFactor::none, false, false, false, false };
@@ -1068,8 +1088,8 @@ Card Conclude = blank_card;
 Card Deceive_Reality = {CID::Deceive_Reality, Color::purple, "Deceive Reality", CardType::attack, 1, CardRarity::uncommon, "Gain 4 block. Add a Safety into your hand.", {
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 4, TID::self),
-            Effect(EID::addCard, 1, CID::Safety, PileID::hand),
+            CombatAction(EID::block, 4, TID::self),
+            CreateCard(1, CID::Safety, PileID::hand, Position::top),
         }
     }
 }, XFactor::none, false, false, false, false };
@@ -1077,9 +1097,9 @@ Card Empty_Mind = blank_card;
 Card Fasting = {CID::Fasting, Color::purple, "Fasting", CardType::power, 2, CardRarity::uncommon, "Gain 3 Strength. Gain 3 Dexterity. Gain 1 less energy at the start of your turn.", {
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 3, TID::self, PID::strength),
-            Effect(EID::gain, 3, TID::self, PID::dexterity),
-            Effect(EID::gain, 1, TID::self, PID::fasting)
+            PowerManip(EID::gain, 3, TID::self, PID::strength),
+            PowerManip(EID::gain, 3, TID::self, PID::dexterity),
+            PowerManip(EID::gain, 1, TID::self, PID::fasting)
         }
     }
 }, XFactor::none, false, false, false, false };
@@ -1097,8 +1117,8 @@ Card Pray = blank_card;
 Card Reach_Heaven = {CID::Reach_Heaven, Color::purple, "Reach Heaven", CardType::attack, 1, CardRarity::uncommon, "Deal 10 damage. Shuffle a Through Violence into your draw pile.", {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 10, TID::enemy),
-            Effect(EID::shuffleCard, 1, CID::Smite, PileID::draw),
+            CombatAction(EID::damage, 10, TID::enemy),
+            CreateCard(1, CID::Through_Violence, PileID::draw, Position::random),
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -1117,8 +1137,8 @@ Card Weave = blank_card;
 Card Wheel_Kick = {CID::Wheel_Kick, Color::purple, "Wheel Kick", CardType::attack, 1, CardRarity::uncommon, "Deal 15 damage. Draw 2 cards.", {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 15, TID::enemy),
-            Effect(EID::draw, 2, TID::self)
+            CombatAction(EID::damage, 15, TID::enemy),
+            CombatAction(EID::draw, 2, TID::self)
         }
     }
 }, XFactor::none, false, false, false, false };
@@ -1131,7 +1151,7 @@ Card Wreath_of_Flame = blank_card;
 Card Alpha = {CID::Alpha, Color::purple, "Alpha", CardType::skill, 1, CardRarity::rare, "Shuffle a Beta into your draw pile.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::shuffleCard, 1, CID::Beta, PileID::draw)
+            CreateCard(1, CID::Beta, PileID::draw, Position::random)
         }
     }
 }, XFactor::none, false, true, false, false};
@@ -1142,7 +1162,8 @@ Card Deus_Ex_Machina = {CID::Deus_Ex_Machina, Color::purple, "Deus Ex Machina", 
 {
     {TriggerID::on_draw,
         {
-            Effect(EID::addCard, 2, CID::Miracle, PileID::hand),
+            CreateCard(2, CID::Miracle, PileID::hand, Position::bottom),
+            //Maybe exhaust the top of hand? 
         }    
     }
 }, XFactor::none, false, true, false, false};
@@ -1157,11 +1178,11 @@ Card Ragnarok = {CID::Ragnarok, Color::purple, "Ragnarok", CardType::attack, 3, 
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 5, TID::random_enemy),
-            Effect(EID::damage, 5, TID::random_enemy),
-            Effect(EID::damage, 5, TID::random_enemy),
-            Effect(EID::damage, 5, TID::random_enemy),
-            Effect(EID::damage, 5, TID::random_enemy),
+            CombatAction(EID::damage, 5, TID::random_enemy),
+            CombatAction(EID::damage, 5, TID::random_enemy),
+            CombatAction(EID::damage, 5, TID::random_enemy),
+            CombatAction(EID::damage, 5, TID::random_enemy),
+            CombatAction(EID::damage, 5, TID::random_enemy),
         }
     }    
 }, XFactor::none, false, false, false, false }; 
@@ -1169,7 +1190,7 @@ Card Scrawl = {CID::Scrawl, Color::purple, "Scrawl", CardType::skill, 1, CardRar
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::expertise, MAX_HAND_SIZE, TID::self)
+            CombatAction(EID::expertise, MAX_HAND_SIZE, TID::self)
         }
     }
 }, XFactor::none, false, true, false, false}; 
@@ -1184,7 +1205,7 @@ Card Bandage_Up = {CID::Bandage_Up, Color::colorless, "Bandage Up", CardType::sk
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::hp, 4, TID::self),
+            CombatAction(EID::hp, 4, TID::self),
         }
     }
 }, XFactor::none, false, true, false, false};
@@ -1192,7 +1213,7 @@ Card Blind = {CID::Blind, Color::colorless, "Blind", CardType::skill, 0, CardRar
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 2, TID::enemy, PID::weak)
+            PowerManip(EID::gain, 2, TID::enemy, PID::weak)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -1205,8 +1226,8 @@ Card Finesse = {CID::Finesse, Color::colorless, "Finesse", CardType::skill, 0, C
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 4, TID::self),
-            Effect(EID::draw, 1, TID::self)
+            CombatAction(EID::block, 4, TID::self),
+            CombatAction(EID::draw, 1, TID::self)
         }
     }
 }, XFactor::none, false, false, false, false };
@@ -1214,8 +1235,8 @@ Card Flash_of_Steel = {CID::Flash_of_Steel, Color::colorless, "Flash of Steel", 
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 3, TID::self),
-            Effect(EID::draw, 1, TID::self)
+            CombatAction(EID::damage, 3, TID::self),
+            CombatAction(EID::draw, 1, TID::self)
         }
     }
 }, XFactor::none, false, false, false, false };
@@ -1224,7 +1245,7 @@ Card Good_Instincts = {CID::Good_Instincts, Color::colorless, "Good Instincts", 
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 6, TID::self)
+            CombatAction(EID::block, 6, TID::self)
         }
     }
 }, XFactor::none, false, true, false, false };
@@ -1239,7 +1260,7 @@ Card Swift_Strike = {CID::Swift_Strike, Color::colorless, "Swift Strike", CardTy
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 6, TID::enemy)
+            CombatAction(EID::damage, 6, TID::enemy)
         }
     }
 }, XFactor::none, false, false, false, false };
@@ -1247,7 +1268,7 @@ Card Trip = {CID::Trip, Color::colorless, "Trip", CardType::attack, 1, CardRarit
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 2, TID::enemy, PID::vulnerable)
+            PowerManip(EID::gain, 2, TID::enemy, PID::vulnerable)
         }
     }
 }, XFactor::none, false, false, false, false };
@@ -1261,7 +1282,7 @@ Card Master_of_Strategy = {CID::Master_of_Strategy, Color::colorless, "Master of
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::draw, 3, TID::self)
+            CombatAction(EID::draw, 3, TID::self)
         }
     }
 }, XFactor::none, false, true, false, false };
@@ -1281,7 +1302,7 @@ Card Apparition = blank_card;
 Card Beta = {CID::Beta, Color::colorless, "Beta", CardType::skill, 2, CardRarity::rare, "Shuffle an Omega into your draw pile.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::shuffleCard, 1, CID::Omega, PileID::draw)
+            CreateCard(1, CID::Omega, PileID::draw, Position::random)
         }
     }
 }, XFactor::none, false, true, false, false};
@@ -1289,8 +1310,8 @@ Card Bite={CID::Bite, Color::colorless, "Bite", CardType::attack, 1, CardRarity:
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::damage,7,TID::enemy),
-            Effect(EID::hp, 3, TID::self)
+            CombatAction(EID::damage,7,TID::enemy),
+            CombatAction(EID::hp, 3, TID::self)
         }
     }
 }, XFactor::none, false, false, false, false }; 
@@ -1300,7 +1321,7 @@ Card Expunger = blank_card;
 Card Insight = {CID::Insight, Color::colorless, "Insight", CardType::skill, 1, CardRarity::common, "Draw 2 cards.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::draw, 2, TID::self),
+            CombatAction(EID::draw, 2, TID::self),
         }
     }
 }, XFactor::none, false, true, false, false };
@@ -1308,15 +1329,15 @@ Card JAX = {CID::JAX, Color::colorless, "J.A.X.", CardType::skill, 0, CardRarity
 {
     {TriggerID::on_play,
         {            
-            Effect(EID::hp, -3, TID::self),
-            Effect(EID::gain, 2, TID::self, PID::strength)
+            CombatAction(EID::hp, -3, TID::self),
+            PowerManip(EID::gain, 2, TID::self, PID::strength)
         }
     }
 }, XFactor::none, false, false, false, false }; 
 Card Miracle = {CID::Miracle, Color::colorless, "Miracle", CardType::skill, 0, CardRarity::common, "Gain 1 energy.",{
     {TriggerID::on_play,
         {
-            Effect(EID::energy, 1, TID::self)
+            CombatAction(EID::energy, 1, TID::self)
         }
     }
 }, XFactor::none, false, true, false, true};
@@ -1324,7 +1345,7 @@ Card Miracle = {CID::Miracle, Color::colorless, "Miracle", CardType::skill, 0, C
 Card Omega = {CID::Omega, Color::colorless, "Omega", CardType::power, 3, CardRarity::common, "At the end of your turn, deal 50 damage to all enemies.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::gain, 50, TID::self, PID::omega)
+            PowerManip(EID::gain, 50, TID::self, PID::omega)
         }
     }
 }, XFactor::none, false, false, false, false};
@@ -1332,7 +1353,7 @@ Card Ritual_Dagger = blank_card;
 Card Safety = {CID::Safety, Color::colorless, "Safety", CardType::attack, 1, CardRarity::common, "Gain 12 block.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::block, 12, TID::self), 
+            CombatAction(EID::block, 12, TID::self), 
         }
     }
 }, XFactor::none, false, true, false, true}; 
@@ -1340,21 +1361,21 @@ Card Safety = {CID::Safety, Color::colorless, "Safety", CardType::attack, 1, Car
 Card Shiv = {CID::Shiv, Color::colorless, "Shiv", CardType::attack, 0, CardRarity::common, "Deal 4 damage.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage,4,TID::enemy)
+            CombatAction(EID::damage,4,TID::enemy)
         }
     }
 }, XFactor::none, false, true, false, false};
 Card Smite = {CID::Smite, Color::colorless, "Smite", CardType::attack, 1, CardRarity::common, "Deal 12 damage.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 12, TID::enemy), 
+            CombatAction(EID::damage, 12, TID::enemy), 
         }
     }
 }, XFactor::none, false, true, false, true}; 
 Card Through_Violence = {CID::Through_Violence, Color::colorless, "Through Violence", CardType::attack, 1, CardRarity::common, "Deal 20 damage.",{
     {TriggerID::on_play,
         {            
-            Effect(EID::damage, 20, TID::enemy), 
+            CombatAction(EID::damage, 20, TID::enemy), 
         }
     }
 }, XFactor::none, false, true, false, true}; 
@@ -1363,7 +1384,14 @@ Card Through_Violence = {CID::Through_Violence, Color::colorless, "Through Viole
 Card Burn = blank_card; 
 Card Dazed = {CID::Dazed, Color::status, "Dazed", CardType::status, -1, CardRarity::status, "Unplayable.", {}, XFactor::none, true, false, false, false};
 Card Slimed = {CID::Slimed, Color::status, "Slimed", CardType::status, 1, CardRarity::status, "", {}, XFactor::none, false, true, false, false};
-Card Void = blank_card; 
+Card Void = {CID::Void, Color::status, "Void", CardType::status, -1, CardRarity::status, "Unplayable. When drawn, lose 1 energy.",{
+    {TriggerID::on_draw,
+        {
+            CombatAction(EID::energy, -1, TID::player)
+        }
+    }
+}, XFactor::none, true, false, false, false};
+
 Card Wound={CID::Wound, Color::status, "Wound", CardType::status, -1, CardRarity::status, "Unplayable.",{}, XFactor::none, false, false, false, false };
 
 //CURSE
@@ -1481,6 +1509,7 @@ std::vector<CID> WAT_RARE{
     CID::Master_Reality, CID::Omniscience, CID::Ragnarok,      CID::Scrawl,        CID::Spirit_Shield, 
     CID::Vault,          CID::Wish, 
 };
+
 std::vector<CID> CLS_UNCOMMON{
     CID::Bandage_Up,        CID::Blind,         CID::Dark_Shackles,       CID::Deep_Breath,    CID::Discovery, 
     CID::Dramatic_Entrance, CID::Enlightenment, CID::Finesse,             CID::Flash_of_Steel, CID::Forethought, 
@@ -1492,6 +1521,7 @@ std::vector<CID> CLS_RARE{
     CID::Mayhem,        CID::Metamorphosis, CID::Panache,        CID::Sadistic_Nature, CID::Secret_Technique, 
     CID::Secret_Weapon, CID::The_Bomb,      CID::Thinking_Ahead, CID::Transmutation,   CID::Violence, 
 };
+
 std::vector<CID> SPECIAL_CARDS{
     CID::Apparition, CID::Beta,             CID::Bite,          CID::Expunger, CID::Insight,
     CID::JAX,        CID::Omega,            CID::Ritual_Dagger, CID::Safety,   CID::Shiv, 
@@ -1511,16 +1541,11 @@ std::vector<CID> CURSE_CARDS{
 
 Pile createIroncladStarterDeck(){
     Pile deck ({});
-    // for(int i = 0; i<5;i++){deck.addCardTop(ICL_Strike);}
-    // for(int i =0; i<4;i++){deck.addCardTop(ICL_Defend);}
-    deck.addCardTop(Reinforced_Body);
-    deck.addCardTop(Malaise);
-    deck.addCardTop(Skewer);
-    deck.addCardTop(Clash);
-    deck.addCardTop(Acrobatics);
-    deck.addCardTop(Tactician);
-    deck.addCardTop(Reflex);
-
+    for(int i = 0; i<5;i++){deck.addCardTop(ICL_Strike);}
+    for(int i =0; i<4;i++){deck.addCardTop(ICL_Defend);}
+    deck.addCardTop(Bash);
+    deck.addCardTop(Wild_Strike);
+    deck.addCardTop(Blade_Dance);
     return deck;
 }
 
@@ -1550,3 +1575,48 @@ Pile createWatcherStarterDeck(){
     deck.addCardTop(Eruption);
     return deck;
 }
+
+//Enemy declarations;
+EnemyBlueprint red_louse_blueprint = {
+    "Red Louse", 13, Color::red, 
+    std::deque<Intent>{
+        Intent(
+            {
+                CombatAction(EID::damage, 3, TID::player), 
+                CombatAction(EID::damage, 3, TID::player),
+            }
+        ),
+    }
+};
+
+EnemyBlueprint green_louse_blueprint = {
+    "Green Louse", 14, Color::green, 
+    std::deque<Intent>{
+        Intent({ CombatAction(EID::damage, 3, TID::player)}),
+    }
+};
+
+EnemyBlueprint cultist_blueprint = {
+    "Cultist", 20, Color::blue, 
+    std::deque<Intent>{
+        Intent({ PowerManip(EID::gain, 5, TID::self, PID::ritual)}),
+        Intent({ CombatAction(EID::damage, 1, TID::player)}),
+    }
+};
+
+EnemyBlueprint jaw_worm_blueprint = {
+    "Jaw Worm", 30, Color::frost, 
+    std::deque<Intent>{
+        Intent({ CombatAction(EID::damage, 7, TID::player), CombatAction(EID::block, 6, TID::self)}),
+        Intent({ CombatAction(EID::block, 5, TID::self), PowerManip(EID::gain, 3, TID::self, PID::strength)}),
+    }
+};
+
+EnemyBlueprint gremlin_nob_blueprint = {
+    "Gremlin Nob", 60, Color::hp, 
+    std::deque<Intent>{
+        Intent({ CombatAction(EID::damage, 12, TID::player)}),
+        Intent({ PowerManip(EID::gain, 2, TID::self, PID::strength)}),
+        Intent({ PowerManip(EID::gain, 2, TID::player, PID::vulnerable)}),
+    }
+};
