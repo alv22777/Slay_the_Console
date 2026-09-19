@@ -9,6 +9,7 @@
 
 int main() {
 		SetConsoleOutputCP(CP_UTF8);
+		
 		uint64_t time = std::time(nullptr);
 		RNG pregame(time);
 		uint64_t seed = pregame.nextInt(SEED_MIN,SEED_MAX); //This can be removed, but it's here for seed presentation consistency.

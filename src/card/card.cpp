@@ -82,47 +82,71 @@ std::string Card::getCardRarity(){
     }
 }
 
-void Card::trigger(Player& source, Game& game, TriggerID trigger, CardContext context){
-    
-    int index;
+
+std::vector<std::shared_ptr<Effect>> Card::getTriggeredEffects(TriggerID trigger){
+
+    int index = 0;
     bool found = false;
     for(int i = 0; i<triggered_effects.size();i++){
-        if(triggered_effects[i].trigger == trigger){found = true; index = i;}
+        if(triggered_effects[i].trigger == trigger){found = true; index = i; break;}
     }
-    if(!found){return;} //card has no triggered effects for this event.
+    if(!found){return {};} //card has no triggered effects for this event.|
 
-    std::vector<std::shared_ptr<Effect>> effects = (triggered_effects[index].effects);
+    return triggered_effects[index].effects;
+}
 
-    
-    bool single_target_already_selected = false;
-    
-    std::deque<Character*> single_target;
-    std::deque<Character*> other_target;
-    
-    int x = 1; 
+int Card::applyXFactor(std::vector<std::shared_ptr<Effect>> effects, CardContext context){
     int times = 1;
-    
     if(x_factor == XFactor::repetition){times = context.energy_spent;}
     else if(x_factor == XFactor::magnitude){
-        x = context.energy_spent;
         for(const std::shared_ptr<Effect>& e: effects){
-            e->setMagnitude(x);
+            e->setMagnitude(context.energy_spent);
         }
     }  
+    return times;
+}
 
-    for(const std::shared_ptr<Effect>& e: effects){        
-        if(e->getTarget() == TID::enemy){
-            if(!single_target_already_selected){
-                single_target = game.selectTargets(e->getTarget(), &source);
-                single_target_already_selected = true;
+Character* Card::checkTarget(std::vector<std::shared_ptr<Effect>> effects, Character* source){
+    TID checked = TID::none;
+    for(const std::shared_ptr<Effect>& e: effects){
+        checked = e->getCondition().checked_target;  
+        if(checked != TID::none){break;}
+    } 
+    if(checked == TID::player){return source;}
+    return nullptr;
+}
+
+void Card::trigger(Player& source, Game& game, TriggerID trigger, CardContext context){
+    //Well, i did what i could to make this more readable, hopefully it'll debug okay. In Linus we trust.
+    std::vector<std::shared_ptr<Effect>> effects = getTriggeredEffects(trigger);
+    if(effects.empty()){return;}
+
+    int times = applyXFactor(effects, context);
+
+    Character* check = checkTarget(effects, &source);
+    
+    std::deque<Character*> single;
+    bool enemy_targeted = false;
+
+    for(const std::shared_ptr<Effect>& e: effects){
+        TID target = e->getTarget();
+        std::deque<Character*> targets;
+
+        if(target == TID::enemy){
+            if(!enemy_targeted){ 
+                single = game.selectTargets(TID::enemy, &source);
+                if(!check){check = single[0];} //only set check if it hasn't been set yet. 
+                enemy_targeted = true; 
             }
-            for(int i = 0; i<times;i++){game.enqueueEvent({e, &source, single_target});}
+            targets = single;
         }
-        else{
-            other_target = game.selectTargets(e->getTarget(), &source);
-            for(int i = 0; i<times;i++){game.enqueueEvent({e, &source, other_target});}
-        } 
+        else{targets = game.selectTargets(target, &source);}
+
+        
+        for(int i = 0; i<times; i++){game.enqueueEvent(Event(e, &source, targets, check));}
     }
+
+
 }
 
 
@@ -145,15 +169,12 @@ bool Card::canPlay(Player& source, Game& game){
     
     if(source.getAttribute(Attribute::energy) < getEnergyCost()){std::cout<<"Not enough energy!\n"; able = false; return able;}
     
-    int index;
-    bool found = false;
-    for(int i = 0; i<triggered_effects.size();i++){
-        if(triggered_effects[i].trigger == TriggerID::on_play){found = true; index = i;}
-    }
-    if(!found){return true;} //card has no triggered effects for this event.
     
-    std::vector<std::shared_ptr<Effect>> effects = triggered_effects[index].effects;
+    std::vector<std::shared_ptr<Effect>> effects = getTriggeredEffects(TriggerID::on_play);
+    if(effects.empty()){return true;}
+    
     able = !effects[0]->isSingleTarget()||game.hasValidTargets(effects[0]->getTarget(), source);
+    
     
     return able;
 }

@@ -23,7 +23,7 @@ void Enemy::act(Game& game){
     std::vector<std::shared_ptr<Effect>> actions = next_intent.getActions();    
     for(std::shared_ptr<Effect> e: actions){
         std::deque<Character*> targets = game.selectTargets(e->getTarget(),this);
-        Event ev = {e, this, targets};
+        Event ev (e, this, targets, this);
         game.enqueueEvent(ev);
     }
 }
@@ -75,6 +75,11 @@ void Enemy::chooseIntent(Game& game){
     next_intent = possible_intents[game.rng.nextInt(0,possible_intents.size()-1)];
 }
 
+bool Enemy::isAttacking(){
+    std::vector<std::shared_ptr<Effect>> actions = next_intent.getActions();
+    for(std::shared_ptr<Effect> e: actions){if(e->getType() == EID::damage){return true;}}
+    return false;
+}
 std::unique_ptr<Enemy> Enemy::createEnemy(EnemyID id){
     switch(id){
         case EnemyID::green_louse: return std::make_unique<Enemy>(green_louse_blueprint);

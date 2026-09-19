@@ -6,15 +6,35 @@
 #include "data/constants.h"
 #include <windows.h>
 
-Effect::Effect(EID t, int m, TID tar)
-    :type(t), magnitude(m), target_type(tar){}
 
-EffectReport Effect::apply(std::deque<Character*> target, Character* source, Game& game){
+
+bool Condition::check(Game* game, Character* target){
+    Enemy* e = dynamic_cast<Enemy*>(target);
+    Player* p = dynamic_cast<Player*>(target);
+
+    switch(predicate){
+        case Predicate::target_has_power:{
+            int count = target->countPower(power);
+            if(count > 0){return true;}else{return false;}
+        }
+        case Predicate::target_intents_to_attack:{
+            if(!e){return false;}
+            return e->isAttacking();
+        }
+        default: return true;
+    }
+}
+
+Effect::Effect(EID t, int m, TID tar)
+    :type(t), magnitude(m), target_type(tar), condition(Condition()){}
+
+EffectReport Effect::apply(std::deque<Character*> target, Character* source, Game& game, Character* check){
     EffectReport results; return results;
 }
 
 EID Effect::getType(){return type;}
 int Effect::getMagnitude(){return magnitude;}
+Condition Effect::getCondition(){return condition;}
 TID Effect::getTarget(){return target_type;}
 bool Effect::isSingleTarget(){
     if(target_type == TID::self || target_type == TID::enemy || target_type == TID::player){return true;}
@@ -36,12 +56,15 @@ std::string Effect::log(std::deque<Character*> target, Character* source, Effect
 
     switch(type){
         case EID::damage:{
-            if(report.damage_dealt == 0){return "";}
+
+            
             who = color(source->getColor(),source->getName());
             
+
             if(single_target){
                 how_much = std::to_string(abs(report.damage_dealt));
                 to_who  = color(target[0]->getColor(), target[0]->getName());
+                if(report.damage_dealt == 0){return to_who + " blocked " + std::to_string(magnitude) + " damage.";}
             }
             else{to_who = (target_type == TID::enemy_all)? "all enemies.":"all players.";} 
 
@@ -135,10 +158,18 @@ std::string Effect::log(std::deque<Character*> target, Character* source, Effect
 CombatAction::CombatAction(EID t, int m, TID tar):
     Effect(t,m,tar) {}
 
-EffectReport CombatAction::apply(std::deque<Character*> target, Character* source, Game& game){
+CombatAction::CombatAction(EID t, int m, TID tar, Condition cond):
+    Effect(t,m,tar) {condition = cond;}
+
+EffectReport CombatAction::apply(std::deque<Character*> target, Character* source, Game& game, Character* check){
     EffectReport report;
 
+
     for(Character* c: target){
+        if(check){
+            if(!condition.check(&game, check)){continue;}
+        }
+        
         if(!c->isAlive()){continue;}
         Player* p = dynamic_cast<Player*>(c); 
         Enemy*  e = dynamic_cast<Enemy*>(c);
@@ -151,6 +182,7 @@ EffectReport CombatAction::apply(std::deque<Character*> target, Character* sourc
                 damage = c->modIncDamage(damage);
                 report.damage_dealt += c->takeDamage(damage); 
                 c->onHit(source, game);
+                if(report.damage_dealt > 0){source->onUnblockedAttack(c, game);}
             }
             break;
 
@@ -170,16 +202,19 @@ EffectReport CombatAction::apply(std::deque<Character*> target, Character* sourc
             case EID::energy:{
                 if(p){p->changeAttribute(Attribute::energy,magnitude);} 
             }
+            break;
 
             case EID::draw:{
                 if(p){report.cards_drawn += p->drawCards(magnitude,game);}
             }
+            break;
 
             case EID::expertise:{
                 if(p){report.cards_drawn += p->drawCards(magnitude - p->getPlayerPileSize(PileID::hand), game);}
             }
             break;
-            default: break;            
+
+            default: Effect::apply(target,source,game, check);  break;     
         }
     }
     return report;
@@ -187,11 +222,18 @@ EffectReport CombatAction::apply(std::deque<Character*> target, Character* sourc
 
 RunAction::RunAction(EID t, int m):
     Effect(t,m, TID::player){}
-EffectReport RunAction::apply(std::deque<Character*> target, Character* source, Game& game){
+
+RunAction::RunAction(EID t, int m, Condition cond):
+    Effect(t,m, TID::player){condition = cond;}
+      
+EffectReport RunAction::apply(std::deque<Character*> target, Character* source, Game& game, Character* check){
 
     EffectReport report;
  
     for(Character* c: target){//For every character in selected targets
+        if(check){
+            if(!condition.check(&game, check)){continue;}
+        }
         if(!c->isAlive()){continue;}
         //Preventive programming for Player/Enemy specific behavior.
         Player* p = dynamic_cast<Player*>(c); 
@@ -199,6 +241,7 @@ EffectReport RunAction::apply(std::deque<Character*> target, Character* source, 
             case EID::max_hp: 
                 c->changeAttribute(Attribute::max_hp, magnitude);
             break;
+            default: Effect::apply(target,source,game,check); break;
         }
     }
 
@@ -220,14 +263,35 @@ CreateCard::CreateCard(int m, CID c, PileID tar_p, Position pos):
         }
     }
 
+CreateCard::CreateCard(int m, CID c, PileID tar_p, Position pos, Condition cond):
+    Effect(EID::none, m, TID::player), target_pile(tar_p), position(pos), card(c){
+        switch(position){
+            case Position::top:
+                type = EID::add_card_top;
+            break;
+            case Position::bottom:
+                type = EID::add_card_bot;
+            break;
+            case Position::random:
+                type = EID::shuffleCard;
+            break;     
+        }
+        condition = cond;
+    }
+
 CID CreateCard::getCID(){return card;}
 PileID CreateCard::getTargetPile(){return target_pile;}
 
-EffectReport CreateCard::apply(std::deque<Character*> target, Character* source, Game& game){
+EffectReport CreateCard::apply(std::deque<Character*> target, Character* source, Game& game, Character* check){
     EffectReport report;
 
     for(Character* c: target){
+        if(check){
+            if(!condition.check(&game, check)){continue;}
+        }
+        
         if(!c->isAlive()){continue;}
+        
         Player* p = dynamic_cast<Player*>(c); 
         if(!p){return report;}
         
@@ -247,7 +311,7 @@ EffectReport CreateCard::apply(std::deque<Character*> target, Character* source,
                 for(int i = 0; i<magnitude;i++){p->shuffleIntoDraw(add, game);}
             }
             break;
-            default: break;       
+            default: Effect::apply(target,source,game,check); break;     
         }
     }
     report.cards_added = magnitude;
@@ -257,13 +321,21 @@ EffectReport CreateCard::apply(std::deque<Character*> target, Character* source,
 CardTransfer::CardTransfer(EID t, int m, PileID src_p, PileID tar_p):
     Effect(t,m, TID::player), source_pile(src_p), target_pile(tar_p){}
 
+CardTransfer::CardTransfer(EID t, int m, PileID src_p, PileID tar_p, Condition cond):
+    Effect(t,m, TID::player), source_pile(src_p), target_pile(tar_p) {condition = cond;}
+
 PileID CardTransfer::getSourcePile(){return source_pile;}
 PileID CardTransfer::getTargetPile(){return target_pile;}
 
-EffectReport CardTransfer::apply(std::deque<Character*> target, Character* source, Game& game){
+EffectReport CardTransfer::apply(std::deque<Character*> target, Character* source, Game& game, Character* check){
     EffectReport report;
 
     for(Character* c: target){
+
+        if(check){
+            if(!condition.check(&game, check)){continue;}
+        }
+
         if(!c->isAlive()){continue;}
         Player* p = dynamic_cast<Player*>(c); 
         if(!p){return report;}
@@ -292,7 +364,7 @@ EffectReport CardTransfer::apply(std::deque<Character*> target, Character* sourc
             }
             break;    
 
-            default: break;       
+            default: Effect::apply(target,source,game, check); break; 
         }
     }
     return report;
@@ -302,15 +374,20 @@ EffectReport CardTransfer::apply(std::deque<Character*> target, Character* sourc
 
 PowerManip::PowerManip(EID t, int m, TID tar, PID p):
     Effect(t,m, tar), power(p){}
+PowerManip::PowerManip(EID t, int m, TID tar, PID p, Condition cond):
+    Effect(t,m, tar), power(p){condition = cond;}
 
 
 PID PowerManip::getPID(){return power;}
 
-EffectReport PowerManip::apply(std::deque<Character*> target, Character* source, Game& game){
+EffectReport PowerManip::apply(std::deque<Character*> target, Character* source, Game& game, Character* check){
 
     EffectReport report;
  
     for(Character* c: target){//For every character in selected targets
+        if(check){
+            if(!condition.check(&game, check)){continue;}
+        }
         if(!c->isAlive()){continue;}
         //Preventive programming for Player/Enemy specific behavior.
         Player* p = dynamic_cast<Player*>(c); 
@@ -329,6 +406,7 @@ EffectReport PowerManip::apply(std::deque<Character*> target, Character* source,
                 c->addPower(power, -magnitude);
             }
             break;
+            default: Effect::apply(target,source,game,check); break;
         }
     }
 

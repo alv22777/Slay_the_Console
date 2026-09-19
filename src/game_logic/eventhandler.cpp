@@ -17,7 +17,7 @@ void EventHandler::resolveNext(Game& game){
     Event ev = pending.front(); 
     pending.pop_front();
     
-    game.resolveEffect(*(ev.source), ev.event_effect, ev.targets);
+    game.resolveEffect(*(ev.source), ev.event_effect, ev.targets, ev.check_condition);
 }
 bool EventHandler::empty(){
     return pending.empty();

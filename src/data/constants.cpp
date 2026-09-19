@@ -103,7 +103,16 @@ Card Clothesline = {CID::Clothesline, Color::red, "Clothesline", CardType::attac
     
     }, XFactor::none, false, false, false, false };
 
-Card Flex = blank_card; 
+Card Flex = {CID::Flex, Color::red, "Flex", CardType::skill, 0, CardRarity::common, "Gain 2 strength. At the end of this turn, lose 2 strength.",
+    {
+        {TriggerID::on_play,
+            {
+                PowerManip(EID::gain, 2, TID::player, PID::strength),
+                PowerManip(EID::gain, 2, TID::player, PID::strength_down)
+            }
+        }
+    }, XFactor::none, false, false, false, false};
+
 Card Havoc = blank_card; 
 Card Headbutt={CID::Headbutt, Color::red, "Headbutt",CardType::attack, 1, CardRarity::common, "Deal 9 damage. Put 1 card from your discard pile on top of your draw pile.",
     {
@@ -230,11 +239,22 @@ Card Dark_Embrace = blank_card;
 Card Disarm = {CID::Disarm, Color::red, "Disarm", CardType::skill, 1, CardRarity::uncommon, "Enemy loses 2 strength.",{
     {TriggerID::on_play,
         {            
+
             PowerManip(EID::gain, -2, TID::enemy, PID::strength)
         }
     }
 }, XFactor::none, false, true, false, false}; 
-Card Dropkick = blank_card; 
+Card Dropkick = {CID::Dropkick, Color::red, "Dropkick", CardType::attack, 1, CardRarity::uncommon, "Deal 5 damage. If the enemy has Vulnerable, gain 1 energy and draw 1 card.",{
+    {TriggerID::on_play,
+        {
+            CombatAction(EID::damage, 5, TID::enemy),
+            CombatAction(EID::draw, 1, TID::player, Condition(Predicate::target_has_power, PID::vulnerable, TID::enemy)),
+            CombatAction(EID::energy, 1, TID::player, Condition(Predicate::target_has_power, PID::vulnerable, TID::enemy))
+        }
+        
+    }
+
+}, XFactor::none, false, false, false, false};
 Card Dual_Wield = blank_card; 
 Card Entrench = blank_card; 
 Card Evolve = blank_card; 
@@ -348,7 +368,15 @@ Card Shockwave = {CID::Shockwave, Color::red, "Shockwave", CardType::attack, 2, 
         }
     }
 }, XFactor::none, false, true, false, false }; 
-Card Spot_Weakness = blank_card; 
+Card Spot_Weakness = {CID::Spot_Weakness, Color::red, "Spot Weakness", CardType::skill, 1, CardRarity::uncommon, "If the enemy intends to attack, gain 3 strength.",{
+    {TriggerID::on_play,
+        {
+            CombatAction(EID::target,0,TID::enemy), 
+            PowerManip(EID::gain, 3, TID::player, PID::strength, Condition(Predicate::target_intents_to_attack, TID::enemy))
+        } 
+    }
+}, XFactor::none, false, false, false, false};
+
 Card Uppercut = {CID::Uppercut, Color::red, "Uppercut", CardType::attack, 2, CardRarity::uncommon, "Deal 13 damage. Apply 1 weak. Apply 1 vulnerable.",{
     {TriggerID::on_play,
         {            
@@ -496,7 +524,14 @@ Card Backflip = {CID::Backflip, Color::green, "Backflip", CardType::skill, 1, Ca
         }
     }
 }, XFactor::none, false, false, false, false }; 
-Card Bane = blank_card; 
+Card Bane = {CID::Bane, Color::green, "Bane", CardType::attack, 1, CardRarity::common, "Deal 7 damage. If the enemy has poison, deal 7 damage again.",{
+    {TriggerID::on_play,
+        {            
+            CombatAction(EID::damage, 7, TID::enemy),
+            CombatAction(EID::damage, 7, TID::enemy, Condition(Predicate::target_has_power, PID::poison, TID::enemy))
+        }
+    }
+}, XFactor::none, false, false, false, false};
 Card Blade_Dance = {CID::Blade_Dance, Color::green, "Blade Dance", CardType::skill, 1, CardRarity::common, "Add 3 Shivs to your hand.",
 {
     {TriggerID::on_play,
@@ -701,8 +736,24 @@ Card Footwork = {CID::Footwork, Color::green, "Footwork", CardType::power, 1, Ca
         }
     }
 }, XFactor::none, false, false, false, false }; 
-Card Heel_Hook = blank_card; 
-Card Infinite_Blades = blank_card; 
+Card Heel_Hook = {CID::Heel_Hook, Color::green, "Heel Hook", CardType::attack, 1, CardRarity::uncommon, "Deal 5 damage. If the enemy has Weak, gain 1 energy and draw 1 card.",{
+    {TriggerID::on_play,
+        {
+            CombatAction(EID::damage, 5, TID::enemy),
+            CombatAction(EID::energy, 1, TID::player, Condition(Predicate::target_has_power, PID::weak, TID::enemy)),
+            CombatAction(EID::draw, 1, TID::player, Condition(Predicate::target_has_power, PID::weak, TID::enemy))
+        }
+    }
+}, XFactor::none, false, false, false, false};
+
+Card Infinite_Blades = {CID::Infinite_Blades, Color::green, "Infinite Blades", CardType::power, 1, CardRarity::uncommon, "At the start of your turn, add 1 Shiv into your hand.",
+{
+    {TriggerID::on_play,
+        {
+            PowerManip(EID::gain, 1, TID::player, PID::infinite_blades)
+        }
+    }
+}, XFactor::none, false, false, false, false };
 Card Leg_Sweep = {CID::Leg_Sweep, Color::green, "Leg Sweep", CardType::skill, 2, CardRarity::uncommon, "Apply 2 weak. Gain 11 block.",
 {
     {TriggerID::on_play,
@@ -714,7 +765,14 @@ Card Leg_Sweep = {CID::Leg_Sweep, Color::green, "Leg Sweep", CardType::skill, 2,
 }, XFactor::none, false, false, false, false };
 Card Masterful_Stab = blank_card; 
 Card Noxious_Fumes = blank_card; 
-Card Predator = blank_card; 
+Card Predator = {CID::Predator, Color::green, "Predator", CardType::attack, 2, CardRarity::uncommon, "Deal 15 damage. Next turn, draw 2 additional cards.",{
+    {TriggerID::on_play,
+        {
+            CombatAction(EID::damage, 15, TID::enemy),
+            PowerManip(EID::gain, 2, TID::player, PID::draw_card)
+        }
+    }
+}, XFactor::none, false, false, false, false};
 Card Reflex = {CID::Reflex, Color::green, "Reflex", CardType::skill, 3, CardRarity::uncommon, "Draw 2 cards. Sly.",
 {
     {TriggerID::on_play,
@@ -793,8 +851,24 @@ Card Die_Die_Die = {CID::Die_Die_Die, Color::green, "Die Die Die", CardType::att
         }
     }
 }, XFactor::none, false, true, false, false }; 
-Card Doppelganger = blank_card; 
-Card Envenom = blank_card; 
+Card Doppelganger = {CID::Doppelganger, Color::green, "Doppelganger", CardType::skill, -2, CardRarity::rare, "Next turn, draw X cards and gain X energy",{
+    {TriggerID::on_play,
+        {
+            PowerManip(EID::gain, 1, TID::player, PID::draw_card),
+            PowerManip(EID::gain, 1, TID::player, PID::energized)
+        }
+    }
+}, XFactor::magnitude, false, true, false, false};
+
+
+Card Envenom = {CID::Envenom, Color::green, "Envenom", CardType::power, 2, CardRarity::rare, "Whenever an attack deals unblocked damage, apply 1 poison.",{
+    {TriggerID::on_play,
+        {            
+            PowerManip(EID::gain, 1, TID::self, PID::envenom)
+        }
+    }
+}, XFactor::none, false, false, false, false};
+
 Card Glass_Knife = blank_card; 
 Card Grand_Finale ={CID::Grand_Finale, Color::green, "Grand Finale", CardType::attack, 0, CardRarity::rare, "Deal 50 damage to all enemies. Play: your draw pile is empty.",
 {
@@ -991,7 +1065,15 @@ Card Hyperbeam = {CID::Hyperbeam, Color::blue, "Hyperbeam", CardType::attack, 3,
         }
     }
 }, XFactor::none, false, false, false, false }; 
-Card Machine_Learning = blank_card; 
+Card Machine_Learning = {CID::Machine_Learning, Color::blue, "Machine Learning", CardType::power, 1, CardRarity::rare, "At the start of your turn, draw 1 additional card.",
+{
+    {TriggerID::on_play,
+        {
+            PowerManip(EID::gain, 1, TID::self, PID::machine_learning)
+        }
+
+    }
+}, XFactor::none, false, false, false, false}; 
 Card Meteor_Strike = blank_card; 
 Card Multi_Cast = blank_card; 
 Card Rainbow = blank_card; 
@@ -1201,7 +1283,7 @@ Card Wish = blank_card;
 //COLORLESS
 
 //UNCOMMON
-Card Bandage_Up = {CID::Bandage_Up, Color::colorless, "Bandage Up", CardType::skill, 0, CardRarity::uncommon, "Heal 4 hp.",
+Card Bandage_Up = {CID::Bandage_Up, Color::colorless, "Bandage Up", CardType::skill, 0, CardRarity::uncommon, "Heal 4 HP.",
 {
     {TriggerID::on_play,
         {            
@@ -1209,7 +1291,7 @@ Card Bandage_Up = {CID::Bandage_Up, Color::colorless, "Bandage Up", CardType::sk
         }
     }
 }, XFactor::none, false, true, false, false};
-Card Blind = {CID::Blind, Color::colorless, "Blind", CardType::skill, 0, CardRarity::uncommon, "Apply 2 weak",
+Card Blind = {CID::Blind, Color::colorless, "Blind", CardType::skill, 0, CardRarity::uncommon, "Apply 2 Weak.",
 {
     {TriggerID::on_play,
         {            
@@ -1217,7 +1299,17 @@ Card Blind = {CID::Blind, Color::colorless, "Blind", CardType::skill, 0, CardRar
         }
     }
 }, XFactor::none, false, false, false, false }; 
-Card Dark_Shackles = blank_card;  
+Card Dark_Shackles = {CID::Dark_Shackles, Color::colorless, "Dark Shackles", CardType::skill, 0, CardRarity::uncommon, "Enemy loses 9 Strength this turn",
+{
+    {TriggerID::on_play,
+        {
+            PowerManip(EID::lose, 9, TID::enemy, PID::strength),
+            PowerManip(EID::gain, 9, TID::enemy, PID::shackled)
+        }
+    }
+}, XFactor::none, false, true, false, false};
+
+
 Card Deep_Breath = blank_card; 
 Card Discovery = blank_card; 
 Card Dramatic_Entrance = blank_card; 
@@ -1544,8 +1636,8 @@ Pile createIroncladStarterDeck(){
     for(int i = 0; i<5;i++){deck.addCardTop(ICL_Strike);}
     for(int i =0; i<4;i++){deck.addCardTop(ICL_Defend);}
     deck.addCardTop(Bash);
-    deck.addCardTop(Wild_Strike);
-    deck.addCardTop(Blade_Dance);
+    deck.addCardTop(Dark_Shackles);
+
     return deck;
 }
 
@@ -1555,6 +1647,11 @@ Pile createSilentStarterDeck(){
     for(int i = 0;i<5;i++){deck.addCardTop(SLT_Defend);}
     deck.addCardTop(Neutralize);
     deck.addCardTop(Survivor);
+    deck.addCardTop(Doppelganger);
+    deck.addCardTop(Outmaneuver);
+    deck.addCardTop(Predator);
+
+
     return deck;
 }
 

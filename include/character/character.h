@@ -12,7 +12,7 @@ enum class Color; class Game;
 enum class Attribute{hp, max_hp, block, energy, max_energy};
 
 
-//This is a Slay The Spire Character, it has several core attributes like HP, energy and block.
+//This is a Slay The Spire Character, it has several core attributes like HP and block.
 class Character{
 	protected:
 	std::string name;
@@ -47,12 +47,14 @@ class Character{
 	void removePower(int pos);
 	void removeAllPowers();
 	void removeInvalidPowers();
+	int countPower(PID p);
 
 	
 	void displayStatus();
 	void displayPowers();
 
 	void onHit(Character* source, Game& game);
+	void onUnblockedAttack(Character* target, Game& game);
 	int32_t modOutDamage(int32_t base);
 	int32_t modIncDamage(int32_t base);
 	int32_t modBlockGain(int32_t base);

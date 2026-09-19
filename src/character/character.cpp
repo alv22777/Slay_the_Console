@@ -152,13 +152,25 @@ void Character::removeInvalidPowers(){
     }), powers.end());
 }
 
+int Character::countPower(PID p){
+    for(std::unique_ptr<Power>& a: powers){
+        PID current = a->getID();
+        if(a->getID() == p){return a->getMagnitude();}
+    }
+    return 0;
+}
+
 void Character::onHit(Character* source, Game& game){
     for(auto&p: powers){p->onHit(source, game);}
+}
+void Character::onUnblockedAttack(Character* target, Game& game){
+    for(auto&p: powers){p->onUnblockedAttack(target, game);}
 }
 
 int32_t Character::modOutDamage(int32_t base){ 
     for(auto& p: powers){ base = p->modOutDamageAdd(base); } 
-    for(auto& p: powers){ base = p->modOutDamageMult(base); } 
+    for(auto& p: powers){ base = p->modOutDamageMult(base); }
+    if(base<0){base = 0;}
     return base;
 }   
 

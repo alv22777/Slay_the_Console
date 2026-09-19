@@ -13,6 +13,10 @@ struct Event{
     std::shared_ptr<Effect> event_effect;
     Character* source;
     std::deque<Character*> targets;
+    Character* check_condition;
+    Event(std::shared_ptr<Effect> e, Character* s, std::deque<Character*> t, Character* con):
+        event_effect(e), source(s), targets(t), check_condition(con){}
+        
 };
 
 class EventHandler{

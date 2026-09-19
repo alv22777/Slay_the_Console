@@ -133,22 +133,20 @@ void Game::startPlayerTurn(){
 	if(player){
 		player->setAttribute(Attribute::energy, player->getAttribute(Attribute::max_energy));
 		player->setAttribute(Attribute::block,0);
-		player->drawCards(5,*this);
 		
 		for(auto& pw: player->getPowers()){ pw->onTurnStart(*this); }
-		
-		player->removeInvalidPowers();
-
-		removeDeadCharacters();
+		player->drawCards(5,*this);
+		resolveQueue();
+		cleanup();
 	}
 }
 
 void Game::endPlayerTurn(){
 	pushLog("----------- End of turn ------------",0);
 	for(auto& pw: player->getPowers()){ pw->onTurnEnd(*this); }
-	player->removeInvalidPowers();
 	player->discardHand();
-	removeDeadCharacters();
+	resolveQueue();
+	cleanup();
 }
 
 void Game::enemyTurn(){
@@ -163,10 +161,10 @@ void Game::startEnemyTurn(){
 		for(auto& pw: e->getPowers()){
 			pw->onTurnStart(*this);
 		}
-		e->removeInvalidPowers();
 		e->setAttribute(Attribute::block, 0);
 	}
-	removeDeadCharacters();
+	resolveQueue();
+	cleanup();
 }
 
 void Game::enemyActions(){
@@ -185,9 +183,9 @@ void Game::endEnemyTurn(){
 		for(auto& pw: e->getPowers()){
 			pw->onTurnEnd(*this);
 		}
-		e->removeInvalidPowers();
 	}
-	removeDeadCharacters();
+	resolveQueue();
+	cleanup();
 }
 
 void Game::enemyPlanning(){
@@ -284,11 +282,11 @@ int32_t Game::calculateIntentDamage(int32_t base, Enemy* source){
 	return damage;
 }
 
-void Game::resolveEffect(Character& source, std::shared_ptr<Effect> effect, std::deque<Character*> targets){
-	if(&(effect) == nullptr){NO_EFFECT.apply({}, &source,*this); return;}
+void Game::resolveEffect(Character& source, std::shared_ptr<Effect> effect, std::deque<Character*> targets, Character* check){
+	if(&(effect) == nullptr){NO_EFFECT.apply({}, &source,*this,check); return;}
 	if(targets.empty()){return;}
-
-	EffectReport result = effect->apply(targets, &source, *this);
+	
+	EffectReport result = effect->apply(targets, &source, *this, check);
 
 	pushLog(effect->log(targets, &source, result), 1);
 }
@@ -351,7 +349,6 @@ void Game::cardReward(){
 	if(0<=choice&&choice<=rewards.getSize()-1){ player->addToPile(PileID::deck, rewards.getCard(choice), false); }
 	else{std::cout<<"Skipped...\n";}
 }
-
 
 //UI
 
@@ -420,7 +417,7 @@ bool Game::removeDeadCharacters(){
 }
 
 void Game::removeInvalidPowers(){
-	player->removeInvalidPowers();
+	if(player){player->removeInvalidPowers();}	
 	for(auto& e: enemies){ e->removeInvalidPowers(); }
 }
 

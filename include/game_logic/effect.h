@@ -21,12 +21,25 @@ enum class EID{
     draw, discard, exhaust, exhaust_self, random_card_transfer, cards_bottom, cards_top, expertise,
     gain, lose,
     add_card_bot, add_card_top, shuffleCard,
-    
+    target, //done for cards that need to select a target to do checks on that target but don't actually do anything to the target.
     none
 };
 
 enum class TID{player, enemy, enemy_all, random_enemy, self, none};
-enum class Condition{target_has_power, cards_discarded, fatal, cards_played, target_intents_to_attack, none};
+enum class Predicate{target_has_power, target_has_block, cards_discarded, fatal, cards_played, target_intents_to_attack, none};
+struct Condition{
+    Predicate predicate;
+    int32_t threshold;
+    TID checked_target;
+
+    PID power;
+    Condition(Predicate p, int32_t t, TID c): predicate(p), threshold(t), checked_target(c){}
+    Condition(Predicate p, PID pw, TID c): predicate(p), threshold(1), power(pw), checked_target(c){}
+    Condition(Predicate p, TID c): predicate(p), threshold(0), checked_target(c){}
+    Condition(): predicate(Predicate::none), threshold(0), checked_target(TID::none){}
+    
+    bool check(Game* game, Character* target);
+};
 enum class Position;
 
 struct EffectReport{
@@ -41,6 +54,9 @@ struct EffectReport{
     CID card_added;
     int32_t cards_added = 0;
     
+
+    Character* single_target = nullptr;
+
     PID power_gained;
     bool target_died = false;
     bool fatal = false;
@@ -51,18 +67,17 @@ class Effect{
     EID type;
     int magnitude;
     TID target_type;
-    
-//  std::optional<Condition> condition;
+    Condition condition;
 
     public:
     Effect(EID t, int m, TID tar);
 
-    virtual EffectReport apply(std::deque<Character*> target, Character* source, Game& game); //Applies this effect to the target character. 
+    virtual EffectReport apply(std::deque<Character*> target, Character* source, Game& game, Character* check); //Applies this effect to the target character. 
     EID getType();
     TID getTarget();
     bool isSingleTarget();
     int getMagnitude();
-
+    Condition getCondition();
     void setMagnitude(int n);
 
     std::string log(std::deque<Character*> target, Character* source, EffectReport report);
@@ -71,11 +86,10 @@ class Effect{
 };
 
 class CombatAction: public Effect{
-    private:
-    
     public:
     CombatAction(EID t, int m, TID tar);
-    EffectReport apply(std::deque<Character*> target, Character* source, Game& game) override;
+    CombatAction(EID t, int m, TID tar, Condition cond);
+    EffectReport apply(std::deque<Character*> target, Character* source, Game& game, Character* check) override;
     ~CombatAction() noexcept override = default;
 };
 
@@ -83,7 +97,9 @@ class RunAction: public Effect{
     private:
     public:
     RunAction(EID t, int m);
-    EffectReport apply(std::deque<Character*> target, Character* source, Game& game) override;
+    RunAction(EID t, int m, Condition cond);
+
+    EffectReport apply(std::deque<Character*> target, Character* source, Game& game, Character* check) override;
      ~RunAction() noexcept override = default;
 };
 
@@ -95,11 +111,12 @@ class CreateCard: public Effect{
     public:
     //add m cards with CID c to target Pile
     CreateCard(int m, CID c, PileID tar_p, Position pos); 
+    CreateCard(int m, CID c, PileID tar_p, Position pos, Condition cond); 
     
     CID getCID();
     PileID getTargetPile();
 
-    EffectReport apply(std::deque<Character*> target, Character* source, Game& game) override;
+    EffectReport apply(std::deque<Character*> target, Character* source, Game& game, Character* check) override;
 
     ~CreateCard() noexcept override = default;
 };
@@ -110,10 +127,11 @@ class CardTransfer: public Effect{
     public:
     //move m cards from source pile to target pile
     CardTransfer(EID t, int m, PileID src_p, PileID tar_p);
+    CardTransfer(EID t, int m, PileID src_p, PileID tar_p, Condition cond);
     PileID getSourcePile();
     PileID getTargetPile();
 
-    EffectReport apply(std::deque<Character*> target, Character* source, Game& game) override;
+    EffectReport apply(std::deque<Character*> target, Character* source, Game& game, Character* check) override;
 
     ~CardTransfer() noexcept override = default;
 };
@@ -123,9 +141,10 @@ class PowerManip: public Effect{
 
     public:
     PowerManip(EID t, int m, TID tar, PID p);
+    PowerManip(EID t, int m, TID tar, PID p, Condition cond);
     PID getPID();
 
-    EffectReport apply(std::deque<Character*> target, Character* source, Game& game) override;
+    EffectReport apply(std::deque<Character*> target, Character* source, Game& game, Character* check) override;
 
     ~PowerManip() noexcept override = default;
 };

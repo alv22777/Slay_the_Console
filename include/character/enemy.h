@@ -28,6 +28,8 @@ class Enemy: public Character{
     void displayStatus(Game& game);
     void displayIntent(Game& game);
     void chooseIntent(Game& game);
+    
+    bool isAttacking();
 
     static std::unique_ptr<Enemy> createEnemy(EnemyID id);
 

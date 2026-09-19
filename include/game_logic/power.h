@@ -10,7 +10,7 @@ class Character; class Game;
 
 enum class PID{
     //outgoing damage additive
-    accuracy, strength,
+    accuracy, strength, 
     //Outgoing damage multiplicative
     weak, wrath, phantasmal, pen_nib, 
 
@@ -24,17 +24,17 @@ enum class PID{
     deva, berserk, energized, fasting,
     
     //Modify other powers
-    ritual, demon, wraith, biased, devotion, phantasmal_killer,
-
+    ritual, demon, wraith, biased, devotion, phantasmal_killer, strength_down, dexterity_down,
+    shackled,
     //Card draw mod
-    draw_next, machine_learning, 
+    draw_card, machine_learning, 
 
     //Trigger on hit
     thorns, curl_up,
     //Character specific powers
     //The Ironclad
     //The Silent
-    poison,
+    poison, envenom, infinite_blades,
     //The Defect
     focus,
 
@@ -73,6 +73,7 @@ class Power{
     virtual int32_t modBlockGainMult(int32_t base);
     
     virtual void onHit(Character* source, Game& game);
+    virtual void onUnblockedAttack(Character* target, Game& game);
 
     protected:
     PID ID;
@@ -105,6 +106,18 @@ class DexterityPower: public Power{
     int32_t modBlockGainAdd(int32_t base) override;
 };
 
+class DexterityDownPower: public Power{
+    public:
+    DexterityDownPower(int32_t i, Character* own);
+    void onTurnEnd(Game& game) override;
+};
+
+class DrawCardPower: public Power{
+    public:
+    DrawCardPower(int32_t i, Character* own);
+    void onTurnStart(Game& game) override;
+};
+
 class FastingPower: public Power{
     public:
     FastingPower(int32_t i, Character* own);
@@ -115,6 +128,30 @@ class FrailPower: public Power{
     public:
     FrailPower(int32_t i, Character* own);
     int32_t modBlockGainMult(int32_t base) override;
+};
+
+class EnvenomPower: public Power{
+    public:
+    EnvenomPower(int32_t i, Character* own);
+    void onUnblockedAttack(Character* target, Game& game) override;
+};
+
+class EnergizedPower: public Power{
+    public:
+    EnergizedPower(int32_t i, Character* own);
+    void onTurnStart(Game& game) override;
+};
+
+class InfiniteBladesPower: public Power{
+    public:
+    InfiniteBladesPower(int32_t i, Character* own);
+    void onTurnStart(Game& game) override;
+};
+
+class MachineLearningPower: public Power{
+    public:
+    MachineLearningPower(int32_t i, Character* own);
+    void onTurnStart(Game& game) override;
 };
 
 class MetallicizePower: public Power{
@@ -142,10 +179,22 @@ class RitualPower: public Power{
     void onTurnEnd(Game& game) override;
 };
 
+class ShackledPower: public Power{
+    public:
+    ShackledPower(int32_t i, Character* own);
+    void onTurnEnd(Game& game) override;
+};
+
 class StrengthPower: public Power{
     public:
     StrengthPower(int32_t i, Character* own);
     int32_t modOutDamageAdd(int32_t base) override;
+};
+
+class StrengthDownPower: public Power{
+    public:
+    StrengthDownPower(int32_t i, Character* own);
+    void onTurnEnd(Game& game) override;
 };
 
 class ThornsPower: public Power{
@@ -166,18 +215,4 @@ class WeakPower: public Power{
     int32_t modOutDamageMult(int32_t base) override;
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
 #endif
-
-

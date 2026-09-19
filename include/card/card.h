@@ -140,6 +140,9 @@ public:
 
     void display();    
     int getEnergyCost();
+    std::vector<std::shared_ptr<Effect>> getTriggeredEffects(TriggerID trigger); 
+    int applyXFactor(std::vector<std::shared_ptr<Effect>> effects, CardContext context);
+    Character* checkTarget(std::vector<std::shared_ptr<Effect>> effects, Character* source);
     CID getID();
     bool hasExhaust();
     bool hasEthereal();
