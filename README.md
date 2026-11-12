@@ -34,13 +34,13 @@ C++ console based implementation of many of Slay The Spire's combat mechanics (f
 
 
 
-* Option 1: Run launch.bat	
+* Option 1: Run ```launch.bat```
 * Option 2: From root, run: 
-g++ -std=c++17 src/main.cpp src/game\_logic/\*.cpp src/character/\*.cpp src/card/\*.cpp src/ui/\*.cpp src/data/\*.cpp src/item/\*.cpp -Iinclude -static -static-libgcc -static-libstdc++ -o SLAY.exe
+```g++ -std=c++17 src/main.cpp src/game\_logic/\*.cpp src/character/\*.cpp src/card/\*.cpp src/ui/\*.cpp src/data/\*.cpp src/item/\*.cpp -Iinclude -static -static-libgcc -static-libstdc++ -o SLAY.exe```
 
 
 
-Then launch executable **SLAY.exe**
+Then launch executable ```**SLAY.exe**```
 
 
 
