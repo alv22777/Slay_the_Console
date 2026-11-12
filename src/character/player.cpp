@@ -247,7 +247,7 @@ void Player::displayPlayerPile(PileID type, bool fixed, int n, bool sorted = fal
         std::cout<<"Combat Deck:\n"; choice = combat_deck;
         break;
             
-        case PileID::hand: //Hand is combat only. Hand should be visible by default, so no need to wait for return key.
+        case PileID::hand:
         std::cout<<"Hand:\n"; choice = hand;
         break;
         

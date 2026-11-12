@@ -1637,6 +1637,8 @@ Pile createIroncladStarterDeck(){
     for(int i =0; i<4;i++){deck.addCardTop(ICL_Defend);}
     deck.addCardTop(Bash);
     deck.addCardTop(Dark_Shackles);
+    deck.addCardTop(Demon_Form);
+    deck.addCardTop(Berserk);
 
     return deck;
 }

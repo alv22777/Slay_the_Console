@@ -15,14 +15,14 @@ struct Event{
     std::deque<Character*> targets;
     Character* check_condition;
     Event(std::shared_ptr<Effect> e, Character* s, std::deque<Character*> t, Character* con):
-        event_effect(e), source(s), targets(t), check_condition(con){}
-        
+        event_effect(e), source(s), targets(t), check_condition(con){}      
 };
 
 class EventHandler{
     private:
     std::deque<Event> pending;
-
+    // Event* current;
+    
     public:
     EventHandler();
     void enqueue(Event e);

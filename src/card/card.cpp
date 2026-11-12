@@ -117,7 +117,7 @@ Character* Card::checkTarget(std::vector<std::shared_ptr<Effect>> effects, Chara
 }
 
 void Card::trigger(Player& source, Game& game, TriggerID trigger, CardContext context){
-    //Well, i did what i could to make this more readable, hopefully it'll debug okay. In Linus we trust.
+    //Well, i did what i could to make this more readable, hopefully it'll debug okay.
     std::vector<std::shared_ptr<Effect>> effects = getTriggeredEffects(trigger);
     if(effects.empty()){return;}
 

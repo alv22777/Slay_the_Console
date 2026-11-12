@@ -42,6 +42,15 @@ struct Condition{
 };
 enum class Position;
 
+// struct EventRegistry {
+//     EffectReport result;
+//     int32_t ID;
+// }
+// EventHistory{
+//     deque<EventRegistry> history;
+//     public: EffectReport seek(int32_t id);
+// }
+
 struct EffectReport{
     int32_t damage_dealt=0;
     int32_t block_gained=0;

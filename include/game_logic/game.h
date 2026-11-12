@@ -17,6 +17,7 @@ class Game{
 	int turn; int floor;
 	EventLog event_log;
 	EventHandler event_handler;
+	//EventHistory history;
 	
 	public:
 	RNG rng;

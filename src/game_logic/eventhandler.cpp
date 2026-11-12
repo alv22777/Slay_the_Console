@@ -16,8 +16,8 @@ void EventHandler::stack(Event e){
 void EventHandler::resolveNext(Game& game){
     Event ev = pending.front(); 
     pending.pop_front();
-    
     game.resolveEffect(*(ev.source), ev.event_effect, ev.targets, ev.check_condition);
+    //add this event's results to the Game object's EventHistory with ID
 }
 bool EventHandler::empty(){
     return pending.empty();
